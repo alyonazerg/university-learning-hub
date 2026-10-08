@@ -1,4 +1,5 @@
 from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +15,7 @@ class Settings(BaseSettings):
 
 settings = Settings()
 app = FastAPI(title="University Learning Hub API", version=settings.app_version)
+app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:8080"], allow_methods=["POST", "GET"], allow_headers=["*"])
 
 from .db import Base, SessionLocal, engine
 from .models import Group, IdentityRegistry, Student
