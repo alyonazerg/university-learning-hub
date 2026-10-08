@@ -14,7 +14,8 @@ Status: product requirements for implementation in a subsequent sprint, not yet 
 - Public student profile exposes pseudonym, avatar, bio, optional XP/badges and public ranking opt-in only. Never legal name, Telegram handle, university ID or private grades.
 
 ## Leaderboards
-- Within-group student rankings, and between-group rankings.
+- Within-group student rankings show aliases only to members of that same group (subject to individual opt-out).
+- **Cross-group rankings are team-only:** show group label, aggregate normalized XP and position. Never show student aliases, avatars, individual scores, profiles, membership lists or individual rankings from other groups.
 - Weekly, monthly and all-time periods; timezone and reset boundaries must be defined.
 - XP must be independent from academic grade/BRС. Award only for verifiable learning activity; cap repetitive SRS farming, duplicate attempts and other abuse.
 - Group competition must normalize by eligible active members and use a minimum participation threshold; avoid ranking small groups unfairly. Record scoring policy versions and event ledger for audit.
@@ -37,6 +38,7 @@ Status: product requirements for implementation in a subsequent sprint, not yet 
 - Teacher display name reserved.
 - Idempotent XP events, anti-farming caps, period boundaries and stable rank ordering.
 - Group average correctly normalizes participation and excludes opted-out public individual rows without corrupting group statistics.
+- Cross-group leaderboard API returns only group-level aggregates, never individual student records, nicknames, avatars, profiles or grade data.
 - Cross-group student API cannot disclose protected student identity, grade or private group membership.
 
 Implementation order: finish Sprint 1 auth/roles/pseudonyms first; then profile/avatar gallery and XP ledger; then leaderboard UI.
