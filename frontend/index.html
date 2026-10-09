@@ -1,7 +1,41 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>University Learning Hub</title><link rel="stylesheet" href="styles.css"></head>
-<body><main class="card"><div class="mark">✦</div><h1>University Learning Hub</h1><p class="lead">Создай учебный профиль и выбери псевдоним.</p>
-<form id="registration"><label>Telegram ID<input name="telegram_user_id" type="number" min="1" required placeholder="Например, 123456789"></label><small>Его можно узнать у бота или администратора.</small><label>Псевдоним<input name="pseudonym" minlength="3" maxlength="80" pattern="[A-Za-z0-9_-]+" required placeholder="LunarFox"></label><small>Только латинские буквы, цифры, _ и -.</small><label>Имя и фамилия<input name="legal_name" maxlength="200" required placeholder="Только для закрытого реестра"></label><button>Зарегистрироваться</button><p id="message" role="status"></p></form></main><script>
-const form=document.querySelector('#registration'),msg=document.querySelector('#message');
-form.addEventListener('submit',async e=>{e.preventDefault();msg.textContent='Отправляем…';const data=Object.fromEntries(new FormData(form));data.telegram_user_id=Number(data.telegram_user_id);try{const r=await fetch((localStorage.apiBase||'http://localhost:8000')+'/auth/telegram/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const body=await r.json();if(!r.ok)throw Error(body.detail||'Не удалось зарегистрироваться');msg.className='ok';msg.textContent='Готово! Твой псевдоним: '+body.pseudonym;form.reset()}catch(err){msg.className='error';msg.textContent=err.message}});
-</script></body></html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moon Campus</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <div class="mark">✦</div>
+    <h1>Moon Campus</h1>
+    <p>Создай учебный профиль и выбери псевдоним.</p>
+
+    <section class="alias-card">
+      <p class="alias-label">Твой псевдоним</p>
+      <div id="pseudonym" class="alias-name"></div>
+      <button class="refresh" type="button" onclick="generateAlias()">
+        Сгенерировать другой
+      </button>
+    </section>
+
+    <button type="button">Продолжить</button>
+  </main>
+
+  <script>
+    const aliases = [
+      "MoonFox", "LunarBloom", "StarMage",
+      "NightOwl", "SilverLeaf", "CosmicQuill",
+      "MysticFern", "AuroraWolf", "MoonSage"
+    ];
+
+    function generateAlias() {
+      const alias = aliases[Math.floor(Math.random() * aliases.length)];
+      document.getElementById("pseudonym").textContent = alias;
+    }
+
+    generateAlias();
+  </script>
+</body>
+</html>
