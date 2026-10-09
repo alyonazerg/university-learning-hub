@@ -38,7 +38,7 @@ jobs:
           else
             cp -a .pages-live/frontend/. "$RUNNER_TEMP/moon-campus-pages/"
             mkdir -p "$RUNNER_TEMP/moon-campus-pages/preview"
-            cp frontend/index.html frontend/styles.css frontend/config.js frontend/registration.js "$RUNNER_TEMP/moon-campus-pages/preview/"
+            cp frontend/index.html frontend/styles.css frontend/config.js frontend/registration.js frontend/admin.html frontend/admin.css frontend/admin.js "$RUNNER_TEMP/moon-campus-pages/preview/"
           fi
           touch "$RUNNER_TEMP/moon-campus-pages/.nojekyll"
       - uses: actions/configure-pages@v5

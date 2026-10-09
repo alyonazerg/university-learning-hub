@@ -99,7 +99,7 @@ and timeouts offer recovery without displaying internal identifiers.
 - The cloud build used verified host-downloaded wheels offline, as build-container
   DNS is unavailable in this environment; no TLS verification was disabled.
 
-Not implemented in this change: full role/session management, administrator UI,
+Not implemented in this change: full role/session management, authenticated administrator UI,
 assignments, submissions, grades, React/TypeScript migration, avatars, biographies,
 XP, leaderboards, worker, Google integration. Keep these as subsequent milestones.
 Existing accounts are preserved; their login/session flow is also subsequent work.
@@ -111,7 +111,7 @@ before merging or publishing this branch to the live site.
 The Pages workflow runs on frontend/workflow pushes to `sprint-2-registration`
 and can also be manually dispatched from that branch.
 For a branch dispatch it combines the latest `main` frontend at the site root
-with only the four registration web assets under `/preview/`. It does not merge
+with registration and the synthetic teacher dashboard under `/preview/`. It does not merge
 code into `main`. A subsequent normal
 `main` deployment replaces the whole Pages artifact and can remove this preview.
 GitHub Pages environment branch rules must permit the branch before deployment.

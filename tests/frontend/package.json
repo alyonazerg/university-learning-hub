@@ -1,6 +1,6 @@
 {
   "name": "moon-campus-ui-tests",
   "private": true,
-  "scripts": {"test": "node --test registration.test.cjs"},
+  "scripts": {"test": "node --test *.test.cjs"},
   "devDependencies": {"playwright": "1.62.1"}
 }
