@@ -87,3 +87,18 @@ button {
   background: #7652ad;
   color: #ffffff;
 }
+
+body {
+  min-height: 100svh;
+  padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+.eyebrow { color: #7652ad; font-size: 12px; letter-spacing: .08em; margin-bottom: 10px; }
+.alias-name { font-size: clamp(25px, 7vw, 34px); overflow-wrap: anywhere; line-height: 1.25; }
+.privacy { font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+.status { font-size: 14px; line-height: 1.5; margin-top: 16px; min-height: 42px; }
+button { min-height: 48px; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button:focus-visible { outline: 3px solid #493071; outline-offset: 4px; }
+button:disabled { cursor: default; opacity: .65; }
+@media (max-width: 360px) { main { padding: 24px 18px; } h1 { font-size: 28px; } }
+@media (prefers-reduced-motion: no-preference) { button { transition: background-color .15s ease; } .refresh:hover { background: #f4edff; } }

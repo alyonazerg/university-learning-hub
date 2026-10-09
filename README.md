@@ -16,7 +16,7 @@ Private university learning platform for eight teaching groups (~120 students).
 
 ## Quick start
 
-1. Copy `.env.example` to `.env` and set strong credentials.
+1. Copy `.env.example` to `.env`, set strong database credentials, and configure `TELEGRAM_BOT_TOKEN` and `ADMIN_TOKEN` securely to enable registration.
 2. Run `docker compose up --build`.
 3. Visit `http://localhost:8000/health` (should return `{"status":"ok","version":"0.1.0"}`).
 4. Run tests with `docker compose run --rm api pytest -q`.
@@ -33,3 +33,7 @@ Private university learning platform for eight teaching groups (~120 students).
 6. Grammar and spaced-repetition vocabulary
 
 All grading and privacy features must be verified before real student onboarding.
+
+## Registration milestone
+
+See [registration contract and deployment notes](docs/registration.md) for group-bound invitations, server-issued pseudonyms, migration of existing databases, and frontend preview limitations. This milestone does not yet provide the full administrator dashboard or student sessions.

@@ -1,2 +1,2 @@
 FROM nginx:alpine
-COPY index.html styles.css /usr/share/nginx/html/
+COPY --chmod=644 index.html styles.css config.js registration.js /usr/share/nginx/html/

@@ -1,10 +1,24 @@
-from pydantic import BaseModel, Field
-class TelegramRegistration(BaseModel):
-    telegram_user_id: int = Field(gt=0)
-    pseudonym: str = Field(min_length=3, max_length=80, pattern=r"^[A-Za-z0-9_-]+$")
-    legal_name: str = Field(min_length=1, max_length=200)
+from pydantic import BaseModel, ConfigDict, Field
+
+class TelegramAuthentication(BaseModel):
+    model_config = ConfigDict(extra='forbid')
     telegram_data: dict[str, str] = Field(default_factory=dict)
+    invitation_token: str = Field(min_length=32, max_length=64)
+    init_data: str = Field(default='', max_length=16384)
+
+class TelegramRegistration(TelegramAuthentication):
+    pseudonym_token: str = Field(min_length=32, max_length=64)
+
+class PseudonymView(BaseModel):
+    pseudonym: str
+    token: str
+    expires_in: int
+
 class StudentView(BaseModel):
-    id: int; pseudonym: str; group_id: int | None
+    model_config = ConfigDict(from_attributes=True)
+    public_id: str
+    pseudonym: str
+    group_id: int | None
+
 class GroupCreate(BaseModel):
     name: str = Field(min_length=1, max_length=120)

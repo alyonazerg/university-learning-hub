@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from .main import settings
+from .settings import settings
 
 class Base(DeclarativeBase): pass
 url = settings.database_url or "sqlite:///./university_learning_hub.db"

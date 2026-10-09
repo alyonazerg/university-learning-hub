@@ -2,67 +2,30 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Moon Campus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#f4f1fb">
+  <title>Moon Campus · Учебный профиль</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
+  <script src="config.js" defer></script>
+  <script src="registration.js" defer></script>
 </head>
 <body>
-  <main>
-    <div class="mark">✦</div>
-
-    <h1>Moon Campus</h1>
-    <p>Создай учебный профиль и выбери свой магический псевдоним.</p>
-
-    <section class="alias-card">
-      <div class="alias-label">Твой псевдоним</div>
-      <div id="pseudonym" class="alias-name"></div>
-
-      <button class="refresh" type="button" onclick="generateAlias()">
-        ↻ Другой псевдоним
-      </button>
+  <main aria-labelledby="page-title">
+    <div class="mark" aria-hidden="true">✦</div>
+    <div class="eyebrow">Твоя учебная вселенная</div>
+    <h1 id="page-title">Moon Campus</h1>
+    <p>Твой профиль начинается с маленькой магии. Выбери псевдоним, который тебе нравится.</p>
+    <section class="alias-card" aria-labelledby="alias-label">
+      <div id="alias-label" class="alias-label">Твой псевдоним</div>
+      <div id="pseudonym" class="alias-name" aria-live="polite" aria-atomic="true">Выбираем…</div>
+      <button id="refresh" class="refresh" type="button">↻ Другой псевдоним</button>
     </section>
-
-    <button class="continue" type="button">
-      Продолжить
-    </button>
+    <p class="privacy">В учебном пространстве тебя будут видеть под псевдонимом. Имя и фамилия здесь не нужны.</p>
+    <button id="continue" class="continue" type="button" disabled>Создать профиль</button>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <noscript><p class="status">Включи JavaScript, чтобы выбрать псевдоним.</p></noscript>
   </main>
-
-  <script>
-    const firstWords = [
-      "Moon", "Silver", "Lunar", "Mystic",
-      "Star", "Aurora", "Dream", "Velvet",
-      "Secret", "Crystal", "Twilight", "Golden"
-    ];
-
-    const secondWords = [
-      "Willow", "Fox", "Bloom", "Sage",
-      "Raven", "Fern", "Comet", "Thyme",
-      "Owl", "Rose", "Maple", "Cloud"
-    ];
-
-    function generateAlias() {
-      const used = JSON.parse(localStorage.getItem("usedAliases") || "[]");
-      const allAliases = [];
-
-      firstWords.forEach(first => {
-        secondWords.forEach(second => {
-          allAliases.push(`${first} ${second}`);
-        });
-      });
-
-      const available = allAliases.filter(alias => !used.includes(alias));
-      const pool = available.length > 0 ? available : allAliases;
-      const alias = pool[Math.floor(Math.random() * pool.length)];
-
-      if (!used.includes(alias)) {
-        used.push(alias);
-        localStorage.setItem("usedAliases", JSON.stringify(used));
-      }
-
-      document.getElementById("pseudonym").textContent = alias;
-    }
-
-    generateAlias();
-  </script>
 </body>
 </html>
