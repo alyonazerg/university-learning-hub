@@ -8,6 +8,8 @@
   <title>Moon Campus · Домашние задания</title>
   <link rel="stylesheet" href="admin.css">
   <link rel="stylesheet" href="homework.css">
+  <script src="courses.js" defer></script>
+  <script src="text-review.js" defer></script>
   <script src="homework.js" defer></script>
 </head>
 <body>
@@ -30,13 +32,14 @@
     <p class="muted">Выбери группу и срок сдачи. Задание появится в её демонстрационном кабинете.</p>
     <label class="input-label" for="assignment-title">Название</label><input id="assignment-title" required maxlength="120" autocomplete="off">
     <label class="input-label" for="assignment-description">Инструкция</label><textarea id="assignment-description" required maxlength="4000" rows="5"></textarea>
+    <label class="input-label" for="assignment-vocabulary">Целевая лексика · слова и фразы через запятую или с новой строки</label><textarea id="assignment-vocabulary" maxlength="1500" rows="3" placeholder="enjoy, would you like, moonlit"></textarea>
     <label class="input-label" for="assignment-group">Учебная группа</label><select id="assignment-group" required></select>
     <label class="input-label" for="assignment-deadline">Срок сдачи · московское время (МСК)</label><input id="assignment-deadline" type="datetime-local" required>
     <p id="assignment-error" class="form-error" role="alert"></p>
     <div class="dialog-actions"><button id="cancel-assignment" class="secondary" type="button">Отмена</button><button class="primary" type="submit">Создать</button></div>
   </form></dialog>
   <dialog id="review-dialog" aria-labelledby="review-dialog-title"><form id="review-form">
-    <h2 id="review-dialog-title">Обратная связь</h2><p id="review-context" class="muted"></p><div id="review-content"></div>
+    <h2 id="review-dialog-title">Обратная связь</h2><p id="review-context" class="muted"></p><div id="review-content"></div><div id="review-analysis"></div><button id="use-suggestions" type="button" class="secondary">Добавить подсказки в комментарий</button>
     <label class="input-label" for="review-feedback">Комментарий студенту</label><textarea id="review-feedback" required maxlength="3000" rows="5" placeholder="Что получилось хорошо и что стоит доработать?"></textarea>
     <p id="review-error" class="form-error" role="alert"></p>
     <div class="dialog-actions"><button id="cancel-review" class="secondary" type="button">Отмена</button><button class="primary" type="submit">Сохранить комментарий</button></div>

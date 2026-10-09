@@ -2,7 +2,22 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const student = Object.freeze({id: 'demo-student-1', alias: 'Silver Fern', groupId: 'demo-group-1'});
-  const groups = Array.from({length: 8}, (_, i) => ({id: `demo-group-${i + 1}`, name: `Английский · группа ${String(i + 1).padStart(2, '0')}`}));
+  const courses = window.MoonCourses;
+  const courseName = id => courses.find(course => course.id === id).name;
+  const groups = Array.from({length: 8}, (_, i) => ({id: `demo-group-${i + 1}`, name: `Английский · группа ${String(i + 1).padStart(2, '0')}`, courseId: i % 2 ? 'grammar' : 'speech'}));
+  // A one-time synthetic catalog handoff from the group dashboard, never credentials or student records.
+  try {
+    const raw = sessionStorage.getItem('moon-demo-catalog'); sessionStorage.removeItem('moon-demo-catalog');
+    const catalog = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(catalog) && catalog.length <= 200 && catalog.every(group =>
+      typeof group.id === 'string' && /^demo-group-[\w-]+$/.test(group.id) &&
+      typeof group.name === 'string' && group.name.length > 0 && group.name.length <= 120 &&
+      courses.some(course => course.id === group.courseId)) &&
+      new Set(catalog.map(group => group.id)).size === catalog.length &&
+      groups.every(group => catalog.some(item => item.id === group.id))) {
+      groups.splice(0, groups.length, ...catalog.map(({id, name, courseId}) => ({id, name, courseId})));
+    }
+  } catch { /* Storage unavailable or invalid: use the original synthetic catalog. */ }
   const day = 86400000;
   const startedAt = Date.now();
   const tasks = [
@@ -10,6 +25,9 @@
     {id: 'demo-task-2', title: 'My enchanted study routine', description: 'Describe a fictional study routine in 6–8 sentences. Practise the present simple and adverbs of frequency.', groupId: groups[0].id, deadline: startedAt + 5 * day},
     {id: 'demo-task-3', title: 'A walk through a magical garden', description: 'Describe an imaginary garden using five adjectives and three prepositions of place.', groupId: groups[1].id, deadline: startedAt + 4 * day},
   ];
+  tasks[0].vocabulary = ['enjoy', 'would you like', 'moonlit'];
+  tasks[1].vocabulary = ['usually', 'often', 'study'];
+  tasks[2].vocabulary = ['behind', 'beautiful', 'between'];
   const submissions = [Object.freeze({id: 'demo-work-1', taskId: tasks[0].id, studentId: 'demo-student-2', alias: 'Silver Willow', attempt: 1, kind: 'text', content: 'Hello, new friend! I live in a moonlit garden and enjoy reading stories about tiny dragons. What books do you like? Would you like to visit the garden?', createdAt: startedAt - 30 * 60000, late: false})];
   const feedback = new Map();
   const drafts = new Map();
@@ -18,6 +36,7 @@
   let teacherSelected = tasks[0].id;
   let studentSelected = tasks[0].id;
   let groupFilter = 'all';
+  let courseFilter = 'all';
   let reviewing = null;
   const formatter = new Intl.DateTimeFormat('ru-RU', {timeZone: 'Europe/Moscow', dateStyle: 'medium', timeStyle: 'short'});
 
@@ -37,7 +56,7 @@
   function announce(message) { $('homework-announcement').textContent = message; }
   function ownWorks(taskId) { return submissions.filter(work => work.taskId === taskId && work.studentId === student.id); }
   function worksFor(taskId) { return submissions.filter(work => work.taskId === taskId); }
-  function visibleTasks() { return role === 'teacher' ? tasks.filter(task => groupFilter === 'all' || task.groupId === groupFilter) : tasks.filter(task => task.groupId === student.groupId); }
+  function visibleTasks() { return tasks.filter(task => {const group = groups.find(group => group.id === task.groupId); return (courseFilter === 'all' || group.courseId === courseFilter) && (role === 'teacher' ? groupFilter === 'all' || task.groupId === groupFilter : task.groupId === student.groupId);}); }
   function selectedTask() {
     const visible = visibleTasks();
     const id = role === 'teacher' ? teacherSelected : studentSelected;
@@ -93,13 +112,19 @@
     const sidebar = node('section', undefined, 'groups-panel');
     sidebar.setAttribute('aria-label', 'Список заданий');
     sidebar.append(node('h2', teacher ? 'Все задания' : 'Твои задания'));
+    const courseLabel = node('label', 'Курс', 'input-label'); courseLabel.htmlFor = 'task-course-filter';
+    const courseSelect = node('select'); courseSelect.id = 'task-course-filter';
+    for (const course of [{id: 'all', name: 'Все курсы'}, ...courses]) {const option = node('option', course.name); option.value = course.id; courseSelect.append(option);}
+    courseSelect.value = courseFilter;
+    courseSelect.addEventListener('change', () => {courseFilter = courseSelect.value; groupFilter = 'all'; render(); $('task-course-filter').focus();});
+    sidebar.append(courseLabel, courseSelect);
     if (teacher) {
       const label = node('label', 'Учебная группа', 'input-label');
       label.htmlFor = 'task-group-filter';
       const filter = node('select');
       filter.id = 'task-group-filter';
       const all = node('option', 'Все группы'); all.value = 'all'; filter.append(all);
-      for (const group of groups) { const option = node('option', group.name); option.value = group.id; filter.append(option); }
+      for (const group of groups.filter(group => courseFilter === 'all' || group.courseId === courseFilter)) { const option = node('option', group.name); option.value = group.id; filter.append(option); }
       filter.value = groupFilter;
       filter.addEventListener('change', () => {groupFilter = filter.value; render(); $('task-group-filter').focus();});
       sidebar.append(label, filter);
@@ -112,7 +137,7 @@
         render(); focusDetails(); announce(`Выбрано задание «${task.title}».`);
       }, 'task-card');
       card.setAttribute('aria-pressed', String(task.id === selected?.id));
-      card.append(node('strong', task.title), node('span', groupName(task.groupId)), node('span', `${formatter.format(task.deadline)} · МСК`), node('span', taskState(task), 'task-state'));
+      card.append(node('strong', task.title), node('span', `${courseName(groups.find(group => group.id === task.groupId).courseId)} · ${groupName(task.groupId)}`), node('span', `${formatter.format(task.deadline)} · МСК`), node('span', taskState(task), 'task-state'));
       list.append(card);
     }
     if (!visibleTasks().length) list.append(node('p', 'Для этой группы пока нет заданий.', 'empty'));
@@ -129,9 +154,20 @@
     details.append(node('div', 'Выбранное задание', 'eyebrow'), title, node('p', groupName(task.groupId), 'muted'), node('p', task.description, 'assignment-instructions'));
     const past = Date.now() > task.deadline;
     const deadline = node('p', `Сдать до ${formatter.format(task.deadline)} · МСК${past ? '. Срок прошёл, работу можно отправить с отметкой об опоздании.' : ''}`, `deadline-note${past ? ' late-note' : ''}`);
-    details.append(deadline);
+    details.append(deadline, node('p', `Курс: ${courseName(groups.find(group => group.id === task.groupId).courseId)}`, 'muted'));
+    details.append(node('p', `Целевая лексика: ${task.vocabulary?.join(', ') || 'не задана'}`, 'vocabulary-note'));
+    details.append(node('p', 'Проверка ищет точные формы слов и фраз; смысл употребления оценивает преподаватель.', 'muted'));
     if (role === 'teacher') renderTeacherWorks(details, task);
     else renderStudentWork(details, task);
+  }
+  function analysisPanel(work, task) {
+    const panel = node('div', undefined, 'analysis-box');
+    if (work.kind !== 'text') {panel.append(node('p', 'Ссылка: текст не загружен, лексика и оформление не проверены.')); return panel;}
+    const result = MoonTextReview.analyse(work.content, task.vocabulary || []);
+    panel.append(node('strong', 'Лексика и подсказки'), node('p', `Найдено: ${result.found.join(', ') || '—'}`), node('p', `Не найдено: ${result.missing.join(', ') || '—'}`));
+    for (const suggestion of result.suggestions) panel.append(node('p', suggestion));
+    panel.append(node('p', 'Это подсказки по правилам, без проверки смысла и авторства. По тексту нельзя надёжно установить использование ИИ.', 'muted'));
+    return panel;
   }
   function renderTeacherWorks(details, task) {
     const section = node('section', undefined, 'work-section');
@@ -141,7 +177,7 @@
       const card = node('article', undefined, 'submission-card');
       const header = node('div', undefined, 'submission-header');
       header.append(node('strong', work.alias), node('span', feedback.has(work.id) ? 'Проверено' : 'На проверке', 'member-status'));
-      card.append(header, node('p', `Попытка ${work.attempt} из 3 · ${formatter.format(work.createdAt)} · МСК${work.late ? ' · После срока' : ''}`, 'muted'), displayContent(work));
+      card.append(header, node('p', `Попытка ${work.attempt} из 3 · ${formatter.format(work.createdAt)} · МСК${work.late ? ' · После срока' : ''}`, 'muted'), displayContent(work), analysisPanel(work, task));
       const review = displayFeedback(work); if (review) card.append(review);
       const reviewButton = button(review ? 'Изменить комментарий' : 'Оставить комментарий', () => openReview(work));
       reviewButton.dataset.workId = work.id;
@@ -177,7 +213,7 @@
     const list = node('div', undefined, 'submission-list');
     for (const work of works.slice().reverse()) {
       const card = node('article', undefined, 'submission-card');
-      card.append(node('strong', `Попытка ${work.attempt} из 3`), node('p', `${formatter.format(work.createdAt)} · МСК${work.late ? ' · После срока' : ''}`, 'muted'), displayContent(work));
+      card.append(node('strong', `Попытка ${work.attempt} из 3`), node('p', `${formatter.format(work.createdAt)} · МСК${work.late ? ' · После срока' : ''}`, 'muted'), displayContent(work), analysisPanel(work, task));
       const review = displayFeedback(work);
       card.append(review || node('p', 'Работа на проверке. Комментарий появится здесь.', 'muted'));
       list.append(card);
@@ -213,6 +249,9 @@
     reviewing = work.id;
     $('review-context').textContent = `${work.alias} · попытка ${work.attempt} · ${tasks.find(task => task.id === work.taskId).title}`;
     $('review-content').replaceChildren(displayContent(work));
+    const task = tasks.find(task => task.id === work.taskId);
+    $('review-analysis').replaceChildren(analysisPanel(work, task));
+    $('use-suggestions').hidden = work.kind !== 'text';
     $('review-feedback').value = feedback.get(work.id)?.text || '';
     $('review-error').textContent = '';
     $('review-dialog').showModal(); $('review-feedback').focus();
@@ -223,9 +262,9 @@
     const timestamp = Date.parse(`${value}:00+03:00`);
     return Number.isFinite(timestamp) && localMoscow(timestamp) === value ? timestamp : NaN;
   }
-  for (const group of groups) {const option = node('option', group.name); option.value = group.id; $('assignment-group').append(option);}
+  for (const group of groups) {const option = node('option', `${courseName(group.courseId)} · ${group.name}`); option.value = group.id; $('assignment-group').append(option);}
   $('teacher-view').addEventListener('click', () => {role = 'teacher'; render(); announce('Демо-режим преподавателя.');});
-  $('student-view').addEventListener('click', () => {role = 'student'; render(); announce('Демо-режим студента Silver Fern.');});
+  $('student-view').addEventListener('click', () => {role = 'student'; courseFilter = 'all'; render(); announce('Демо-режим студента Silver Fern.');});
   $('new-task').addEventListener('click', () => {
     $('assignment-form').reset(); $('assignment-error').textContent = '';
     $('assignment-deadline').value = localMoscow(Date.now() + day);
@@ -239,10 +278,21 @@
     const deadline = parseMoscow($('assignment-deadline').value);
     if (!title || !description) {$('assignment-error').textContent = 'Добавь название и инструкцию.'; return;}
     if (!Number.isFinite(deadline) || deadline <= Date.now()) {$('assignment-error').textContent = 'Выбери будущий срок сдачи по московскому времени.'; return;}
-    const task = {id: `demo-task-${crypto.randomUUID()}`, title, description, groupId: $('assignment-group').value, deadline};
-    tasks.unshift(task); teacherSelected = task.id; groupFilter = 'all';
+    const task = {id: `demo-task-${crypto.randomUUID()}`, title, description, groupId: $('assignment-group').value, deadline, vocabulary: MoonTextReview.parseVocabulary($('assignment-vocabulary').value)};
+    tasks.unshift(task); teacherSelected = task.id; groupFilter = 'all'; courseFilter = 'all';
     if (task.groupId === student.groupId) studentSelected = task.id;
     $('assignment-dialog').close(); render(); focusDetails(); announce(`Демонстрационное задание «${title}» создано.`);
+  });
+  $('use-suggestions').addEventListener('click', () => {
+    const work = submissions.find(work => work.id === reviewing);
+    if (!work || work.kind !== 'text') return;
+    const task = tasks.find(task => task.id === work.taskId);
+    const result = MoonTextReview.analyse(work.content, task.vocabulary || []);
+    const suggestion = result.suggestions.join('\n') || (task.vocabulary?.length ? 'Целевая лексика найдена; проверь её употребление в контексте.' : 'Целевая лексика не задана. Проверь текст и его смысл самостоятельно.');
+    const field = $('review-feedback');
+    const combined = [field.value.trim(), suggestion].filter(Boolean).join('\n');
+    if (combined.length > field.maxLength) {$('review-error').textContent = 'Комментарий слишком длинный; сократи его перед добавлением подсказок.'; return;}
+    field.value = combined; field.focus();
   });
   $('cancel-review').addEventListener('click', () => $('review-dialog').close());
   $('review-form').addEventListener('submit', event => {

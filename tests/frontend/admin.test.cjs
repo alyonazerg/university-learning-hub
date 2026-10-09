@@ -83,3 +83,18 @@ test('iPhone dashboard has no horizontal overflow and modal works by keyboard', 
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   assert.deepEqual(errors, []);
 });
+
+test('group has one editable course and its catalog reaches the assignment page', async t => {
+  const {page, errors} = await openDashboard(t);
+  await page.locator('#course-filter').selectOption('grammar');
+  assert.equal(await page.locator('.group-card').count(), 4);
+  await page.locator('#edit-group').click();
+  await page.locator('#group-name').fill('Лунные исследователи');
+  await page.locator('#group-course').selectOption('grammar');
+  await page.locator('#group-form button[type=submit]').click();
+  assert.match(await page.locator('#group-summary').textContent(), /Грамматика/);
+  await page.locator('.dashboard-links a').click();
+  await page.locator('#new-task').click();
+  assert.match(await page.locator('#assignment-group option[value="demo-group-1"]').textContent(), /Грамматика.*Лунные исследователи/);
+  assert.deepEqual(errors, []);
+});

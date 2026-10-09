@@ -158,3 +158,33 @@ test('mobile layouts and dialogs support assignment and submission flows', async
   }
   assert.deepEqual(errors, []);
 });
+
+test('course filtering and lexical suggestions require teacher approval before feedback', async t => {
+  const {page, errors} = await openHomework(t);
+  await page.locator('#task-course-filter').selectOption('grammar');
+  assert.equal(await page.locator('.task-card').count(), 1);
+  assert.match(await page.locator('.task-card').textContent(), /Грамматика/);
+  await page.locator('#new-task').click();
+  await page.locator('#assignment-title').fill('Vocabulary exercise');
+  await page.locator('#assignment-description').fill('Use the target words in a fictional story.');
+  await page.locator('#assignment-vocabulary').fill('art, would you like, moonlit');
+  await page.locator('#assignment-form button[type=submit]').click();
+  await page.locator('#student-view').click();
+  await submitText(page, 'i like art. Would you like tea?');
+  await page.locator('#teacher-view').click();
+  await page.locator('.submission-card button').click();
+  assert.match(await page.locator('#review-analysis').textContent(), /Найдено: art, would you like/);
+  assert.match(await page.locator('#review-analysis').textContent(), /Не найдено: moonlit/);
+  await page.locator('#use-suggestions').click();
+  assert.match(await page.locator('#review-feedback').inputValue(), /moonlit/);
+  await page.locator('#cancel-review').click();
+  await page.locator('#student-view').click();
+  assert.equal(await page.locator('.feedback-box').count(), 0);
+  await page.locator('#teacher-view').click();
+  await page.locator('.submission-card button').click();
+  await page.locator('#use-suggestions').click();
+  await page.locator('#review-form button[type=submit]').click();
+  await page.locator('#student-view').click();
+  assert.match(await page.locator('.feedback-box').textContent(), /moonlit/);
+  assert.deepEqual(errors, []);
+});

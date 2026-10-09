@@ -39,7 +39,7 @@ Teacher-created tasks for other groups are excluded from this student's task lis
 ## Boundaries
 
 Everything uses synthetic data and browser memory only. Do not enter real student
-records, work or grades. No data is written to an API or browser persistent storage.
+records, work or grades. No data is written to an API or durable storage. A one-time sessionStorage handoff carries only synthetic group IDs, names and course assignments when navigating from the dashboard; homework reads and deletes it.
 There are no academic scores, grade exports, AI feedback, real student sessions,
 private file storage or enforced server-side permissions in this demonstration.
 The data projections are UI examples, not a security boundary. A production version
@@ -48,10 +48,33 @@ attempt limits, retain immutable snapshots and protect submissions/feedback.
 
 ## Verification
 
-`npm test --prefix tests/frontend` runs 14 browser tests, including six homework
+`npm test --prefix tests/frontend` runs 18 tests (16 browser checks and two lexical-analysis unit checks), including seven homework
 checks: the complete role-switch cycle; cross-group/other-student exclusion; attempt
 limits, duplicate handling and immutable versions; safe document links and literal
 text; Moscow deadlines and late labels; mobile layouts and keyboard dialogs.
 The existing registration and teacher dashboard checks remain included.
 Pages publication includes only static web assets and preserves the current main
 frontend at the site root. No merge into `main` is performed by publication.
+
+## Courses and text review
+
+Every group has exactly one course: «Практика речи» or «Грамматика (иностранный язык)».
+The dashboard allows naming, renaming and selecting a course. Its assignment link
+passes the synthetic catalog once to the homework page. Direct visits and reloads
+restore the initial fixtures. This is not a shared production database.
+Tasks inherit their group’s course; course filters separate the assignment lists.
+Learning scores and per-course progress charts are not yet implemented.
+
+Assignments accept comma-, semicolon- or newline-separated target words/phrases.
+Text attempts immediately show exact-form coverage with case/NFKC normalization,
+complete-word boundaries and whitespace-separated phrase matching. Inflections,
+synonyms and contextual correctness require a teacher. Links are not analysed.
+Rule-based hints cover missing vocabulary, lowercase English I, repeated spaces,
+spaces before punctuation and a possible missing final punctuation mark. They
+are suggestions, not a full grammar checker. Original submissions stay unchanged.
+Teachers explicitly add hints to an editable comment and publish it separately.
+
+No AI authorship detector or probability score is provided: text alone cannot
+reliably establish AI use. Discussing a work and comparing its attempts can help
+a teacher investigate, without an automatic accusation or academic penalty.
+No paid APIs or remote text-processing requests are used.

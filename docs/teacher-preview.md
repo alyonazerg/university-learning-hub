@@ -30,3 +30,9 @@ Validation: `npm ci --prefix tests/frontend` then `npm test --prefix tests/front
 Eight browser tests cover registration plus teacher groups, search/status filters,
 duplicate names, HTML-injection resistance, demo invitations, reset behaviour,
 absence of API writes, iPhone viewport layouts and keyboard dialog controls.
+
+Groups have a single course (speech practice or foreign-language grammar), editable
+with the group name. Course filtering changes the group list; registration totals
+still describe all groups. Following «Задания и сдачи» passes the synthetic catalog
+once through sessionStorage so the assignment selector uses those names/courses.
+Reloading restores fixtures; no student records or invitations are handed off.

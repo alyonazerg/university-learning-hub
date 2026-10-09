@@ -1,11 +1,15 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
+  const courses = window.MoonCourses;
+  const courseName = id => courses.find(course => course.id === id).name;
+  let editing = null;
   const first = ['Silver', 'Amber', 'Misty', 'Violet', 'Golden', 'Crystal', 'Moon', 'Velvet'];
   const second = ['Fern', 'Willow', 'Clover', 'Lilac', 'Bloom', 'Sage', 'Fox', 'Rose', 'Comet', 'Iris', 'Owl', 'Wren', 'Maple', 'Moss', 'Lotus'];
   const groups = first.map((word, index) => ({
     id: `demo-group-${index + 1}`,
     name: `Английский · группа ${String(index + 1).padStart(2, '0')}`,
+    courseId: index % 2 ? 'grammar' : 'speech',
     members: second.map((ending, i) => ({alias: i % 5 === 4 ? null : `${word} ${ending}`, invitation: null})),
   }));
   let selected = groups[0].id;
@@ -35,7 +39,7 @@
     $('registered-count').textContent = groups.reduce((sum, group) => sum + counts(group).registered, 0);
     $('pending-count').textContent = groups.reduce((sum, group) => sum + counts(group).pending, 0);
     const query = $('group-search').value.trim().toLocaleLowerCase('ru');
-    const matching = groups.filter(group => group.name.toLocaleLowerCase('ru').includes(query));
+    const matching = groups.filter(group => group.name.toLocaleLowerCase('ru').includes(query) && ($('course-filter').value === 'all' || group.courseId === $('course-filter').value));
     $('group-result-count').textContent = `${matching.length} из ${groups.length}`;
     $('group-list').replaceChildren();
     for (const group of matching) {
@@ -43,7 +47,7 @@
       button.type = 'button';
       button.setAttribute('aria-pressed', String(group.id === selected));
       const {registered, pending} = counts(group);
-      button.append(node('strong', group.name), node('span', `${registered} с профилем · ${pending} ожидают`));
+      button.append(node('strong', group.name), node('span', courseName(group.courseId)), node('span', `${registered} с профилем · ${pending} ожидают`));
       button.addEventListener('click', () => {
         selected = group.id;
         $('member-search').value = '';
@@ -60,7 +64,7 @@
     const group = current();
     const {registered, pending} = counts(group);
     $('selected-group-title').textContent = group.name;
-    $('group-summary').textContent = `${group.members.length} учебных мест · ${registered} с профилем · ${pending} ожидают`;
+    $('group-summary').textContent = `${courseName(group.courseId)} · ${group.members.length} учебных мест · ${registered} с профилем · ${pending} ожидают`;
     const percent = group.members.length ? Math.round(registered / group.members.length * 100) : 0;
     $('registration-percent').textContent = `${percent}%`;
     $('registration-progress').value = percent;
@@ -83,10 +87,23 @@
     $('copy-invite').textContent = 'Скопировать код';
   }
   function render() { renderGroups(); renderMembers(); }
+  for (const course of courses) {
+    for (const id of ['course-filter', 'group-course']) {const option = node('option', course.name); option.value = course.id; $(id).append(option);}
+  }
+  $('course-filter').addEventListener('change', renderGroups);
+  $('edit-group').addEventListener('click', () => {
+    const group = current(); editing = group.id;
+    $('dialog-title').textContent = 'Название и курс группы';
+    $('group-form').querySelector('button[type=submit]').textContent = 'Сохранить';
+    $('group-name').value = group.name; $('group-course').value = group.courseId;
+    $('group-error').textContent = ''; $('group-dialog').showModal(); $('group-name').focus();
+  });
   $('group-search').addEventListener('input', renderGroups);
   $('member-search').addEventListener('input', renderMembers);
   $('status-filter').addEventListener('change', renderMembers);
   $('add-group').addEventListener('click', () => {
+    editing = null; $('dialog-title').textContent = 'Новая учебная группа';
+    $('group-form').querySelector('button[type=submit]').textContent = 'Создать';
     $('group-form').reset();
     $('group-error').textContent = '';
     $('group-dialog').showModal();
@@ -97,12 +114,14 @@
     event.preventDefault();
     const name = $('group-name').value.trim();
     if (!name) { $('group-error').textContent = 'Введи название группы.'; return; }
-    if (groups.some(group => group.name.toLocaleLowerCase('ru') === name.toLocaleLowerCase('ru'))) {
+    if (groups.some(group => group.id !== editing && group.name.toLocaleLowerCase('ru') === name.toLocaleLowerCase('ru'))) {
       $('group-error').textContent = 'Группа с таким названием уже есть.';
       return;
     }
-    const group = {id: `demo-group-${crypto.randomUUID()}`, name, members: []};
-    groups.push(group);
+    const group = editing ? current() : {id: `demo-group-${crypto.randomUUID()}`, members: []};
+    group.name = name; group.courseId = $('group-course').value;
+    if (!editing) groups.push(group);
+    $('course-filter').value = 'all';
     selected = group.id;
     $('group-search').value = '';
     $('member-search').value = '';
@@ -110,7 +129,7 @@
     $('group-dialog').close();
     render();
     revealSelection();
-    announce(`Демонстрационная группа «${name}» создана.`);
+    announce(`Демонстрационная группа «${name}» сохранена.`);
   });
   $('create-invite').addEventListener('click', () => {
     const group = current();
@@ -131,6 +150,10 @@
     } catch {
       announce('Не удалось скопировать автоматически. Выдели демонстрационный код и скопируй вручную.');
     }
+  });
+  document.querySelector('.dashboard-links a').addEventListener('click', () => {
+    try {sessionStorage.setItem('moon-demo-catalog', JSON.stringify(groups.map(({id, name, courseId}) => ({id, name, courseId}))));}
+    catch {announce('Передать демо-группы не удалось. В заданиях откроется исходный набор.');}
   });
   render();
 })();
