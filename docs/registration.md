@@ -100,7 +100,7 @@ and timeouts offer recovery without displaying internal identifiers.
   DNS is unavailable in this environment; no TLS verification was disabled.
 
 Not implemented in this change: full role/session management, authenticated administrator UI,
-assignments, submissions, grades, React/TypeScript migration, avatars, biographies,
+persistent assignments/submissions, grades, React/TypeScript migration, avatars, biographies,
 XP, leaderboards, worker, Google integration. Keep these as subsequent milestones.
 Existing accounts are preserved; their login/session flow is also subsequent work.
 The Pages workflow deploys pushes to `main` only. Review and approval are required

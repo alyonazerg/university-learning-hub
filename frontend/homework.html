@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f4fb">
+  <meta name="referrer" content="no-referrer">
+  <title>Moon Campus · Домашние задания</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="homework.css">
+  <script src="homework.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="admin.html"><span aria-hidden="true">✦</span> Moon Campus</a>
+    <div class="teacher"><span id="viewer-name">✦ Lunar Thyme</span><span id="viewer-role" class="role">Преподаватель · демо</span></div>
+  </header>
+  <main>
+    <section class="demo-banner" aria-label="Демонстрационный режим"><span class="demo-badge">Демо</span><p>Вымышленные группы и работы. Переключай роли, чтобы пройти весь учебный цикл. Используй только вымышленные тексты; изменения сбросятся после обновления страницы.</p></section>
+    <section class="page-heading"><div><div class="eyebrow">От задания до обратной связи</div><h1>Домашние задания</h1><p id="view-description"></p></div><button id="new-task" class="primary" type="button">+ Создать задание</button></section>
+    <div class="role-switch" role="group" aria-label="Роль в демонстрации"><button id="teacher-view" type="button" aria-pressed="true">Преподаватель</button><button id="student-view" type="button" aria-pressed="false">Студент · Silver Fern</button></div>
+    <section class="metrics" aria-label="Обзор заданий"><article><span id="task-metric-label">Задания</span><strong id="task-count">0</strong></article><article><span>Работы на проверке</span><strong id="pending-work-count">0</strong></article><article><span>Ответы преподавателя</span><strong id="feedback-count">0</strong></article></section>
+    <div id="homework-app" class="workspace"></div>
+    <p id="homework-announcement" class="announcement" role="status" aria-live="polite"></p>
+    <footer><p>Это учебный пример без реальных оценок и личных данных. Ссылки на документы не загружаются и не обрабатываются автоматически.</p><a href="admin.html">← Группы и приглашения</a></footer>
+    <noscript><p>Для просмотра заданий включи JavaScript.</p></noscript>
+  </main>
+  <dialog id="assignment-dialog" aria-labelledby="assignment-dialog-title"><form id="assignment-form">
+    <h2 id="assignment-dialog-title">Новое задание</h2>
+    <p class="muted">Выбери группу и срок сдачи. Задание появится в её демонстрационном кабинете.</p>
+    <label class="input-label" for="assignment-title">Название</label><input id="assignment-title" required maxlength="120" autocomplete="off">
+    <label class="input-label" for="assignment-description">Инструкция</label><textarea id="assignment-description" required maxlength="4000" rows="5"></textarea>
+    <label class="input-label" for="assignment-group">Учебная группа</label><select id="assignment-group" required></select>
+    <label class="input-label" for="assignment-deadline">Срок сдачи · московское время (МСК)</label><input id="assignment-deadline" type="datetime-local" required>
+    <p id="assignment-error" class="form-error" role="alert"></p>
+    <div class="dialog-actions"><button id="cancel-assignment" class="secondary" type="button">Отмена</button><button class="primary" type="submit">Создать</button></div>
+  </form></dialog>
+  <dialog id="review-dialog" aria-labelledby="review-dialog-title"><form id="review-form">
+    <h2 id="review-dialog-title">Обратная связь</h2><p id="review-context" class="muted"></p><div id="review-content"></div>
+    <label class="input-label" for="review-feedback">Комментарий студенту</label><textarea id="review-feedback" required maxlength="3000" rows="5" placeholder="Что получилось хорошо и что стоит доработать?"></textarea>
+    <p id="review-error" class="form-error" role="alert"></p>
+    <div class="dialog-actions"><button id="cancel-review" class="secondary" type="button">Отмена</button><button class="primary" type="submit">Сохранить комментарий</button></div>
+  </form></dialog>
+</body>
+</html>

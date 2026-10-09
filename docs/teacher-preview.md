@@ -20,8 +20,9 @@ Implemented interactions:
 - Keep each group's latest demo invitation while moving between groups.
 - Open student registration through the navigation link.
 
-No confidential identity-registry UI, grades, assignments or student-progress
-analytics are supplied by this preview. The progress bar measures registration,
+No confidential identity-registry UI, grades or student-progress analytics are
+supplied by this preview. A separate [homework demonstration](homework-preview.md)
+is linked from the dashboard. The progress bar measures registration,
 not learning achievement. Real administrative access requires server-enforced
 teacher authentication and role management before connecting private records.
 

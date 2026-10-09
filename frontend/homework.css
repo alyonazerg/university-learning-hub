@@ -1,0 +1,47 @@
+[hidden] { display: none !important; }
+textarea {
+  width: 100%; min-width: 0; padding: 12px; border: 1px solid var(--line);
+  border-radius: 11px; font: inherit; font-size: 16px; resize: vertical;
+  color: var(--ink); background: #fff; line-height: 1.5;
+}
+textarea:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+.role-switch { display: flex; gap: 8px; padding: 5px; background: #eee8f6; border-radius: 14px; width: fit-content; max-width: 100%; margin-bottom: 24px; }
+.role-switch button { background: transparent; color: var(--purple); }
+.role-switch button[aria-pressed=true] { background: #fff; box-shadow: 0 2px 8px #40306412; }
+.task-list { display: grid; gap: 12px; margin-top: 16px; }
+.task-card { width: 100%; text-align: left; background: #faf9fd; border: 1px solid var(--line); color: var(--ink); padding: 16px; }
+.task-card[aria-pressed=true] { background: #f0e8fb; border-color: var(--purple); }
+.task-card strong { display: block; font-size: 15px; overflow-wrap: anywhere; }
+.task-card span { display: block; font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 7px; }
+.task-card .task-state { color: var(--purple); font-weight: 600; }
+.assignment-details h2 { overflow-wrap: anywhere; }
+.assignment-instructions { white-space: pre-wrap; overflow-wrap: anywhere; margin: 20px 0; line-height: 1.7; }
+.deadline-note { background: #f7f3fc; color: var(--purple); padding: 12px 14px; border-radius: 12px; font-size: 14px; }
+.late-note { color: #8b651f; }
+.work-section { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 22px; }
+.work-section h3 { font-size: 19px; }
+.submission-list { display: grid; gap: 14px; margin-top: 16px; }
+.submission-card { border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; }
+.submission-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.submission-header strong { font-size: 15px; }
+.submission-card .muted { margin: 5px 0; font-size: 12px; }
+.work-content { white-space: pre-wrap; overflow-wrap: anywhere; background: #f8f6fc; border-radius: 12px; padding: 14px; max-height: 280px; overflow: auto; font-size: 14px; line-height: 1.7; }
+.work-content a { overflow-wrap: anywhere; }
+.feedback-box { border-left: 3px solid #9a79c6; padding: 10px 14px; margin-top: 14px; background: #faf8fd; }
+.feedback-box p { white-space: pre-wrap; overflow-wrap: anywhere; margin: 5px 0 0; font-size: 14px; }
+.feedback-box strong { font-size: 13px; color: var(--purple); }
+.submission-card > button { margin-top: 12px; }
+.submission-form { display: grid; gap: 12px; margin-top: 16px; }
+.submission-form .input-label { margin-bottom: 0; }
+.submission-form .primary { justify-self: start; }
+.submission-form .form-error { margin: 0; }
+#assignment-form > .input-label, #review-form > .input-label { margin-top: 14px; }
+#review-dialog { max-width: 620px; }
+@media(max-width:480px) {
+  .role-switch { width: 100%; }
+  .role-switch button { flex: 1; padding: 12px 8px; font-size: 13px; }
+  .submission-header { flex-direction: column; gap: 6px; }
+  .submission-card { padding: 12px; }
+  .submission-form .primary { width: 100%; }
+  .dialog-actions { flex-wrap: wrap; }
+}

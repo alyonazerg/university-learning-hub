@@ -478,3 +478,6 @@ dialog::backdrop {
     padding:12px 8px
   }
 }
+
+.dashboard-links { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.dashboard-links a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
