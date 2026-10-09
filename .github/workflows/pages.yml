@@ -1,7 +1,7 @@
 name: Publish frontend preview
 on:
   push:
-    branches: [main]
+    branches: [main, sprint-2-registration]
     paths:
       - 'frontend/**'
       - '.github/workflows/pages.yml'

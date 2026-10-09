@@ -108,10 +108,11 @@ before merging or publishing this branch to the live site.
 
 ## Pages review publication
 
-The Pages workflow can be manually dispatched from `sprint-2-registration`.
+The Pages workflow runs on frontend/workflow pushes to `sprint-2-registration`
+and can also be manually dispatched from that branch.
 For a branch dispatch it combines the latest `main` frontend at the site root
 with only the four registration web assets under `/preview/`. It does not merge
-code into `main`. Branch pushes do not automatically deploy. A subsequent normal
+code into `main`. A subsequent normal
 `main` deployment replaces the whole Pages artifact and can remove this preview.
 GitHub Pages environment branch rules must permit the branch before deployment.
 Check the workflow outcome and live `/preview/` response before claiming publication.
