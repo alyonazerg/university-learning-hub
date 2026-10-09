@@ -9,29 +9,56 @@
 <body>
   <main>
     <div class="mark">✦</div>
+
     <h1>Moon Campus</h1>
-    <p>Создай учебный профиль и выбери псевдоним.</p>
+    <p>Создай учебный профиль и выбери свой магический псевдоним.</p>
 
     <section class="alias-card">
-      <p class="alias-label">Твой псевдоним</p>
+      <div class="alias-label">Твой псевдоним</div>
       <div id="pseudonym" class="alias-name"></div>
+
       <button class="refresh" type="button" onclick="generateAlias()">
-        Сгенерировать другой
+        ↻ Другой псевдоним
       </button>
     </section>
 
-    <button type="button">Продолжить</button>
+    <button class="continue" type="button">
+      Продолжить
+    </button>
   </main>
 
   <script>
-    const aliases = [
-      "MoonFox", "LunarBloom", "StarMage",
-      "NightOwl", "SilverLeaf", "CosmicQuill",
-      "MysticFern", "AuroraWolf", "MoonSage"
+    const firstWords = [
+      "Moon", "Silver", "Lunar", "Mystic",
+      "Star", "Aurora", "Dream", "Velvet",
+      "Secret", "Crystal", "Twilight", "Golden"
+    ];
+
+    const secondWords = [
+      "Willow", "Fox", "Bloom", "Sage",
+      "Raven", "Fern", "Comet", "Thyme",
+      "Owl", "Rose", "Maple", "Cloud"
     ];
 
     function generateAlias() {
-      const alias = aliases[Math.floor(Math.random() * aliases.length)];
+      const used = JSON.parse(localStorage.getItem("usedAliases") || "[]");
+      const allAliases = [];
+
+      firstWords.forEach(first => {
+        secondWords.forEach(second => {
+          allAliases.push(`${first} ${second}`);
+        });
+      });
+
+      const available = allAliases.filter(alias => !used.includes(alias));
+      const pool = available.length > 0 ? available : allAliases;
+      const alias = pool[Math.floor(Math.random() * pool.length)];
+
+      if (!used.includes(alias)) {
+        used.push(alias);
+        localStorage.setItem("usedAliases", JSON.stringify(used));
+      }
+
       document.getElementById("pseudonym").textContent = alias;
     }
 
