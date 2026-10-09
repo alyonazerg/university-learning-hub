@@ -1,0 +1,11 @@
+#vocab-editor, #vocab-lists, #vocab-training, #vocab-ranking { margin: 20px 0; }
+#word-list-form > label { margin-top: 14px; }
+.word-list-card { padding: 16px 0; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.word-list-card ul { padding-left: 20px; line-height: 1.7; }
+.flashcard { text-align: center; background: #f4eefb; border-radius: 18px; padding: 28px 16px; margin: 16px 0; overflow-wrap: anywhere; }
+.flashcard h3 { font-size: 26px; }
+.training-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.rank-row { display: flex; justify-content: space-between; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+.rank-row span { overflow-wrap: anywhere; }
+#vocab-ranking label { display: flex; gap: 12px; align-items: center; min-height: 44px; }
+#vocab-ranking input[type=checkbox] { width: 20px; height: 20px; }

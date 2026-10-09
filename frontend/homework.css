@@ -16,7 +16,7 @@ textarea:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; 
 .task-card .task-state { color: var(--purple); font-weight: 600; }
 .assignment-details h2 { overflow-wrap: anywhere; }
 .assignment-instructions { white-space: pre-wrap; overflow-wrap: anywhere; margin: 20px 0; line-height: 1.7; }
-.deadline-note { background: #f7f3fc; color: var(--purple); padding: 12px 14px; border-radius: 12px; font-size: 14px; }
+.deadline-note, .student-progress { background: #f7f3fc; color: var(--purple); padding: 12px 14px; border-radius: 12px; font-size: 14px; }
 .late-note { color: #8b651f; }
 .work-section { border-top: 1px solid var(--line); margin-top: 24px; padding-top: 22px; }
 .work-section h3 { font-size: 19px; }
@@ -59,3 +59,8 @@ textarea:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; 
 .audience-choices input[type=checkbox] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--purple); }
 #assignment-group { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
 fieldset { border: 1px solid var(--line); border-radius: 12px; margin-top: 16px; min-width: 0; }
+.photo-gallery { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+.photo-gallery img { width: 160px; max-width: 100%; height: 160px; object-fit: contain; border-radius: 12px; background: #f4eefb; }
+.post-comments { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.post-comment { margin: 12px 0; background: #faf8fd; padding: 12px; border-radius: 12px; }
+.post-comments form { display: grid; gap: 10px; }

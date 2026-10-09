@@ -1,6 +1,6 @@
 # Profiles, avatars and leaderboards — approved product requirements
 
-Status: product requirements for implementation in a subsequent sprint, not yet implemented.
+Status: production requirements remain pending. A synthetic browser demonstration now implements opt-in within-group and team-only cross-group rankings; see learning-preview.md. Profile settings and the server XP ledger are not implemented.
 
 ## Teacher identity
 - Teacher public display name: **✦ Lunar Thyme**; Telegram username: `@lunarthyme`.

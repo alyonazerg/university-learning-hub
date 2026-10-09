@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Moon Campus · Слова и прогресс</title><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="homework.css"><link rel="stylesheet" href="vocabulary.css"><script src="courses.js" defer></script><script src="learning-model.js" defer></script><script src="vocabulary.js" defer></script></head>
+<body><header class="topbar"><a class="brand" href="homework.html">✦ Moon Campus</a><span id="vocab-viewer">✦ Lunar Thyme</span></header><main>
+<section class="demo-banner"><span class="demo-badge">Демо</span><p>Только вымышленные слова и результаты. Списки, карточки и прогресс хранятся в памяти страницы и сбрасываются при обновлении. История других участников — пример.</p></section>
+<section class="page-heading"><div><div class="eyebrow">Учись понемногу каждый день</div><h1>Словарь и прогресс</h1></div></section>
+<div class="role-switch" aria-label="Демо-роль"><button id="vocab-teacher" type="button" aria-pressed="true">Преподаватель</button><button id="vocab-student" type="button" aria-pressed="false">Студент · Silver Fern</button></div>
+<nav class="dashboard-links"><a id="vocab-homework" href="homework.html">Задания и объявления →</a></nav>
+<section id="vocab-editor" class="members-panel"><h2 id="editor-title">Заранее подготовить целевую лексику</h2><form id="word-list-form">
+<label class="input-label" for="list-title">Название списка</label><input id="list-title" required maxlength="120" placeholder="Unit 1 · из презентации">
+<label class="input-label" for="list-source">Источник / презентация</label><input id="list-source" maxlength="150" placeholder="Название презентации или темы">
+<label class="input-label" for="list-course">Курс</label><select id="list-course"></select>
+<label class="input-label" for="word-list">Слова списком · слово; перевод; пример — одна запись на строку</label><textarea id="word-list" required maxlength="15000" rows="6" placeholder="moonlit; освещённый луной; A moonlit garden."></textarea>
+<label class="input-label" for="word-file">Или импортировать список TXT / CSV с разделителем ;</label><input id="word-file" type="file" accept=".txt,.csv,text/plain,text/csv">
+<p class="muted">Из презентации можно вставить подготовленный список. Импорт произвольных PDF/PPTX здесь пока не выполняется.</p><p id="word-error" class="form-error" role="alert"></p><button id="save-list" class="primary" type="submit">Сохранить целевой список</button></form></section>
+<section id="vocab-lists" class="members-panel" aria-label="Списки слов"></section>
+<section id="vocab-training" class="members-panel" aria-label="Карточки и личный прогресс"></section>
+<section id="vocab-ranking" class="members-panel" aria-label="Лидерборды"></section>
+<p id="vocab-status" role="status" aria-live="polite"></p><noscript>Для карточек нужен JavaScript.</noscript></main></body></html>

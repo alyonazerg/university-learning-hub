@@ -11,6 +11,7 @@
   <script src="courses.js" defer></script>
   <script src="text-review.js" defer></script>
   <script src="campus-emotes.js" defer></script>
+  <script src="photo-attachments.js" defer></script>
   <script src="homework.js" defer></script>
 </head>
 <body>
@@ -23,7 +24,9 @@
     <section class="page-heading"><div><div class="eyebrow">От задания до обратной связи</div><h1>Домашние задания</h1><p id="view-description"></p></div><button id="new-task" class="primary" type="button">+ Создать задание</button></section>
     <div class="role-switch" role="group" aria-label="Роль в демонстрации"><button id="teacher-view" type="button" aria-pressed="true">Преподаватель</button><button id="student-view" type="button" aria-pressed="false">Студент · Silver Fern</button></div>
     <section class="metrics" aria-label="Обзор заданий"><article><span id="task-metric-label">Задания</span><strong id="task-count">0</strong></article><article><span>Работы на проверке</span><strong id="pending-work-count">0</strong></article><article><span>Ответы преподавателя</span><strong id="feedback-count">0</strong></article></section>
+    <p id="student-learning-summary" class="student-progress" hidden></p>
     <section id="announcements" class="members-panel" aria-label="Объявления"></section>
+    <nav class="dashboard-links"><a href="vocabulary.html">Словарь, карточки и прогресс →</a></nav>
     <div id="homework-app" class="workspace"></div>
     <p id="homework-announcement" class="announcement" role="status" aria-live="polite"></p>
     <footer><p>Это учебный пример без реальных оценок и личных данных. Ссылки на документы не загружаются и не обрабатываются автоматически.</p><a href="admin.html">← Группы и приглашения</a></footer>
@@ -38,6 +41,7 @@
     <label class="input-label" for="assignment-period">Период / срез</label><input id="assignment-period" maxlength="100" placeholder="Например, IMT 1 · сентябрь — середина октября">
     <label class="input-label" for="assignment-start">Начало периода · МСК</label><input id="assignment-start" type="datetime-local" required>
     <label class="input-label" for="assignment-description">Инструкция</label><textarea id="assignment-description" required maxlength="4000" rows="5"></textarea>
+    <label class="input-label" for="assignment-word-list">Заранее подготовленный список</label><select id="assignment-word-list"><option value="">Ввести вручную</option></select>
     <label class="input-label" for="assignment-vocabulary">Целевая лексика · слова и фразы через запятую или с новой строки</label><textarea id="assignment-vocabulary" maxlength="1500" rows="3" placeholder="enjoy, would you like, moonlit"></textarea>
     <label class="input-label" for="assignment-constructions">Целевые конструкции · по одной на строку</label><textarea id="assignment-constructions" maxlength="1500" rows="3" placeholder="would rather ... than ...&#10;used to ..."></textarea>
     <p class="muted">… или ... обозначает от 1 до 12 слов. Это поиск шаблона, правильность грамматики проверяет преподаватель.</p>

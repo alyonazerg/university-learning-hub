@@ -228,7 +228,8 @@ test('announcements target groups, local emotes render safely, and reactions tog
   await page.locator('#announcement-groups input[value="demo-group-2"]').check();
   await page.locator('#announcement-form button[type=submit]').click();
   assert.equal(await page.locator('#announcements .notice-card').count(), 2);
-  assert.equal(await page.locator('#announcements .notice-card').first().locator('svg[aria-label="Лунная улыбка"]').count(), 2); // message + reaction
+  assert.equal(await page.locator('#announcements .notice-card').first().locator(':scope > p svg[aria-label="Лунная улыбка"]').count(), 1);
+  assert.equal(await page.locator('#announcements .notice-card').first().locator('.reaction-bar svg[aria-label="Лунная улыбка"]').count(), 1);
   assert.equal(await page.locator('img').count(), 0);
   await page.locator('#student-view').click();
   assert.equal(await page.locator('#announcements .notice-card').count(), 1);
@@ -265,5 +266,29 @@ test('empty task audience and reversed period are rejected; future Extra task ca
   await submitText(page, 'Future draft.');
   assert.match(await page.locator('#submission-error').textContent(), /ещё не начался/);
   assert.equal(await page.locator('.submission-card').count(), 0);
+  assert.deepEqual(errors, []);
+});
+
+test('photos attach to homework snapshots and post comments; unsafe files are rejected', async t => {
+  const {page, errors} = await openHomework(t);
+  const image = {name: 'fictional.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l5sAAAAASUVORK5CYII=', 'base64')};
+  await page.locator('#student-view').click();
+  await page.locator('#submission-photos').setInputFiles(image);
+  await page.locator('#submission-form .photo-gallery img').waitFor();
+  await page.locator('#submission-form button[type=submit]').click();
+  await page.locator('.submission-card .photo-gallery img').waitFor();
+  assert.match(await page.locator('.submission-card .analysis-box').textContent(), /Фото не распознаются/);
+  const notice = page.locator('#announcements .notice-card').first();
+  await notice.locator('input[type=file]').setInputFiles(image);
+  await notice.locator('form .photo-gallery img').waitFor();
+  await notice.locator('form').getByRole('button', {name: 'Вставить: Волнуюсь', exact: true}).click();
+  await notice.getByRole('button', {name: 'Добавить комментарий', exact: true}).click();
+  await notice.locator('.post-comment .photo-gallery img').waitFor();
+  assert.equal(await notice.locator('.post-comment svg[aria-label="Волнуюсь"]').count(), 1);
+  await page.locator('#submission-photos').setInputFiles({name: 'unsafe.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg/>')});
+  assert.match(await page.locator('#submission-form').textContent(), /JPG, PNG/);
+  await page.locator('#submission-content').fill('Another text.');
+  await page.locator('#submission-form button[type=submit]').click();
+  assert.match(await page.locator('#submission-error').textContent(), /допустимые/);
   assert.deepEqual(errors, []);
 });

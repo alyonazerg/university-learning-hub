@@ -32,6 +32,13 @@
   const types = {regular: 'Обычное задание', imt: 'IMT', checkpoint: 'Срез', extra: 'Extra task'};
   const notices = [{id: 'demo-notice-1', text: 'Добро пожаловать в учебную вселенную! :moon: Здесь будут новости курса.', groupIds: groups.map(group => group.id), createdAt: startedAt}];
   const reactions = new Map();
+  const comments = new Map();
+  const wordLists = [{id: 'seed-list', title: 'Moonlit stories · Unit 1', courseId: 'speech', words: [{term: 'moonlit'}, {term: 'enjoy'}, {term: 'would you like'}]}];
+  try {
+    const raw = sessionStorage.getItem('moon-demo-word-lists'); sessionStorage.removeItem('moon-demo-word-lists');
+    const imported = raw ? JSON.parse(raw) : null;
+    if (Array.isArray(imported) && imported.length <= 50 && imported.every(list => typeof list.id === 'string' && list.id.length <= 100 && typeof list.title === 'string' && list.title.length <= 120 && courses.some(course => course.id === list.courseId) && Array.isArray(list.words) && list.words.length <= 100 && list.words.every(word => typeof word.term === 'string' && word.term.length <= 120))) wordLists.splice(0, wordLists.length, ...imported);
+  } catch { /* Invalid or unavailable demo handoff uses seed vocabulary. */ }
   const submissions = [Object.freeze({id: 'demo-work-1', taskId: tasks[0].id, studentId: 'demo-student-2', alias: 'Silver Willow', attempt: 1, kind: 'text', content: 'Hello, new friend! I live in a moonlit garden and enjoy reading stories about tiny dragons. What books do you like? Would you like to visit the garden?', createdAt: startedAt - 30 * 60000, late: false})];
   const feedback = new Map();
   const drafts = new Map();
@@ -85,6 +92,7 @@
       link.rel = 'noopener noreferrer';
       box.append(link);
     } else box.append(MoonEmotes.text(work.content));
+    box.append(MoonPhotos.gallery(work.photos));
     return box;
   }
   function displayFeedback(work) {
@@ -109,6 +117,9 @@
     $('viewer-role').textContent = teacher ? 'Преподаватель · демо' : 'Студент · демо';
     $('view-description').textContent = teacher ? 'Создай задание, посмотри сдачи и помоги студентам сделать следующий шаг.' : `${student.alias} · ${groupName(student.groupId)}. Здесь только твои задания и работы.`;
     $('new-task').hidden = !teacher;
+    $('student-learning-summary').hidden = teacher;
+    const ownTasks = tasks.filter(task => task.groupIds.includes(student.groupId));
+    $('student-learning-summary').textContent = `Твой прогресс по заданиям: сдано ${ownTasks.filter(task => ownWorks(task.id).length).length} из ${ownTasks.length}; с обратной связью ${ownTasks.filter(task => ownWorks(task.id).some(work => feedback.has(work.id))).length}. Это статусы работ, без оценок.`;
     renderAnnouncements();
     $('task-metric-label').textContent = teacher ? 'Задания всех групп' : 'Твои задания';
     $('task-count').textContent = teacher ? tasks.length : visibleTasks().length;
@@ -178,7 +189,7 @@
   }
   function analysisPanel(work, task) {
     const panel = node('div', undefined, 'analysis-box');
-    if (work.kind !== 'text') {panel.append(node('p', 'Ссылка: текст не загружен, лексика и оформление не проверены.')); return panel;}
+    if (work.kind !== 'text' || !work.content.trim()) {panel.append(node('p', 'Текст отсутствует или передан ссылкой: лексика и конструкции не проверены. Фото не распознаются автоматически.')); return panel;}
     const result = MoonTextReview.analyse(work.content, task.vocabulary || []);
     panel.append(node('strong', 'Лексика и подсказки'), node('p', `Найдено: ${result.found.join(', ') || '—'}`), node('p', `Не найдено: ${result.missing.join(', ') || '—'}`));
     const structures = MoonTextReview.analyseConstructions(work.content, task.constructions);
@@ -219,7 +230,7 @@
       type.addEventListener('change', () => { drafts.set(task.id, {kind: type.value, content: ''}); render(); $('submission-content').focus(); });
       const label = node('label', draft.kind === 'text' ? 'Текст вымышленной работы' : 'HTTPS-ссылка на документ', 'input-label'); label.htmlFor = 'submission-content';
       const content = node(draft.kind === 'text' ? 'textarea' : 'input');
-      content.id = 'submission-content'; content.required = true; content.maxLength = draft.kind === 'text' ? 6000 : 2048;
+      content.id = 'submission-content'; content.required = draft.kind === 'url'; content.maxLength = draft.kind === 'text' ? 6000 : 2048;
       if (draft.kind === 'text') content.rows = 6; else content.type = 'url';
       content.value = draft.content; content.placeholder = draft.kind === 'text' ? 'Dear imaginary friend…' : 'https://…';
       content.addEventListener('input', () => drafts.set(task.id, {kind: type.value, content: content.value}));
@@ -227,8 +238,9 @@
       const submit = node('button', 'Отправить демо-работу', 'primary'); submit.type = 'submit'; submit.disabled = pendingSubmissions.has(task.id);
       form.append(typeLabel, type, label, content);
       if (draft.kind === 'text') form.append(MoonEmotes.picker(content));
-      form.append(error, submit);
-      form.addEventListener('submit', event => {event.preventDefault(); submitWork(task, type.value, content.value, submit, error);});
+      const photos = MoonPhotos.picker('submission-photos');
+      form.append(photos.element, error, submit);
+      form.addEventListener('submit', event => {event.preventDefault(); submitWork(task, type.value, content.value, submit, error, photos);});
       section.append(form);
     } else section.append(node('p', 'Все три попытки использованы. Дождись комментария преподавателя.', 'deadline-note'));
     const list = node('div', undefined, 'submission-list');
@@ -241,11 +253,13 @@
     }
     section.append(list); details.append(section);
   }
-  async function submitWork(task, kind, rawContent, submit, error) {
+  async function submitWork(task, kind, rawContent, submit, error, photos) {
     if (pendingSubmissions.has(task.id)) return;
     if (Date.now() < task.startsAt) {error.textContent = 'Период выполнения ещё не начался.'; return;}
+    if (photos.busy || photos.invalid) {error.textContent = 'Дождись обработки фото или выбери допустимые файлы.'; return;}
+    const attachments = photos.photos.slice();
     const content = rawContent.trim();
-    if (!content) {error.textContent = 'Добавь текст или ссылку.'; return;}
+    if (!content && (!attachments.length || kind === 'url')) {error.textContent = 'Добавь текст, фото или ссылку.'; return;}
     if (kind === 'url') {
       try {
         const url = new URL(content);
@@ -255,13 +269,13 @@
     if (ownWorks(task.id).length >= 3) {error.textContent = 'Все три попытки уже использованы.'; return;}
     pendingSubmissions.add(task.id); submit.disabled = true; error.textContent = '';
     try {
-      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${kind}:${content}`));
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${kind}:${content}:${attachments.map(photo => photo.src).join('|')}`));
       const hash = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, '0')).join('');
       const works = ownWorks(task.id);
       if (works.some(work => work.hash === hash)) {error.textContent = 'Эта версия уже отправлена. Измени работу перед новой попыткой.'; return;}
       if (works.length >= 3) {error.textContent = 'Все три попытки уже использованы.'; return;}
       const createdAt = Date.now();
-      submissions.push(Object.freeze({id: `demo-work-${crypto.randomUUID()}`, taskId: task.id, studentId: student.id, alias: student.alias, attempt: works.length + 1, kind, content, hash, createdAt, late: createdAt > task.deadline}));
+      submissions.push(Object.freeze({id: `demo-work-${crypto.randomUUID()}`, taskId: task.id, studentId: student.id, alias: student.alias, attempt: works.length + 1, kind, content, photos: Object.freeze(attachments), hash, createdAt, late: createdAt > task.deadline}));
       drafts.delete(task.id);
       render(); announce('Демо-работа отправлена. Переключись в кабинет преподавателя, чтобы оставить комментарий.');
     } catch {error.textContent = 'Не удалось отправить демо-работу. Попробуй ещё раз.';}
@@ -295,6 +309,27 @@
     }
     return bar;
   }
+  function renderComments(card, notice) {
+    const thread = node('section', undefined, 'post-comments'); thread.append(node('h3', 'Комментарии'));
+    for (const comment of (comments.get(notice.id) || []).filter(comment => role === 'teacher' || comment.groupId === null || comment.groupId === student.groupId)) {
+      const article = node('article', undefined, 'post-comment'); const text = node('p'); text.append(MoonEmotes.text(comment.text));
+      article.append(node('strong', comment.alias), text, MoonPhotos.gallery(comment.photos)); thread.append(article);
+    }
+    const form = node('form'); const field = node('textarea'); field.rows = 2; field.maxLength = 1000; field.placeholder = 'Комментарий к объявлению'; field.setAttribute('aria-label', 'Комментарий к объявлению');
+    const photos = MoonPhotos.picker('comment-photos-' + notice.id);
+    const error = node('p', '', 'form-error'); error.setAttribute('role', 'alert');
+    const submit = node('button', 'Добавить комментарий', 'secondary'); submit.type = 'submit';
+    form.append(field, MoonEmotes.picker(field), photos.element, error, submit);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      if (photos.busy || photos.invalid) {error.textContent = 'Дождись обработки фото или выбери допустимые файлы.'; return;}
+      const text = field.value.trim(); if (!text && !photos.photos.length) {error.textContent = 'Добавь текст или фото.'; return;}
+      const existing = comments.get(notice.id) || [];
+      existing.push(Object.freeze({groupId: role === 'teacher' ? null : student.groupId, alias: role === 'teacher' ? '✦ Lunar Thyme' : student.alias, text, photos: Object.freeze(photos.photos.slice())})); comments.set(notice.id, existing);
+      render(); announce('Комментарий добавлен в демо.');
+    });
+    thread.append(form); card.append(thread);
+  }
   function renderAnnouncements() {
     const section = $('announcements'); section.replaceChildren(node('h2', 'Объявления'));
     if (role === 'teacher') section.append(button('+ Дать объявление', () => {
@@ -308,7 +343,7 @@
       const card = node('article', undefined, 'notice-card'); const text = node('p'); text.append(MoonEmotes.text(notice.text));
       card.append(node('strong', '✦ Lunar Thyme'), node('p', `${formatter.format(notice.createdAt)} · МСК`, 'muted'), text);
       if (role === 'teacher') card.append(node('p', notice.groupIds.map(groupName).join(', '), 'muted'));
-      card.append(reactionBar('notice:' + notice.id)); section.append(card);
+      card.append(reactionBar('notice:' + notice.id)); renderComments(card, notice); section.append(card);
     }
     if (!visible.length) section.append(node('p', 'Для твоей группы пока нет объявлений.', 'empty'));
   }
@@ -329,7 +364,20 @@
     const timestamp = Date.parse(`${value}:00+03:00`);
     return Number.isFinite(timestamp) && localMoscow(timestamp) === value ? timestamp : NaN;
   }
+  function assignmentWordLists() {
+    $('assignment-word-list').replaceChildren(); const custom = node('option', 'Ввести вручную'); custom.value = ''; $('assignment-word-list').append(custom);
+    for (const list of wordLists.filter(list => list.courseId === $('assignment-course').value)) {const option = node('option', list.title); option.value = list.id; $('assignment-word-list').append(option);}
+  }
+  $('assignment-word-list').addEventListener('change', () => {
+    const list = wordLists.find(list => list.id === $('assignment-word-list').value && list.courseId === $('assignment-course').value);
+    if (list) {
+      const text = list.words.map(word => word.term).join('\n');
+      if (text.length > $('assignment-vocabulary').maxLength) {$('assignment-error').textContent = 'Список слишком длинный для задания. Раздели его на меньшие списки.'; return;}
+      $('assignment-vocabulary').value = text; $('assignment-error').textContent = '';
+    }
+  });
   function assignmentGroups() {
+    assignmentWordLists();
     const available = groups.filter(group => group.courseId === $('assignment-course').value);
     $('assignment-group').replaceChildren(); $('assignment-group-choices').replaceChildren();
     available.forEach((group, index) => {

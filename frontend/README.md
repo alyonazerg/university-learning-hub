@@ -13,3 +13,8 @@ and React/TypeScript profiles are subsequent milestones.
 The end-to-end synthetic homework demonstration is in `homework.html`.
 See [homework preview notes](../docs/homework-preview.md) for the role switch,
 submission attempts, feedback, timezone and persistence limitations.
+
+Vocabulary, emergent words, cards, streaks, team rankings and local photo previews:
+[vocabulary.html](vocabulary.html), with [demo boundaries](../docs/learning-preview.md).
+Telegram/Beget prerequisites are documented in
+[hosting-and-telegram.md](../docs/hosting-and-telegram.md).

@@ -48,7 +48,7 @@ attempt limits, retain immutable snapshots and protect submissions/feedback.
 
 ## Verification
 
-`npm test --prefix tests/frontend` runs 22 tests (19 browser checks and three text-analysis unit checks), including ten homework
+`npm test --prefix tests/frontend` runs 28 tests (22 browser checks and six model/text-analysis unit checks), including eleven homework
 checks: the complete role-switch cycle; cross-group/other-student exclusion; attempt
 limits, duplicate handling and immutable versions; safe document links and literal
 text; Moscow deadlines and late labels; mobile layouts and keyboard dialogs.
@@ -113,3 +113,5 @@ text remain literal. Task/announcement reactions toggle once per emote and demo
 viewer, with accessible pressed state and counts. All state resets on reload,
 with no outbound message, API write or notification. These UI projections still
 provide no production authorization boundary.
+
+Photo comments/submissions, mood emotes, vocabulary-list handoff and personal task status are documented in learning-preview.md.
