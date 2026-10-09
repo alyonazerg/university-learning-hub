@@ -48,7 +48,7 @@ attempt limits, retain immutable snapshots and protect submissions/feedback.
 
 ## Verification
 
-`npm test --prefix tests/frontend` runs 18 tests (16 browser checks and two lexical-analysis unit checks), including seven homework
+`npm test --prefix tests/frontend` runs 22 tests (19 browser checks and three text-analysis unit checks), including ten homework
 checks: the complete role-switch cycle; cross-group/other-student exclusion; attempt
 limits, duplicate handling and immutable versions; safe document links and literal
 text; Moscow deadlines and late labels; mobile layouts and keyboard dialogs.
@@ -78,3 +78,38 @@ No AI authorship detector or probability score is provided: text alone cannot
 reliably establish AI use. Discussing a work and comparing its attempts can help
 a teacher investigate, without an automatic accusation or academic penalty.
 No paid APIs or remote text-processing requests are used.
+
+## Multiple audiences, IMT and announcements
+
+A single task has a groupIds audience and one course. The mobile-friendly checkbox
+selector accepts multiple groups of that course; a student's attempts and feedback
+stay individual and version-specific. Teachers can filter by group/course/type.
+Task types are regular, IMT, checkpoint («Срез») and Extra task. Start/deadline,
+period label and criteria are editable; IMT suggests 30 days, without fixing the
+semester calendar or the number of periods. Text submission before the start is
+rejected. Late handling and the existing three-attempt limit are unchanged.
+
+Speech_Practice_IMT.pdf is an illustrative reference, not application instructions.
+Three optional editable examples summarize its essay/oral defense, shadowing and
+vocabulary mind-map tasks. The source PDF and its September/October dates are
+not published. The sample's 2 points/task, 6 points/period, three chosen tasks and
+limited quiz slot are not global rules. IMT task-choice limits, sign-up slots,
+oral-check completion and configurable scoring need a later authenticated backend
+implementation. Current criteria can describe these conditions but do not enforce
+them. The user's usual 3 grammar periods / 2 second-year speech periods remain
+planning defaults, not hard-coded restrictions.
+
+Constructions are separate newline-delimited templates. A literal phrase or
+ellipsis (... / …) with 1–12 intervening words may match a text; input is matched as tokens with bounded gaps, never executed as a user regex. Labels such as “Present Perfect” are not grammar recognizers.
+Semantic/grammatical correctness, inflections and complex syntax need teacher
+review. Missing template hints can be added to draft feedback, not automatically
+published or applied to submitted text.
+
+Teachers publish announcements for selected groups, including across courses.
+Students see announcements addressed to their group. Original local SVG emotes
+(:moon:, :sprout:, :spark:) render in announcements, submitted texts and feedback;
+pickers insert tokens with the input's length limit. Unknown tokens and HTML-like
+text remain literal. Task/announcement reactions toggle once per emote and demo
+viewer, with accessible pressed state and counts. All state resets on reload,
+with no outbound message, API write or notification. These UI projections still
+provide no production authorization boundary.

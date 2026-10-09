@@ -16,3 +16,15 @@ test('vocabulary deduplication and suggestions remain transparent without author
   assert.equal('aiProbability' in result, false);
   assert.deepEqual(analyse('I like tea.', ['tea']).suggestions, []);
 });
+test('construction templates use bounded word gaps and literal input, without claiming grammar correctness', () => {
+  const {analyseConstructions} = require('../../frontend/text-review.js');
+  const result = analyseConstructions('I would rather read books than watch TV. I used to swim.', ['would rather ... than ...', 'used to …', 'Present Perfect', '...']);
+  assert.deepEqual(result.found, ['would rather ... than ...', 'used to …']);
+  assert.deepEqual(result.missing, ['Present Perfect', '...']);
+  assert.deepEqual(analyseConstructions('I would rather than swim.', ['would rather ... than ...']).found, []);
+  assert.deepEqual(analyseConstructions('used to ' + 'word '.repeat(13) + 'finish', ['used to ... finish']).found, []);
+  assert.deepEqual(analyseConstructions('start', ['art']).found, []);
+  assert.deepEqual(analyseConstructions('used. To swim.', ['used to ...']).found, []);
+  assert.deepEqual(analyseConstructions('word '.repeat(1000), ['used to ' + '... '.repeat(50) + 'finish']).found, []);
+  assert.doesNotThrow(() => analyseConstructions('test', ['(a+)+$', '[x]', '<script>']));
+});

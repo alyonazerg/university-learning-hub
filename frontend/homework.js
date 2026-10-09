@@ -28,6 +28,10 @@
   tasks[0].vocabulary = ['enjoy', 'would you like', 'moonlit'];
   tasks[1].vocabulary = ['usually', 'often', 'study'];
   tasks[2].vocabulary = ['behind', 'beautiful', 'between'];
+  for (const task of tasks) {task.groupIds = [task.groupId]; task.courseId = groups.find(group => group.id === task.groupId).courseId; task.type = 'regular'; task.startsAt = startedAt; task.constructions = [];}
+  const types = {regular: 'Обычное задание', imt: 'IMT', checkpoint: 'Срез', extra: 'Extra task'};
+  const notices = [{id: 'demo-notice-1', text: 'Добро пожаловать в учебную вселенную! :moon: Здесь будут новости курса.', groupIds: groups.map(group => group.id), createdAt: startedAt}];
+  const reactions = new Map();
   const submissions = [Object.freeze({id: 'demo-work-1', taskId: tasks[0].id, studentId: 'demo-student-2', alias: 'Silver Willow', attempt: 1, kind: 'text', content: 'Hello, new friend! I live in a moonlit garden and enjoy reading stories about tiny dragons. What books do you like? Would you like to visit the garden?', createdAt: startedAt - 30 * 60000, late: false})];
   const feedback = new Map();
   const drafts = new Map();
@@ -38,6 +42,7 @@
   let groupFilter = 'all';
   let courseFilter = 'all';
   let reviewing = null;
+  let typeFilter = 'all';
   const formatter = new Intl.DateTimeFormat('ru-RU', {timeZone: 'Europe/Moscow', dateStyle: 'medium', timeStyle: 'short'});
 
   function node(tag, text, className) {
@@ -56,7 +61,7 @@
   function announce(message) { $('homework-announcement').textContent = message; }
   function ownWorks(taskId) { return submissions.filter(work => work.taskId === taskId && work.studentId === student.id); }
   function worksFor(taskId) { return submissions.filter(work => work.taskId === taskId); }
-  function visibleTasks() { return tasks.filter(task => {const group = groups.find(group => group.id === task.groupId); return (courseFilter === 'all' || group.courseId === courseFilter) && (role === 'teacher' ? groupFilter === 'all' || task.groupId === groupFilter : task.groupId === student.groupId);}); }
+  function visibleTasks() { return tasks.filter(task => (typeFilter === 'all' || task.type === typeFilter) && (courseFilter === 'all' || task.courseId === courseFilter) && (role === 'teacher' ? groupFilter === 'all' || task.groupIds.includes(groupFilter) : task.groupIds.includes(student.groupId))); }
   function selectedTask() {
     const visible = visibleTasks();
     const id = role === 'teacher' ? teacherSelected : studentSelected;
@@ -79,14 +84,15 @@
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
       box.append(link);
-    } else box.textContent = work.content;
+    } else box.append(MoonEmotes.text(work.content));
     return box;
   }
   function displayFeedback(work) {
     const review = feedback.get(work.id);
     if (!review) return null;
     const box = node('div', undefined, 'feedback-box');
-    box.append(node('strong', `Комментарий к попытке ${work.attempt}`), node('p', review.text));
+    const comment = node('p'); comment.append(MoonEmotes.text(review.text));
+    box.append(node('strong', `Комментарий к попытке ${work.attempt}`), comment);
     return box;
   }
   function focusDetails() {
@@ -103,6 +109,7 @@
     $('viewer-role').textContent = teacher ? 'Преподаватель · демо' : 'Студент · демо';
     $('view-description').textContent = teacher ? 'Создай задание, посмотри сдачи и помоги студентам сделать следующий шаг.' : `${student.alias} · ${groupName(student.groupId)}. Здесь только твои задания и работы.`;
     $('new-task').hidden = !teacher;
+    renderAnnouncements();
     $('task-metric-label').textContent = teacher ? 'Задания всех групп' : 'Твои задания';
     $('task-count').textContent = teacher ? tasks.length : visibleTasks().length;
     const accessible = teacher ? submissions : submissions.filter(work => work.studentId === student.id);
@@ -118,6 +125,11 @@
     courseSelect.value = courseFilter;
     courseSelect.addEventListener('change', () => {courseFilter = courseSelect.value; groupFilter = 'all'; render(); $('task-course-filter').focus();});
     sidebar.append(courseLabel, courseSelect);
+    const typeLabel = node('label', 'Тип задания', 'input-label'); typeLabel.htmlFor = 'task-type-filter';
+    const typeSelect = node('select'); typeSelect.id = 'task-type-filter';
+    for (const [id, name] of Object.entries({all: 'Все типы', ...types})) {const option = node('option', name); option.value = id; typeSelect.append(option);}
+    typeSelect.value = typeFilter; typeSelect.addEventListener('change', () => {typeFilter = typeSelect.value; render(); $('task-type-filter').focus();});
+    sidebar.append(typeLabel, typeSelect);
     if (teacher) {
       const label = node('label', 'Учебная группа', 'input-label');
       label.htmlFor = 'task-group-filter';
@@ -137,7 +149,7 @@
         render(); focusDetails(); announce(`Выбрано задание «${task.title}».`);
       }, 'task-card');
       card.setAttribute('aria-pressed', String(task.id === selected?.id));
-      card.append(node('strong', task.title), node('span', `${courseName(groups.find(group => group.id === task.groupId).courseId)} · ${groupName(task.groupId)}`), node('span', `${formatter.format(task.deadline)} · МСК`), node('span', taskState(task), 'task-state'));
+      card.append(node('strong', task.title), node('span', `${types[task.type]} · ${courseName(task.courseId)} · ${task.groupIds.map(groupName).join(', ')}`), node('span', `${formatter.format(task.deadline)} · МСК`), node('span', taskState(task), 'task-state'));
       list.append(card);
     }
     if (!visibleTasks().length) list.append(node('p', 'Для этой группы пока нет заданий.', 'empty'));
@@ -151,10 +163,14 @@
   function renderDetails(details, task) {
     const title = node('h2', task.title);
     title.id = 'task-details-title'; title.tabIndex = -1;
-    details.append(node('div', 'Выбранное задание', 'eyebrow'), title, node('p', groupName(task.groupId), 'muted'), node('p', task.description, 'assignment-instructions'));
+    details.append(node('div', 'Выбранное задание', 'eyebrow'), title, node('p', task.groupIds.map(groupName).join(', '), 'muted'), node('p', task.description, 'assignment-instructions'));
     const past = Date.now() > task.deadline;
     const deadline = node('p', `Сдать до ${formatter.format(task.deadline)} · МСК${past ? '. Срок прошёл, работу можно отправить с отметкой об опоздании.' : ''}`, `deadline-note${past ? ' late-note' : ''}`);
-    details.append(deadline, node('p', `Курс: ${courseName(groups.find(group => group.id === task.groupId).courseId)}`, 'muted'));
+    details.append(deadline, node('p', `Курс: ${courseName(task.courseId)}`, 'muted'));
+    details.append(node('p', `${types[task.type]}${task.period ? ' · ' + task.period : ''} · начало ${formatter.format(task.startsAt)} · МСК`, 'muted'));
+    if (task.criteria) details.append(node('p', task.criteria, 'assignment-instructions'));
+    details.append(node('p', `Целевые конструкции: ${task.constructions.join('; ') || 'не заданы'}`, 'vocabulary-note'));
+    details.append(reactionBar('task:' + task.id));
     details.append(node('p', `Целевая лексика: ${task.vocabulary?.join(', ') || 'не задана'}`, 'vocabulary-note'));
     details.append(node('p', 'Проверка ищет точные формы слов и фраз; смысл употребления оценивает преподаватель.', 'muted'));
     if (role === 'teacher') renderTeacherWorks(details, task);
@@ -165,6 +181,9 @@
     if (work.kind !== 'text') {panel.append(node('p', 'Ссылка: текст не загружен, лексика и оформление не проверены.')); return panel;}
     const result = MoonTextReview.analyse(work.content, task.vocabulary || []);
     panel.append(node('strong', 'Лексика и подсказки'), node('p', `Найдено: ${result.found.join(', ') || '—'}`), node('p', `Не найдено: ${result.missing.join(', ') || '—'}`));
+    const structures = MoonTextReview.analyseConstructions(work.content, task.constructions);
+    panel.append(node('p', `Конструкции · найдены шаблоны: ${structures.found.join('; ') || '—'}`), node('p', `Конструкции · не найдены: ${structures.missing.join('; ') || '—'}`));
+    panel.append(node('p', 'Совпадение шаблона не подтверждает правильность конструкции.', 'muted'));
     for (const suggestion of result.suggestions) panel.append(node('p', suggestion));
     panel.append(node('p', 'Это подсказки по правилам, без проверки смысла и авторства. По тексту нельзя надёжно установить использование ИИ.', 'muted'));
     return panel;
@@ -206,7 +225,9 @@
       content.addEventListener('input', () => drafts.set(task.id, {kind: type.value, content: content.value}));
       const error = node('p', '', 'form-error'); error.id = 'submission-error'; error.setAttribute('role', 'alert'); content.setAttribute('aria-describedby', error.id);
       const submit = node('button', 'Отправить демо-работу', 'primary'); submit.type = 'submit'; submit.disabled = pendingSubmissions.has(task.id);
-      form.append(typeLabel, type, label, content, error, submit);
+      form.append(typeLabel, type, label, content);
+      if (draft.kind === 'text') form.append(MoonEmotes.picker(content));
+      form.append(error, submit);
       form.addEventListener('submit', event => {event.preventDefault(); submitWork(task, type.value, content.value, submit, error);});
       section.append(form);
     } else section.append(node('p', 'Все три попытки использованы. Дождись комментария преподавателя.', 'deadline-note'));
@@ -222,6 +243,7 @@
   }
   async function submitWork(task, kind, rawContent, submit, error) {
     if (pendingSubmissions.has(task.id)) return;
+    if (Date.now() < task.startsAt) {error.textContent = 'Период выполнения ещё не начался.'; return;}
     const content = rawContent.trim();
     if (!content) {error.textContent = 'Добавь текст или ссылку.'; return;}
     if (kind === 'url') {
@@ -256,17 +278,87 @@
     $('review-error').textContent = '';
     $('review-dialog').showModal(); $('review-feedback').focus();
   }
+  function reactionBar(id) {
+    const bar = node('div', undefined, 'reaction-bar'); bar.setAttribute('aria-label', 'Реакции');
+    const actor = role === 'teacher' ? 'demo-teacher' : student.id;
+    for (const emote of MoonEmotes.items) {
+      const key = id + ':' + emote.id;
+      const actors = reactions.get(key) || new Set();
+      const control = button('', () => {
+        if (actors.has(actor)) actors.delete(actor); else actors.add(actor);
+        reactions.set(key, actors); render();
+        Array.from(document.querySelectorAll('[data-reaction-target]')).find(element => element.dataset.reactionTarget === id && element.dataset.reaction === emote.id)?.focus({preventScroll: true});
+        announce('Реакция ' + emote.name + (actors.has(actor) ? ' добавлена.' : ' снята.'));
+      });
+      control.dataset.reaction = emote.id; control.dataset.reactionTarget = id; control.setAttribute('aria-label', `${emote.name}: ${actors.size}`); control.setAttribute('aria-pressed', String(actors.has(actor)));
+      control.append(MoonEmotes.icon(emote.id), document.createTextNode(' ' + actors.size)); bar.append(control);
+    }
+    return bar;
+  }
+  function renderAnnouncements() {
+    const section = $('announcements'); section.replaceChildren(node('h2', 'Объявления'));
+    if (role === 'teacher') section.append(button('+ Дать объявление', () => {
+      $('announcement-form').reset(); $('announcement-error').textContent = '';
+      $('announcement-groups').replaceChildren();
+      for (const group of groups) {const label = node('label'); const checkbox = node('input'); checkbox.type = 'checkbox'; checkbox.value = group.id; checkbox.checked = true; label.append(checkbox, document.createTextNode(courseName(group.courseId) + ' · ' + group.name)); $('announcement-groups').append(label);}
+      $('announcement-dialog').showModal(); $('announcement-text').focus();
+    }));
+    const visible = notices.filter(notice => role === 'teacher' || notice.groupIds.includes(student.groupId));
+    for (const notice of visible) {
+      const card = node('article', undefined, 'notice-card'); const text = node('p'); text.append(MoonEmotes.text(notice.text));
+      card.append(node('strong', '✦ Lunar Thyme'), node('p', `${formatter.format(notice.createdAt)} · МСК`, 'muted'), text);
+      if (role === 'teacher') card.append(node('p', notice.groupIds.map(groupName).join(', '), 'muted'));
+      card.append(reactionBar('notice:' + notice.id)); section.append(card);
+    }
+    if (!visible.length) section.append(node('p', 'Для твоей группы пока нет объявлений.', 'empty'));
+  }
+  $('announcement-emotes').append(MoonEmotes.picker($('announcement-text')));
+  $('review-emotes').append(MoonEmotes.picker($('review-feedback')));
+  $('cancel-announcement').addEventListener('click', () => $('announcement-dialog').close());
+  $('announcement-form').addEventListener('submit', event => {
+    event.preventDefault(); if (role !== 'teacher') return;
+    const text = $('announcement-text').value.trim();
+    const groupIds = Array.from($('announcement-groups').querySelectorAll('input:checked'), input => input.value);
+    if (!text || !groupIds.length) {$('announcement-error').textContent = 'Добавь текст и выбери хотя бы одну группу.'; return;}
+    notices.unshift({id: 'demo-notice-' + crypto.randomUUID(), text, groupIds, createdAt: Date.now()});
+    $('announcement-dialog').close(); render(); announce('Объявление опубликовано для выбранных групп в демо.');
+  });
   function localMoscow(timestamp) { return new Date(timestamp + 3 * 3600000).toISOString().slice(0, 16); }
   function parseMoscow(value) {
     if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value)) return NaN;
     const timestamp = Date.parse(`${value}:00+03:00`);
     return Number.isFinite(timestamp) && localMoscow(timestamp) === value ? timestamp : NaN;
   }
-  for (const group of groups) {const option = node('option', `${courseName(group.courseId)} · ${group.name}`); option.value = group.id; $('assignment-group').append(option);}
+  function assignmentGroups() {
+    const available = groups.filter(group => group.courseId === $('assignment-course').value);
+    $('assignment-group').replaceChildren(); $('assignment-group-choices').replaceChildren();
+    available.forEach((group, index) => {
+      const option = node('option', `${courseName(group.courseId)} · ${group.name}`); option.value = group.id; option.selected = index === 0; $('assignment-group').append(option);
+      const label = node('label'); const checkbox = node('input'); checkbox.type = 'checkbox'; checkbox.value = group.id; checkbox.checked = option.selected;
+      checkbox.addEventListener('change', () => {option.selected = checkbox.checked;});
+      label.append(checkbox, document.createTextNode(group.name)); $('assignment-group-choices').append(label);
+    });
+  }
+  $('assignment-group').addEventListener('change', () => {for (const checkbox of $('assignment-group-choices').querySelectorAll('input')) checkbox.checked = Array.from($('assignment-group').selectedOptions).some(option => option.value === checkbox.value);});
+  for (const course of courses) {const option = node('option', course.name); option.value = course.id; $('assignment-course').append(option);}
+  $('assignment-course').addEventListener('change', assignmentGroups); assignmentGroups();
+  const imtExamples = {
+    essay: {title: 'Opinion Essay + Oral Defense', description: 'Write a 250-word opinion essay on a course-related topic. Prepare to defend your position in a two-minute Q&A.', criteria: 'Written argument: clear thesis, coherent structure, appropriate vocabulary. Oral defense: logical, fluent answers. Arrange the oral defense with the teacher in advance.'},
+    shadowing: {title: 'Shadowing Your Favorite Actor', description: 'Choose a 2–4 minute clip, practise matching pace, intonation and pronunciation, and submit a link to your final recording.', criteria: 'Accuracy: rhythm, stress and intonation. Delivery: pronunciation, hesitation and recording length. Sign up with the teacher before the performance.'},
+    mindmap: {title: 'Vocabulary Mind Map', description: 'Organize course vocabulary by unit or topic. Include word forms, collocations and example sentences.', criteria: 'Coverage: relevant units and accurate meanings. Organization: clear grouping and useful examples.'},
+  };
+  $('assignment-template').addEventListener('change', () => {
+    const example = imtExamples[$('assignment-template').value]; if (!example) return;
+    $('assignment-title').value = example.title; $('assignment-description').value = example.description; $('assignment-criteria').value = example.criteria;
+    $('assignment-type').value = 'imt'; $('assignment-deadline').value = localMoscow(Date.now() + 30 * day);
+  });
+  $('assignment-type').addEventListener('change', () => {$('assignment-deadline').value = localMoscow(Date.now() + ($('assignment-type').value === 'imt' ? 30 : 1) * day);});
   $('teacher-view').addEventListener('click', () => {role = 'teacher'; render(); announce('Демо-режим преподавателя.');});
-  $('student-view').addEventListener('click', () => {role = 'student'; courseFilter = 'all'; render(); announce('Демо-режим студента Silver Fern.');});
+  $('student-view').addEventListener('click', () => {role = 'student'; courseFilter = 'all'; typeFilter = 'all'; render(); announce('Демо-режим студента Silver Fern.');});
   $('new-task').addEventListener('click', () => {
     $('assignment-form').reset(); $('assignment-error').textContent = '';
+    assignmentGroups();
+    $('assignment-start').value = localMoscow(Date.now());
     $('assignment-deadline').value = localMoscow(Date.now() + day);
     $('assignment-dialog').showModal(); $('assignment-title').focus();
   });
@@ -278,9 +370,14 @@
     const deadline = parseMoscow($('assignment-deadline').value);
     if (!title || !description) {$('assignment-error').textContent = 'Добавь название и инструкцию.'; return;}
     if (!Number.isFinite(deadline) || deadline <= Date.now()) {$('assignment-error').textContent = 'Выбери будущий срок сдачи по московскому времени.'; return;}
-    const task = {id: `demo-task-${crypto.randomUUID()}`, title, description, groupId: $('assignment-group').value, deadline, vocabulary: MoonTextReview.parseVocabulary($('assignment-vocabulary').value)};
-    tasks.unshift(task); teacherSelected = task.id; groupFilter = 'all'; courseFilter = 'all';
-    if (task.groupId === student.groupId) studentSelected = task.id;
+    const groupIds = Array.from($('assignment-group').selectedOptions, option => option.value);
+    const courseId = $('assignment-course').value;
+    const startsAt = parseMoscow($('assignment-start').value);
+    if (!groupIds.length || groupIds.some(id => !groups.some(group => group.id === id && group.courseId === courseId))) {$('assignment-error').textContent = 'Выбери группы одного курса.'; return;}
+    if (!Number.isFinite(startsAt) || startsAt >= deadline) {$('assignment-error').textContent = 'Начало периода должно быть раньше срока сдачи.'; return;}
+    const task = {id: `demo-task-${crypto.randomUUID()}`, title, description, groupIds, courseId, deadline, startsAt, type: $('assignment-type').value, period: $('assignment-period').value.trim(), criteria: $('assignment-criteria').value.trim(), vocabulary: MoonTextReview.parseVocabulary($('assignment-vocabulary').value), constructions: $('assignment-constructions').value.split('\n').map(value => value.trim()).filter(Boolean)};
+    tasks.unshift(task); teacherSelected = task.id; groupFilter = 'all'; courseFilter = 'all'; typeFilter = 'all';
+    if (task.groupIds.includes(student.groupId)) studentSelected = task.id;
     $('assignment-dialog').close(); render(); focusDetails(); announce(`Демонстрационное задание «${title}» создано.`);
   });
   $('use-suggestions').addEventListener('click', () => {
@@ -288,7 +385,10 @@
     if (!work || work.kind !== 'text') return;
     const task = tasks.find(task => task.id === work.taskId);
     const result = MoonTextReview.analyse(work.content, task.vocabulary || []);
-    const suggestion = result.suggestions.join('\n') || (task.vocabulary?.length ? 'Целевая лексика найдена; проверь её употребление в контексте.' : 'Целевая лексика не задана. Проверь текст и его смысл самостоятельно.');
+    const structures = MoonTextReview.analyseConstructions(work.content, task.constructions);
+    const hints = [...result.suggestions];
+    if (structures.missing.length) hints.push('Проверь целевые конструкции: ' + structures.missing.join('; ') + '. Шаблонный поиск не оценивает грамматику.');
+    const suggestion = hints.join('\n') || (task.vocabulary?.length ? 'Целевая лексика найдена; проверь её употребление в контексте.' : 'Целевая лексика не задана. Проверь текст и его смысл самостоятельно.');
     const field = $('review-feedback');
     const combined = [field.value.trim(), suggestion].filter(Boolean).join('\n');
     if (combined.length > field.maxLength) {$('review-error').textContent = 'Комментарий слишком длинный; сократи его перед добавлением подсказок.'; return;}

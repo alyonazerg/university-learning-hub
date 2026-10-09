@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="homework.css">
   <script src="courses.js" defer></script>
   <script src="text-review.js" defer></script>
+  <script src="campus-emotes.js" defer></script>
   <script src="homework.js" defer></script>
 </head>
 <body>
@@ -22,6 +23,7 @@
     <section class="page-heading"><div><div class="eyebrow">От задания до обратной связи</div><h1>Домашние задания</h1><p id="view-description"></p></div><button id="new-task" class="primary" type="button">+ Создать задание</button></section>
     <div class="role-switch" role="group" aria-label="Роль в демонстрации"><button id="teacher-view" type="button" aria-pressed="true">Преподаватель</button><button id="student-view" type="button" aria-pressed="false">Студент · Silver Fern</button></div>
     <section class="metrics" aria-label="Обзор заданий"><article><span id="task-metric-label">Задания</span><strong id="task-count">0</strong></article><article><span>Работы на проверке</span><strong id="pending-work-count">0</strong></article><article><span>Ответы преподавателя</span><strong id="feedback-count">0</strong></article></section>
+    <section id="announcements" class="members-panel" aria-label="Объявления"></section>
     <div id="homework-app" class="workspace"></div>
     <p id="homework-announcement" class="announcement" role="status" aria-live="polite"></p>
     <footer><p>Это учебный пример без реальных оценок и личных данных. Ссылки на документы не загружаются и не обрабатываются автоматически.</p><a href="admin.html">← Группы и приглашения</a></footer>
@@ -29,18 +31,35 @@
   </main>
   <dialog id="assignment-dialog" aria-labelledby="assignment-dialog-title"><form id="assignment-form">
     <h2 id="assignment-dialog-title">Новое задание</h2>
-    <p class="muted">Выбери группу и срок сдачи. Задание появится в её демонстрационном кабинете.</p>
+    <p class="muted">Выбери одну или несколько групп одного курса. Каждая увидит задание в своём кабинете.</p>
     <label class="input-label" for="assignment-title">Название</label><input id="assignment-title" required maxlength="120" autocomplete="off">
+    <label class="input-label" for="assignment-template">Пример IMT · можно полностью изменить</label><select id="assignment-template"><option value="">Своё задание</option><option value="essay">Opinion Essay + Oral Defense</option><option value="shadowing">Shadowing Your Favorite Actor</option><option value="mindmap">Vocabulary Mind Map</option></select>
+    <label class="input-label" for="assignment-type">Тип задания</label><select id="assignment-type"><option value="regular">Обычное задание</option><option value="imt">IMT · Individual Monthly Task</option><option value="checkpoint">Срез</option><option value="extra">Extra task</option></select>
+    <label class="input-label" for="assignment-period">Период / срез</label><input id="assignment-period" maxlength="100" placeholder="Например, IMT 1 · сентябрь — середина октября">
+    <label class="input-label" for="assignment-start">Начало периода · МСК</label><input id="assignment-start" type="datetime-local" required>
     <label class="input-label" for="assignment-description">Инструкция</label><textarea id="assignment-description" required maxlength="4000" rows="5"></textarea>
     <label class="input-label" for="assignment-vocabulary">Целевая лексика · слова и фразы через запятую или с новой строки</label><textarea id="assignment-vocabulary" maxlength="1500" rows="3" placeholder="enjoy, would you like, moonlit"></textarea>
-    <label class="input-label" for="assignment-group">Учебная группа</label><select id="assignment-group" required></select>
+    <label class="input-label" for="assignment-constructions">Целевые конструкции · по одной на строку</label><textarea id="assignment-constructions" maxlength="1500" rows="3" placeholder="would rather ... than ...&#10;used to ..."></textarea>
+    <p class="muted">… или ... обозначает от 1 до 12 слов. Это поиск шаблона, правильность грамматики проверяет преподаватель.</p>
+    <label class="input-label" for="assignment-criteria">Критерии и условия выполнения</label><textarea id="assignment-criteria" maxlength="2000" rows="3" placeholder="Что оцениваем, нужна ли устная защита или предварительная запись"></textarea>
+    <label class="input-label" for="assignment-course">Курс</label><select id="assignment-course"></select>
+    <p class="input-label">Группы · можно выбрать несколько</p><select id="assignment-group" multiple size="4" tabindex="-1" aria-hidden="true"></select>
+    <div id="assignment-group-choices" class="audience-choices" aria-label="Выбор групп"></div><p class="muted">Отмечай группы галочками. Одно задание будет общим для выбранных групп.</p>
     <label class="input-label" for="assignment-deadline">Срок сдачи · московское время (МСК)</label><input id="assignment-deadline" type="datetime-local" required>
     <p id="assignment-error" class="form-error" role="alert"></p>
     <div class="dialog-actions"><button id="cancel-assignment" class="secondary" type="button">Отмена</button><button class="primary" type="submit">Создать</button></div>
   </form></dialog>
+  <dialog id="announcement-dialog" aria-labelledby="announcement-title"><form id="announcement-form">
+    <h2 id="announcement-title">Новое объявление</h2>
+    <label class="input-label" for="announcement-text">Текст</label><textarea id="announcement-text" required maxlength="2000" rows="5"></textarea><div id="announcement-emotes"></div>
+    <fieldset><legend>Кому показать</legend><div id="announcement-groups" class="audience-choices"></div></fieldset>
+    <p id="announcement-error" class="form-error" role="alert"></p>
+    <div class="dialog-actions"><button id="cancel-announcement" class="secondary" type="button">Отмена</button><button class="primary" type="submit">Опубликовать в демо</button></div>
+  </form></dialog>
   <dialog id="review-dialog" aria-labelledby="review-dialog-title"><form id="review-form">
     <h2 id="review-dialog-title">Обратная связь</h2><p id="review-context" class="muted"></p><div id="review-content"></div><div id="review-analysis"></div><button id="use-suggestions" type="button" class="secondary">Добавить подсказки в комментарий</button>
     <label class="input-label" for="review-feedback">Комментарий студенту</label><textarea id="review-feedback" required maxlength="3000" rows="5" placeholder="Что получилось хорошо и что стоит доработать?"></textarea>
+    <div id="review-emotes"></div>
     <p id="review-error" class="form-error" role="alert"></p>
     <div class="dialog-actions"><button id="cancel-review" class="secondary" type="button">Отмена</button><button class="primary" type="submit">Сохранить комментарий</button></div>
   </form></dialog>

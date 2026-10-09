@@ -29,7 +29,33 @@
     if (text.trim() && !/[.!?…]["'”’)]?$/.test(text.trim())) suggestions.push('Проверь завершение текста: возможно, нужен конечный знак препинания.');
     return {found, missing, suggestions, wordCount: words.length};
   }
-  const api = Object.freeze({parseVocabulary, analyse});
+  function analyseConstructions(text, constructions = []) {
+    const found = [], missing = [];
+    const chunks = normalize(text).split(/[^\p{L}\p{N}'\s]+/u).map(tokens);
+    for (const construction of constructions) {
+      const parts = normalize(construction).split(/\.\.\.|…/);
+      const pattern = [];
+      parts.forEach((part, index) => {if (index) pattern.push(null); pattern.push(...tokens(part));});
+      // Bounded state matching avoids evaluating user regex or backtracking through repeated gaps.
+      const matches = pattern.some(item => item !== null) && chunks.some(words => {
+        let positions = new Set(words.map((_, index) => index));
+        for (const item of pattern) {
+          const next = new Set();
+          for (const position of positions) {
+            if (item === null) {
+              for (let gap = 1; gap <= 12 && position + gap <= words.length; gap++) next.add(position + gap);
+            } else if (words[position] === item) next.add(position + 1);
+          }
+          positions = next;
+          if (!positions.size) return false;
+        }
+        return positions.size > 0;
+      });
+      (matches ? found : missing).push(construction);
+    }
+    return {found, missing};
+  }
+  const api = Object.freeze({parseVocabulary, analyse, analyseConstructions});
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.MoonTextReview = api;
 })(typeof window === 'undefined' ? globalThis : window);

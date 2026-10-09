@@ -47,3 +47,15 @@ textarea:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; 
 }
 
 .vocabulary-note { overflow-wrap: anywhere; line-height: 1.6; }
+#announcements { margin-bottom: 24px; }
+.notice-card { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+.notice-card p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.emote-picker, .reaction-bar { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.emote-picker button, .reaction-bar button { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; padding: 8px 12px; }
+.reaction-bar button[aria-pressed=true] { background: #e8ddf7; border-color: var(--purple); }
+.campus-emote { display: inline-block; vertical-align: middle; flex-shrink: 0; }
+.audience-choices { display: grid; gap: 8px; max-height: 240px; overflow: auto; margin: 12px 0; }
+.audience-choices label { display: flex; align-items: center; gap: 10px; min-height: 44px; overflow-wrap: anywhere; }
+.audience-choices input[type=checkbox] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--purple); }
+#assignment-group { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); }
+fieldset { border: 1px solid var(--line); border-radius: 12px; margin-top: 16px; min-width: 0; }

@@ -95,6 +95,7 @@ test('group has one editable course and its catalog reaches the assignment page'
   assert.match(await page.locator('#group-summary').textContent(), /Грамматика/);
   await page.locator('.dashboard-links a').click();
   await page.locator('#new-task').click();
+  await page.locator('#assignment-course').selectOption('grammar');
   assert.match(await page.locator('#assignment-group option[value="demo-group-1"]').textContent(), /Грамматика.*Лунные исследователи/);
   assert.deepEqual(errors, []);
 });

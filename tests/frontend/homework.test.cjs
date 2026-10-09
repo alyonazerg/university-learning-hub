@@ -28,6 +28,7 @@ async function createTask(page, {title = 'Synthetic homework', group = 'demo-gro
   await page.locator('#new-task').click();
   await page.locator('#assignment-title').fill(title);
   await page.locator('#assignment-description').fill('Write a letter about an imaginary moon garden.');
+  await page.locator('#assignment-course').selectOption(Number(group.split('-').at(-1)) % 2 ? 'speech' : 'grammar');
   await page.locator('#assignment-group').selectOption(group);
   if (deadline) await page.locator('#assignment-deadline').fill(deadline);
   await page.locator('#assignment-form button[type=submit]').click();
@@ -186,5 +187,83 @@ test('course filtering and lexical suggestions require teacher approval before f
   await page.locator('#review-form button[type=submit]').click();
   await page.locator('#student-view').click();
   assert.match(await page.locator('.feedback-box').textContent(), /moonlit/);
+  assert.deepEqual(errors, []);
+});
+
+test('multi-group IMT is a single task with independent group visibility and construction hints', async t => {
+  const {page, errors} = await openHomework(t);
+  await page.locator('#new-task').click();
+  await page.locator('#assignment-template').selectOption('essay');
+  assert.equal(await page.locator('#assignment-type').inputValue(), 'imt');
+  await page.locator('#assignment-period').fill('IMT 1 · fictional period');
+  await page.locator('#assignment-constructions').fill('would rather ... than ...\nused to ...');
+  await page.locator('#assignment-group-choices input[value="demo-group-3"]').check();
+  await page.locator('#assignment-form button[type=submit]').click();
+  assert.equal(await page.locator('#task-count').textContent(), '4');
+  await page.locator('#task-group-filter').selectOption('demo-group-3');
+  assert.equal(await page.locator('.task-card').count(), 1);
+  assert.match(await page.locator('.assignment-details').textContent(), /IMT 1/);
+  await page.locator('#task-group-filter').selectOption('demo-group-2');
+  assert.equal(await page.locator('.task-card').count(), 1); // existing group-2 fixture only
+  assert.doesNotMatch(await page.locator('.task-card').textContent(), /Opinion Essay/);
+  await page.locator('#student-view').click();
+  await submitText(page, 'I would rather read books than watch TV.');
+  assert.match(await page.locator('.submission-card .analysis-box').textContent(), /найдены шаблоны: would rather/);
+  assert.match(await page.locator('.submission-card .analysis-box').textContent(), /не найдены: used to/);
+  await page.locator('#teacher-view').click();
+  await page.locator('#task-group-filter').selectOption('all');
+  await page.locator('#task-type-filter').selectOption('imt');
+  assert.equal(await page.locator('.task-card').count(), 1);
+  assert.deepEqual(errors, []);
+});
+
+test('announcements target groups, local emotes render safely, and reactions toggle per viewer', async t => {
+  const {page, errors, writes, external} = await openHomework(t, {...devices['iPhone 13']});
+  await page.getByRole('button', {name: '+ Дать объявление', exact: true}).click();
+  await page.locator('#announcement-text').fill('<img src=x> Fictional news ');
+  await page.locator('#announcement-emotes button').first().click();
+  for (const checkbox of await page.locator('#announcement-groups input').all()) await checkbox.uncheck();
+  await page.locator('#announcement-form button[type=submit]').click();
+  assert.match(await page.locator('#announcement-error').textContent(), /выбери/);
+  await page.locator('#announcement-groups input[value="demo-group-2"]').check();
+  await page.locator('#announcement-form button[type=submit]').click();
+  assert.equal(await page.locator('#announcements .notice-card').count(), 2);
+  assert.equal(await page.locator('#announcements .notice-card').first().locator('svg[aria-label="Лунная улыбка"]').count(), 2); // message + reaction
+  assert.equal(await page.locator('img').count(), 0);
+  await page.locator('#student-view').click();
+  assert.equal(await page.locator('#announcements .notice-card').count(), 1);
+  const reaction = page.locator('#announcements [data-reaction="sprout"]').first();
+  await reaction.click(); assert.equal(await reaction.getAttribute('aria-pressed'), 'true'); assert.match(await reaction.textContent(), /1/);
+  await page.locator('#teacher-view').click();
+  const shared = page.locator('#announcements .notice-card').last().locator('[data-reaction="sprout"]');
+  assert.equal(await shared.getAttribute('aria-pressed'), 'false'); await shared.click(); assert.match(await shared.textContent(), /2/);
+  await page.locator('#student-view').click(); await reaction.click(); assert.match(await reaction.textContent(), /1/);
+  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  assert.deepEqual(errors, []); assert.deepEqual(writes, []); assert.deepEqual(external, []);
+});
+
+test('empty task audience and reversed period are rejected; future Extra task cannot be submitted yet', async t => {
+  const {page, errors} = await openHomework(t);
+  await page.locator('#new-task').click();
+  await page.locator('#assignment-title').fill('Future extra');
+  await page.locator('#assignment-description').fill('Fictional future exercise.');
+  await page.locator('#assignment-type').selectOption('extra');
+  for (const box of await page.locator('#assignment-group-choices input').all()) await box.uncheck();
+  await page.locator('#assignment-form button[type=submit]').click();
+  assert.match(await page.locator('#assignment-error').textContent(), /Выбери группы/);
+  await page.locator('#assignment-group-choices input[value="demo-group-1"]').check();
+  const deadline = await page.locator('#assignment-deadline').inputValue();
+  await page.locator('#assignment-start').fill(deadline);
+  await page.locator('#assignment-form button[type=submit]').click();
+  assert.match(await page.locator('#assignment-error').textContent(), /раньше/);
+  const futureStart = new Date(Date.now() + 3 * 3600000 + 3600000).toISOString().slice(0, 16);
+  await page.locator('#assignment-start').fill(futureStart);
+  await page.locator('#assignment-form button[type=submit]').click();
+  await page.locator('#task-type-filter').selectOption('extra');
+  assert.equal(await page.locator('.task-card').count(), 1);
+  await page.locator('#student-view').click();
+  await submitText(page, 'Future draft.');
+  assert.match(await page.locator('#submission-error').textContent(), /ещё не начался/);
+  assert.equal(await page.locator('.submission-card').count(), 0);
   assert.deepEqual(errors, []);
 });
