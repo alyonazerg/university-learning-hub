@@ -18,7 +18,18 @@
     'Published deck cannot be rewritten': 'Опубликованный список нельзя перезаписать: у студентов уже есть прогресс по его карточкам.',
     'Session expired': 'Сессия завершилась. Войди снова.',
     'Telegram authentication is not configured': 'Вход через Telegram ещё не настроен на сервере.',
-    'Group already exists': 'Группа с таким названием уже существует.', 'Group not found': 'Группа недоступна.', 'Student unavailable': 'Доступ студента отключён.'
+    'Group already exists': 'Группа с таким названием уже существует.', 'Group not found': 'Группа недоступна.', 'Student unavailable': 'Доступ студента отключён.',
+    'Choose groups from one course': 'Выбери группы одного курса.',
+    'Compensation must use groups of its checkpoint': 'Компенсация должна относиться к группам выбранного среза.',
+    'Compensation access required': 'Для компенсации нужен допуск после проверки справки.',
+    'Task has not started': 'Период сдачи ещё не начался.',
+    'All three attempts used': 'Все три попытки уже использованы.',
+    'Task not found': 'Задание недоступно.',
+    'Student not found in this group': 'Студент не найден в этой группе.',
+    'Lesson already exists at this time': 'Занятие этой группы на это время уже создано.',
+    'Submission changed concurrently; refresh': 'Работа уже могла сохраниться. Обнови кабинет перед новой отправкой.',
+    'Access changed concurrently; refresh': 'Допуск изменён в другом окне. Обнови кабинет.',
+    'Attendance changed concurrently; refresh': 'Посещаемость изменена в другом окне. Обнови кабинет.'
   };
   async function request(path, method = 'GET', body) {
     if (!base) throw new Error('Учебный сервер пока не подключён. Доступно демо.');
@@ -26,7 +37,7 @@
     if (!response.ok) {
       let detail; try {detail = (await response.json()).detail;} catch { /* generic message below */ }
       if ((response.status === 401 || (path === '/me' && [403, 404].includes(response.status))) && token) clearSession();
-      throw new Error(messages[detail] || (response.status === 422 ? 'Проверь заполнение и формат карточек: каждой записи нужны выражение и перевод.' : 'Не удалось выполнить действие. Попробуй снова.'));
+      throw new Error(messages[detail] || (response.status === 422 ? 'Проверь заполнение полей, даты периода и формат данных.' : 'Не удалось выполнить действие. Попробуй снова.'));
     }
     return response.status === 204 ? null : response.json();
   }
@@ -46,11 +57,12 @@
     generation++; token = null; profile = null; $('workspace').hidden = true; $('sign-in').hidden = false;
     $('connected-decks').replaceChildren(); $('connected-study').replaceChildren(); $('group-editors').replaceChildren(); $('connected-group').replaceChildren();
     $('connected-deck-form').reset(); $('connected-group-form').reset(); $('admin-key').value = ''; $('account-name').textContent = 'Учебный кабинет';
+    MoonCoursework.clear();
   }
   async function refresh() {
     const version = generation;
     const me = await request('/me');
-    const [decks, extra] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study')]);
+    const [decks, extra, coursework] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me)]);
     if (version !== generation || !token) return;
     profile = me; $('sign-in').hidden = true; $('workspace').hidden = false;
     $('account-name').textContent = me.role === 'admin' ? 'Преподаватель' : me.pseudonym;
@@ -62,6 +74,7 @@
     renderDecks(decks);
     $('connected-study').hidden = me.role !== 'student';
     if (me.role === 'student') renderStudy(extra);
+    MoonCoursework.render(coursework, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});
   }
   function renderGroups(groups) {
     const previous = $('connected-group').value;

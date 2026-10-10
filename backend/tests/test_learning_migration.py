@@ -24,6 +24,8 @@ def test_learning_migration_preserves_legacy_records_and_roundtrips(tmp_path):
         assert connection.execute(text('SELECT pseudonym FROM students')).scalar_one() == 'Legacy Fern'
     tables = inspect(engine).get_table_names()
     assert {'learning_sessions','card_editors','vocabulary_decks','vocabulary_cards','card_progress','review_events'} <= set(tables)
+    assert {'homework_tasks', 'homework_groups', 'compensation_access', 'homework_submissions',
+            'homework_feedback', 'attendance_lessons', 'attendance_marks'} <= set(tables)
     migrate('002_registration', 'downgrade')
     assert 'vocabulary_decks' not in inspect(engine).get_table_names()
     with engine.connect() as connection:

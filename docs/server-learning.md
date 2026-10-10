@@ -83,9 +83,11 @@ validated directly with the existing Python environment.
 
 ## Scope still pending
 
-Production homework, submissions, announcements, checkpoint results, media,
-compensation access, leaderboards, Telegram notifications and AI authoring are
-not connected to this database slice yet. OCR stays in the separate demo page;
+Homework, submissions with photos, feedback, checkpoint-specific compensation
+access and pseudonymous attendance now use the connected API; see
+[server-coursework-attendance.md](server-coursework-attendance.md).
+Announcements, checkpoint result import, production leaderboards, Telegram
+notifications and AI authoring are not connected yet. OCR stays in the separate demo page;
 handwriting is unreliable and is not an AI card generator. Existing in-memory
 prototypes are not uploaded or automatically migrated into a real student account.
 Multiple teacher identities, sign-in rate limiting at the HTTPS gateway, backups
@@ -99,12 +101,12 @@ PYTHONPATH=backend .venv/bin/python -m pytest backend/tests -q
 npm test --prefix tests/frontend
 ```
 
-Backend: 20 tests, including real Alembic upgrade/downgrade on an isolated legacy
+Backend: 25 tests, including real Alembic upgrade/downgrade on an isolated legacy
 SQLite database, session hashing/expiry/logout, group isolation, editor revocation,
 moderation/correction, atomic validation, server-time schedules, daily XP and
 concurrent-review protection. No test uses a development/production database.
 
-Frontend: 39 tests. Three new browser integrations run an actual migrated FastAPI
+Frontend: 40 tests. Four browser integrations run an actual migrated FastAPI
 server with synthetic records, not mocked API responses. They check the disabled
 unconfigured state, teacher list creation, student review, independent accounts,
 mobile bounds, durable progress after a page reload and server process restart,

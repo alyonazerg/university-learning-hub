@@ -36,3 +36,5 @@ built by Pages/Docker. Student editor appointments remain synthetic UI state.
 See [server-backed learning](../docs/server-learning.md) for `learning.html`,
 API configuration, server roles, persistent vocabulary and review progress. The
 public Pages configuration has no API URL and explicitly disables connected login.
+
+The connected cabinet also includes [persistent coursework and pseudonymous attendance](../docs/server-coursework-attendance.md). Students see only their own attempts and attendance marks. No legal-name input is required.

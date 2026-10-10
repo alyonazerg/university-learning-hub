@@ -69,3 +69,12 @@ fieldset { border: 1px solid var(--line); border-radius: 12px; margin-top: 16px;
 .certificate-row input { width: 20px; height: 20px; flex-shrink: 0; }
 .result-form { display: grid; gap: 10px; margin: 20px 0; }
 .checkpoint-result { padding: 14px; margin: 12px 0; border: 1px solid var(--line); border-radius: 12px; }
+
+.attendance-choice {display:flex; align-items:center; gap:8px; margin:8px 0;}
+.attendance-choice input[type=checkbox] {width:22px; min-height:22px; flex:0 0 22px;}
+.coursework-text {white-space:pre-wrap; overflow-wrap:anywhere;}
+#connected-coursework, #connected-attendance {margin-top:24px;}
+#connected-coursework form, #connected-attendance form {display:grid; gap:10px; margin:16px 0; min-width:0;}
+#connected-coursework fieldset {min-width:0; border:1px solid var(--line); border-radius:12px;}
+#connected-coursework a {overflow-wrap:anywhere;}
+#connected-coursework [hidden] {display:none;}

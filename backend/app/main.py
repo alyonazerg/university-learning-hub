@@ -150,3 +150,6 @@ def identity_registry(response: Response, session=Depends(db)):
 
 from .learning import router as learning_router
 app.include_router(learning_router)
+
+from .homework import router as homework_router
+app.include_router(homework_router)

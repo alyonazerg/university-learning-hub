@@ -48,7 +48,7 @@ jobs:
           else
             cp -a .pages-live/frontend/. "$RUNNER_TEMP/moon-campus-pages/"
             mkdir -p "$RUNNER_TEMP/moon-campus-pages/preview"
-            cp frontend/index.html frontend/styles.css frontend/config.js frontend/registration.js frontend/admin.html frontend/admin.css frontend/admin.js frontend/homework.html frontend/homework.css frontend/homework.js frontend/courses.js frontend/text-review.js frontend/campus-emotes.js frontend/photo-attachments.js frontend/learning-model.js frontend/vocabulary.html frontend/vocabulary.css frontend/vocabulary.js frontend/learning.html frontend/learning-session.js "$RUNNER_TEMP/moon-campus-pages/preview/"
+            cp frontend/index.html frontend/styles.css frontend/config.js frontend/registration.js frontend/admin.html frontend/admin.css frontend/admin.js frontend/homework.html frontend/homework.css frontend/homework.js frontend/courses.js frontend/text-review.js frontend/campus-emotes.js frontend/photo-attachments.js frontend/learning-model.js frontend/vocabulary.html frontend/vocabulary.css frontend/vocabulary.js frontend/learning.html frontend/learning-session.js frontend/coursework-session.js "$RUNNER_TEMP/moon-campus-pages/preview/"
           fi
           if [ "$DEPLOY_BRANCH" != main ] && [ -d frontend/ocr ]; then cp -a frontend/ocr "$RUNNER_TEMP/moon-campus-pages/preview/"; fi
           touch "$RUNNER_TEMP/moon-campus-pages/.nojekyll"

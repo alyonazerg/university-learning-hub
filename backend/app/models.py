@@ -1,6 +1,6 @@
 from datetime import datetime
 import uuid
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String, Text, JSON
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String, Text, JSON, UniqueConstraint, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .db import Base
 class Group(Base):
@@ -96,3 +96,75 @@ class ReviewEvent(Base):
     card_id: Mapped[str] = mapped_column(ForeignKey('vocabulary_cards.id'), primary_key=True)
     day: Mapped[str] = mapped_column(String(10), primary_key=True)
     created_at: Mapped[datetime] = mapped_column(DateTime)
+
+
+class HomeworkTask(Base):
+    __tablename__ = 'homework_tasks'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    title: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text)
+    course_id: Mapped[str] = mapped_column(String(16))
+    kind: Mapped[str] = mapped_column(String(20))
+    starts_at: Mapped[datetime] = mapped_column(DateTime)
+    ends_at: Mapped[datetime] = mapped_column(DateTime)
+    test_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    checkpoint_id: Mapped[str | None] = mapped_column(ForeignKey('homework_tasks.id'), nullable=True)
+    vocabulary: Mapped[list] = mapped_column(JSON, default=list)
+    constructions: Mapped[list] = mapped_column(JSON, default=list)
+    criteria: Mapped[str] = mapped_column(Text, default='')
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class HomeworkGroup(Base):
+    __tablename__ = 'homework_groups'
+    task_id: Mapped[str] = mapped_column(ForeignKey('homework_tasks.id'), primary_key=True)
+    group_id: Mapped[int] = mapped_column(ForeignKey('groups.id'), primary_key=True)
+
+
+class CompensationAccess(Base):
+    __tablename__ = 'compensation_access'
+    checkpoint_id: Mapped[str] = mapped_column(ForeignKey('homework_tasks.id'), primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey('students.id'), primary_key=True)
+    certificate_checked: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class HomeworkSubmission(Base):
+    __tablename__ = 'homework_submissions'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    task_id: Mapped[str] = mapped_column(ForeignKey('homework_tasks.id'), index=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey('students.id'), index=True)
+    attempt: Mapped[int] = mapped_column()
+    kind: Mapped[str] = mapped_column(String(16))
+    content: Mapped[str] = mapped_column(Text)
+    photos: Mapped[list] = mapped_column(JSON, default=list)
+    request_id: Mapped[str] = mapped_column(String(36))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    late: Mapped[bool] = mapped_column(Boolean)
+    __table_args__ = (UniqueConstraint('task_id', 'student_id', 'attempt', name='uq_homework_attempt'),
+                      UniqueConstraint('student_id', 'request_id', name='uq_homework_request'),
+                      CheckConstraint('attempt BETWEEN 1 AND 3', name='ck_homework_attempt'))
+
+
+class HomeworkFeedback(Base):
+    __tablename__ = 'homework_feedback'
+    submission_id: Mapped[str] = mapped_column(ForeignKey('homework_submissions.id'), primary_key=True)
+    comment: Mapped[str] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class AttendanceLesson(Base):
+    __tablename__ = 'attendance_lessons'
+    __table_args__ = (UniqueConstraint('group_id', 'starts_at', name='uq_attendance_lesson'),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    group_id: Mapped[int] = mapped_column(ForeignKey('groups.id'), index=True)
+    title: Mapped[str] = mapped_column(String(200))
+    starts_at: Mapped[datetime] = mapped_column(DateTime)
+
+
+class AttendanceMark(Base):
+    __tablename__ = 'attendance_marks'
+    lesson_id: Mapped[str] = mapped_column(ForeignKey('attendance_lessons.id'), primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey('students.id'), primary_key=True)
+    status: Mapped[str] = mapped_column(String(16))
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
