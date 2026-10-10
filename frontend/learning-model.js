@@ -3,22 +3,22 @@
   function parseList(text) {
     if (text.trim().startsWith('[')) {
       const cards = JSON.parse(text);
-      if (!Array.isArray(cards) || cards.length > 100) throw new Error('Нужен массив до 100 карточек.');
+      if (!Array.isArray(cards) || cards.length > 100) throw new Error('Provide an array of up to 100 cards.');
       const seen = new Set();
       return cards.map(card => {
-        if (!card || typeof card !== 'object' || Array.isArray(card)) throw new Error('Неверная структура карточки.');
+        if (!card || typeof card !== 'object' || Array.isArray(card)) throw new Error('Invalid card structure.');
         const result = {};
         for (const [field, limit] of Object.entries({term:120, meaning:300, example:500, definition:500, transcription:120})) {
           const value = card[field] === undefined ? '' : card[field];
-          if (typeof value !== 'string' || value.length > limit) throw new Error('Неверное поле: ' + field);
+          if (typeof value !== 'string' || value.length > limit) throw new Error('Invalid field: ' + field);
           result[field] = value.trim();
         }
         for (const field of ['synonyms', 'antonyms', 'collocations']) {
           const value = card[field] === undefined ? [] : card[field];
-          if (!Array.isArray(value) || value.length > 10 || value.some(item => typeof item !== 'string' || item.length > 150)) throw new Error('Неверное поле: ' + field);
+          if (!Array.isArray(value) || value.length > 10 || value.some(item => typeof item !== 'string' || item.length > 150)) throw new Error('Invalid field: ' + field);
           result[field] = value.map(item => item.trim()).filter(Boolean);
         }
-        if (!result.term || !result.definition || !result.meaning) throw new Error('Полной карточке нужны выражение, определение и перевод.');
+        if (!result.term || !result.definition || !result.meaning) throw new Error('A full card needs an expression, a definition and a meaning.');
         return result;
       }).filter(card => {const key = card.term.normalize('NFKC').toLowerCase(); if (seen.has(key)) return false; seen.add(key); return true;});
     }
@@ -29,7 +29,7 @@
     }).filter(word => {
       const key = word.term.normalize('NFKC').toLowerCase();
       if (!key || seen.has(key)) return false;
-      if (word.term.length > 120 || word.meaning.length > 300 || word.example.length > 500) throw new Error('Слишком длинная строка словаря.');
+      if (word.term.length > 120 || word.meaning.length > 300 || word.example.length > 500) throw new Error('This vocabulary entry is too long.');
       seen.add(key); return true;
     });
   }

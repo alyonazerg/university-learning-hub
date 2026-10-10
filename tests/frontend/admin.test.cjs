@@ -25,11 +25,13 @@ async function openDashboard(t, mobile = false) {
 
 test('teacher overview has eight synthetic groups, registration counts and private-data-free records', async t => {
   const {page, errors, unsafeRequests} = await openDashboard(t);
+  assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+  assert(!/[А-Яа-яЁё]/.test(await page.locator('body').innerText()));
   assert.equal(await page.locator('.group-card').count(), 8);
   assert.equal(await page.locator('#registered-count').textContent(), '96');
   assert.equal(await page.locator('#pending-count').textContent(), '24');
   assert.equal(await page.locator('.member-row').count(), 15);
-  assert.match(await page.locator('.demo-banner').textContent(), /вымышлены/);
+  assert.match(await page.locator('.demo-banner').textContent(), /sample data/);
   assert.equal(await page.locator('input[type=password]').count(), 0);
   await page.locator('.group-card').nth(1).click();
   assert.match(await page.locator('#selected-group-title').textContent(), /02/);
@@ -40,7 +42,7 @@ test('teacher overview has eight synthetic groups, registration counts and priva
   assert.equal(await page.locator('.member-row').count(), 3);
   await page.locator('#group-search').fill('не существует');
   assert.equal(await page.locator('.group-card').count(), 0);
-  assert.match(await page.locator('#group-list').textContent(), /нет/);
+  assert.match(await page.locator('#group-list').textContent(), /No groups/);
   assert.deepEqual(errors, []);
   assert.deepEqual(unsafeRequests, []);
 });
@@ -48,9 +50,9 @@ test('teacher overview has eight synthetic groups, registration counts and priva
 test('new groups, duplicate validation and demo invitations work without persistence or API writes', async t => {
   const {page, errors, unsafeRequests} = await openDashboard(t);
   await page.locator('#add-group').click();
-  await page.locator('#group-name').fill('Английский · группа 01');
+  await page.locator('#group-name').fill('English · group 01');
   await page.locator('#group-form button[type=submit]').click();
-  assert.match(await page.locator('#group-error').textContent(), /уже есть/);
+  assert.match(await page.locator('#group-error').textContent(), /already exists/);
   await page.locator('#group-name').fill('<img src=x onerror=alert(1)>');
   await page.locator('#group-form button[type=submit]').click();
   assert.equal(await page.locator('#group-count').textContent(), '9');
@@ -58,7 +60,7 @@ test('new groups, duplicate validation and demo invitations work without persist
   assert.equal(await page.locator('img').count(), 0);
   await page.locator('#create-invite').click();
   assert.match(await page.locator('#invite-code').textContent(), /^DEMO-[A-F0-9]{8}$/);
-  assert.match(await page.locator('#invite-result').textContent(), /не открывает регистрацию/);
+  assert.match(await page.locator('#invite-result').textContent(), /does not enable registration/);
   assert.equal(await page.locator('#pending-count').textContent(), '25');
   await page.reload();
   assert.equal(await page.locator('#group-count').textContent(), '8');
@@ -92,10 +94,10 @@ test('group has one editable course and its catalog reaches the assignment page'
   await page.locator('#group-name').fill('Лунные исследователи');
   await page.locator('#group-course').selectOption('grammar');
   await page.locator('#group-form button[type=submit]').click();
-  assert.match(await page.locator('#group-summary').textContent(), /Грамматика/);
+  assert.match(await page.locator('#group-summary').textContent(), /English Grammar/);
   await page.locator('.dashboard-links a[href="homework.html"]').click();
   await page.locator('#new-task').click();
   await page.locator('#assignment-course').selectOption('grammar');
-  assert.match(await page.locator('#assignment-group option[value="demo-group-1"]').textContent(), /Грамматика.*Лунные исследователи/);
+  assert.match(await page.locator('#assignment-group option[value="demo-group-1"]').textContent(), /English Grammar.*Лунные исследователи/);
   assert.deepEqual(errors, []);
 });

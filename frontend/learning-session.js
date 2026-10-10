@@ -6,44 +6,44 @@
   const configured = window.MOON_CAMPUS_API_BASE || '';
   try {
     if (configured) {const url = new URL(configured); if (url.username || url.password || url.search || url.hash || (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname)))) throw new Error(); base = url.href.replace(/\/$/, '');}
-  } catch { $('connection-state').textContent = 'Адрес сервера настроен неверно. Обратись к администратору.'; }
+  } catch { $('connection-state').textContent = 'The server address is invalid. Contact your administrator.'; }
   const initData = () => window.Telegram?.WebApp?.initData || '';
   const messages = {
-    'Lessons overlap in this group': 'Время занятий этой группы пересекается. Проверь расписание.',
-    'Lesson already has an attendance journal': 'Для занятия уже создан журнал. Дату и тему нельзя изменить.',
-    'Attendance topic differs; review the existing journal': 'На это время уже есть журнал с другой темой. Проверь посещаемость.',
-    'Plan group cannot be changed': 'Группу существующей темы нельзя изменить.',
-    'Set a lesson date first': 'Сначала назначь дату занятия.',
-    'Invalid or expired Telegram authentication': 'Вход через Telegram устарел. Открой приложение заново.',
-    'Registered student required': 'Сначала зарегистрируйся по приглашению преподавателя.',
-    'Administrator access required': 'Недостаточно прав или неверный ключ преподавателя.',
-    'Appointed card editor required': 'Полные карточки оформляет назначенный редактор. Можно предложить простой список слов.',
-    'Card is not due yet': 'Эта карточка уже повторена. Обнови очередь.',
-    'Review already recorded': 'Повторение уже записано. Обнови очередь.',
-    'Published deck cannot be rewritten': 'Опубликованный список нельзя перезаписать: у студентов уже есть прогресс по его карточкам.',
-    'Session expired': 'Сессия завершилась. Войди снова.',
-    'Telegram authentication is not configured': 'Вход через Telegram ещё не настроен на сервере.',
-    'Group already exists': 'Группа с таким названием уже существует.', 'Group not found': 'Группа недоступна.', 'Student unavailable': 'Доступ студента отключён.',
-    'Choose groups from one course': 'Выбери группы одного курса.',
-    'Compensation must use groups of its checkpoint': 'Компенсация должна относиться к группам выбранного среза.',
-    'Compensation access required': 'Для компенсации нужен допуск после проверки справки.',
-    'Task has not started': 'Период сдачи ещё не начался.',
-    'All three attempts used': 'Все три попытки уже использованы.',
-    'Task not found': 'Задание недоступно.',
-    'Student not found in this group': 'Студент не найден в этой группе.',
-    'Lesson already exists at this time': 'Занятие этой группы на это время уже создано.',
-    'Submission changed concurrently; refresh': 'Работа уже могла сохраниться. Обнови кабинет перед новой отправкой.',
-    'Access changed concurrently; refresh': 'Допуск изменён в другом окне. Обнови кабинет.',
-    'Attendance changed concurrently; refresh': 'Посещаемость изменена в другом окне. Обнови кабинет.'
+    'Lessons overlap in this group': 'Lessons in this group overlap. Check the schedule.',
+    'Lesson already has an attendance journal': 'An attendance register already exists for this lesson. Its date and topic cannot be changed.',
+    'Attendance topic differs; review the existing journal': 'An attendance register with another topic already exists at that time. Check attendance.',
+    'Plan group cannot be changed': 'You cannot change the group of an existing topic.',
+    'Set a lesson date first': 'Set a lesson date first.',
+    'Invalid or expired Telegram authentication': 'Your Telegram sign-in has expired. Reopen the app.',
+    'Registered student required': 'Register using your teacher’s invitation first.',
+    'Administrator access required': 'Access denied or incorrect teacher key.',
+    'Appointed card editor required': 'Only the assigned editor can prepare full cards. You can suggest a simple word list.',
+    'Card is not due yet': 'This card has already been reviewed. Refresh the queue.',
+    'Review already recorded': 'This review has already been recorded. Refresh the queue.',
+    'Published deck cannot be rewritten': 'Published lists cannot be overwritten because students already have progress on their cards.',
+    'Session expired': 'Your session has expired. Sign in again.',
+    'Telegram authentication is not configured': 'Telegram sign-in has not been configured on the server yet.',
+    'Group already exists': 'A group with this name already exists.', 'Group not found': 'This group is unavailable.', 'Student unavailable': 'Student access has been disabled.',
+    'Choose groups from one course': 'Choose groups from the same course.',
+    'Compensation must use groups of its checkpoint': 'Make-up work must use groups from the selected checkpoint.',
+    'Compensation access required': 'Make-up work requires approval after your certificate has been checked.',
+    'Task has not started': 'The submission period has not started yet.',
+    'All three attempts used': 'All three attempts have been used.',
+    'Task not found': 'This assignment is unavailable.',
+    'Student not found in this group': 'Student not found in this group.',
+    'Lesson already exists at this time': 'This group already has a lesson at that time.',
+    'Submission changed concurrently; refresh': 'Your work may already have been saved. Refresh the hub before submitting again.',
+    'Access changed concurrently; refresh': 'Approval was changed in another window. Refresh the hub.',
+    'Attendance changed concurrently; refresh': 'Attendance was changed in another window. Refresh the hub.'
   };
   async function request(path, method = 'GET', body) {
-    if (!base) throw new Error('Учебный сервер пока не подключён. Доступно демо.');
+    if (!base) throw new Error('The learning server is not connected yet. The demo is available.');
     const response = await fetch(base + '/learning' + path, {method, cache: 'no-store', headers: {...(body ? {'Content-Type': 'application/json'} : {}), ...(token ? {Authorization: 'Bearer ' + token} : {})}, ...(body ? {body: JSON.stringify(body)} : {})});
     if (!response.ok) {
       let detail; try {detail = (await response.json()).detail;} catch { /* generic message below */ }
       if (response.status === 404 && path === '/plans') return null;
       if ((response.status === 401 || (path === '/me' && [403, 404].includes(response.status))) && token) clearSession();
-      throw new Error(messages[detail] || (response.status === 422 ? 'Проверь заполнение полей, даты периода и формат данных.' : 'Не удалось выполнить действие. Попробуй снова.'));
+      throw new Error(messages[detail] || (response.status === 422 ? 'Check the fields, dates and data format.' : 'Could not complete the action. Try again.'));
     }
     return response.status === 204 ? null : response.json();
   }
@@ -55,14 +55,14 @@
   async function run(action) {
     if (busy) return;
     busy = true; updateControls(); $('account-status').textContent = '';
-    try {await action();} catch (error) {$('account-status').textContent = error instanceof TypeError ? 'Нет связи с учебным сервером. Проверь подключение и попробуй снова.' : error.message;}
+    try {await action();} catch (error) {$('account-status').textContent = error instanceof TypeError ? 'Could not reach the learning server. Check your connection and try again.' : error.message;}
     finally {busy = false; updateControls();}
   }
   function button(text, action) {const element = node('button', text, 'secondary'); element.type = 'button'; element.addEventListener('click', () => run(action)); return element;}
   function clearSession() {
     generation++; token = null; profile = null; $('workspace').hidden = true; $('sign-in').hidden = false;
     $('connected-decks').replaceChildren(); $('connected-study').replaceChildren(); $('group-editors').replaceChildren(); $('connected-group').replaceChildren();
-    $('connected-deck-form').reset(); $('connected-group-form').reset(); $('admin-key').value = ''; $('account-name').textContent = 'Учебный кабинет';
+    $('connected-deck-form').reset(); $('connected-group-form').reset(); $('admin-key').value = ''; $('account-name').textContent = 'Learning hub';
     MoonCoursework.clear();
     MoonPlanning.clear(); activeSection = ''; $('connection-info').hidden = false;
   }
@@ -98,11 +98,11 @@
     const [decks, extra, coursework, plans] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me), request('/plans')]);
     if (version !== generation || !token) return;
     profile = me; $('sign-in').hidden = true; $('workspace').hidden = false;
-    $('account-name').textContent = me.role === 'admin' ? 'Преподаватель' : me.pseudonym;
+    $('account-name').textContent = me.role === 'admin' ? 'Teacher' : me.pseudonym;
     $('connected-groups').hidden = me.role !== 'admin'; $('connected-group-field').hidden = me.role !== 'admin';
-    $('connected-editor-title').textContent = me.role === 'admin' ? 'Подготовить целевую лексику' : 'Предложить emergent vocabulary';
-    $('connected-editor-hint').textContent = me.role === 'admin' ? 'Выбери группу. Список сохранится на сервере и станет доступен её студентам.' : me.is_card_editor ? 'Ты редактор карточек своей группы. Полные карточки можно подготовить в JSON. Публикует преподаватель.' : 'Предложи слова с переводами и примерами. Преподаватель проверит их перед публикацией.';
-    $('connected-save').textContent = me.role === 'admin' ? 'Сохранить для группы' : 'Отправить на проверку';
+    $('connected-editor-title').textContent = me.role === 'admin' ? 'Prepare target vocabulary' : 'Suggest emergent vocabulary';
+    $('connected-editor-hint').textContent = me.role === 'admin' ? 'Choose a group. The list will be saved and shared with its students.' : me.is_card_editor ? 'You are your group’s vocabulary editor. Prepare full cards as JSON; your teacher publishes them.' : 'Suggest words with meanings and examples. Your teacher will review them before publishing.';
+    $('connected-save').textContent = me.role === 'admin' ? 'Save for group' : 'Submit for review';
     if (me.role === 'admin') renderGroups(extra);
     renderDecks(decks);
     $('connected-study').hidden = me.role !== 'student';
@@ -119,49 +119,49 @@
       const course = window.MoonCourses.find(item => item.id === group.course_id)?.name || group.course_id;
       const option = node('option', group.name + ' · ' + course); option.value = group.id; $('connected-group').append(option);
       const article = node('article', undefined, 'word-list-card'); article.append(node('h3', group.name), node('p', course));
-      const label = node('label', 'Редактор карточек', 'input-label'); label.htmlFor = 'editor-' + group.id;
+      const label = node('label', 'Vocabulary editor', 'input-label'); label.htmlFor = 'editor-' + group.id;
       const select = node('select'); select.id = label.htmlFor;
-      const none = node('option', 'Только преподаватель'); none.value = ''; select.append(none);
+      const none = node('option', 'Teacher only'); none.value = ''; select.append(none);
       for (const student of group.students) {const item = node('option', student.pseudonym); item.value = student.id; select.append(item);}
       select.value = group.editor_student_id || '';
-      article.append(label, select, button('Сохранить редактора · ' + group.name, async () => {await request('/groups/' + group.id + '/editor', 'PUT', {student_id: select.value || null}); await refresh(); $('account-status').textContent = 'Редактор группы сохранён.';})); $('group-editors').append(article);
+      article.append(label, select, button('Save editor · ' + group.name, async () => {await request('/groups/' + group.id + '/editor', 'PUT', {student_id: select.value || null}); await refresh(); $('account-status').textContent = 'Group editor saved.';})); $('group-editors').append(article);
     }
     if ([...$('connected-group').options].some(option => option.value === previous)) $('connected-group').value = previous;
-    if (!groups.length) $('group-editors').append(node('p', 'Группы пока не созданы.'));
+    if (!groups.length) $('group-editors').append(node('p', 'No groups yet.'));
   }
   function renderDecks(decks) {
-    const area = $('connected-decks'); area.replaceChildren(node('h2', 'Сохранённые списки'));
-    if (!decks.length) area.append(node('p', 'Пока нет списков.'));
+    const area = $('connected-decks'); area.replaceChildren(node('h2', 'Saved lists'));
+    if (!decks.length) area.append(node('p', 'No lists yet.'));
     for (const deck of decks) {
-      const article = node('article', undefined, 'word-list-card'); article.append(node('h3', deck.title), node('p', deck.status === 'approved' ? 'Одобрено' : 'На проверке'), node('p', deck.source));
+      const article = node('article', undefined, 'word-list-card'); article.append(node('h3', deck.title), node('p', deck.status === 'approved' ? 'Approved' : 'Pending review'), node('p', deck.source));
       const words = node('ul'); deck.cards.forEach(card => words.append(node('li', card.term + ' — ' + card.meaning))); article.append(words);
       if (profile.role === 'admin' && deck.status === 'pending') {
-        for (const card of deck.cards) {const preview = node('details'); preview.append(node('summary', 'Проверить карточку: ' + card.term), node('p', card.definition), node('p', card.transcription), node('p', 'Syn: ' + card.synonyms.join(', ')), node('p', 'Ant: ' + card.antonyms.join(', ')), node('p', 'Coll: ' + card.collocations.join(', ')), node('p', card.example)); article.append(preview);}
-        article.append(button('Исправить · ' + deck.title, async () => {
-          const form = node('form'), label = node('label', 'Проверенный черновик карточек · JSON', 'input-label');
+        for (const card of deck.cards) {const preview = node('details'); preview.append(node('summary', 'Review card: ' + card.term), node('p', card.definition), node('p', card.transcription), node('p', 'Syn: ' + card.synonyms.join(', ')), node('p', 'Ant: ' + card.antonyms.join(', ')), node('p', 'Coll: ' + card.collocations.join(', ')), node('p', card.example)); article.append(preview);}
+        article.append(button('Edit · ' + deck.title, async () => {
+          const form = node('form'), label = node('label', 'Reviewed card draft · JSON', 'input-label');
           const input = node('textarea'); input.id = 'draft-' + deck.id; input.maxLength = 15000; input.rows = 8; input.required = true; label.htmlFor = input.id;
           input.value = JSON.stringify(deck.cards.map(({id, ...content}) => content), null, 2);
-          const save = node('button', 'Сохранить исправления', 'secondary'); save.type = 'submit';
+          const save = node('button', 'Save corrections', 'secondary'); save.type = 'submit';
           form.append(label, input, save); form.addEventListener('submit', event => {event.preventDefault(); run(async () => {
             await request('/decks/' + deck.id, 'PUT', {title: deck.title, source: deck.source, group_id: deck.group_id, cards: MoonLearning.parseList(input.value)});
-            await refresh(); $('account-status').textContent = 'Черновик исправлен. Теперь можно одобрить список.';
+            await refresh(); $('account-status').textContent = 'Draft updated. You can now approve the list.';
           });});
           const old = article.querySelector('form'); if (old) old.remove(); article.append(form); input.focus();
         }));
-        article.append(button('Одобрить · ' + deck.title, async () => {await request('/decks/' + deck.id + '/approve', 'POST'); await refresh(); $('account-status').textContent = 'Список одобрен.';}));
+        article.append(button('Approve · ' + deck.title, async () => {await request('/decks/' + deck.id + '/approve', 'POST'); await refresh(); $('account-status').textContent = 'List approved.';}));
       }
       area.append(article);
     }
   }
   function renderStudy(study) {
-    const area = $('connected-study'); area.replaceChildren(node('h2', 'Твой прогресс'), node('p', `Закреплено: ${study.reinforced} из ${study.total} · XP: ${study.xp} · streak: ${study.streak} дн.`, 'learning-progress'));
-    area.append(node('p', 'Повторения сохраняются на сервере. Streak считается по Москве. XP за активность не является оценкой.', 'muted'));
+    const area = $('connected-study'); area.replaceChildren(node('h2', 'Your progress'), node('p', `Mastered: ${study.reinforced} of ${study.total} · XP: ${study.xp} · streak: ${study.streak} days`, 'learning-progress'));
+    area.append(node('p', 'Reviews are saved on the server. Streaks use Moscow time. Activity XP is not a grade.', 'muted'));
     const word = study.due[0];
-    if (!word) {area.append(node('p', 'Нет карточек для повторения сейчас. Обнови очередь позже.')); return;}
-    area.append(node('p', '📚 Осталось: ' + study.due.length));
-    const card = node('article', undefined, 'flashcard'); card.append(node('blockquote', word.definition || 'Вспомни перевод выражения: ' + word.term, 'card-definition')); area.append(card);
+    if (!word) {area.append(node('p', 'No cards are due now. Check again later.')); return;}
+    area.append(node('p', '📚 Remaining: ' + study.due.length));
+    const card = node('article', undefined, 'flashcard'); card.append(node('blockquote', word.definition || 'Recall the meaning of this expression: ' + word.term, 'card-definition')); area.append(card);
     const actions = node('div', undefined, 'training-actions'); area.append(actions);
-    actions.append(button('👀 Показать', async () => {
+    actions.append(button('👀 Show', async () => {
       card.append(node('h3', word.term), node('p', word.transcription));
       for (const [field, label] of [['synonyms', 'Syn'], ['antonyms', 'Ant'], ['collocations', 'Coll']]) if (word[field]?.length) card.append(node('p', label + ': ' + word[field].join(', ')));
       if (word.example) {
@@ -171,11 +171,11 @@
         card.append(example);
       }
       const translation = node('p', word.meaning); translation.id = 'connected-translation'; translation.hidden = true;
-      const reveal = button('🇷🇺 Показать перевод', async () => {translation.hidden = !translation.hidden; reveal.setAttribute('aria-expanded', String(!translation.hidden)); reveal.textContent = translation.hidden ? '🇷🇺 Показать перевод' : '🇷🇺 Скрыть перевод';}); reveal.setAttribute('aria-expanded', 'false'); reveal.setAttribute('aria-controls', translation.id); card.append(reveal, translation);
+      const reveal = button('🇷🇺 Show meaning', async () => {translation.hidden = !translation.hidden; reveal.setAttribute('aria-expanded', String(!translation.hidden)); reveal.textContent = translation.hidden ? '🇷🇺 Show meaning' : '🇷🇺 Hide meaning';}); reveal.setAttribute('aria-expanded', 'false'); reveal.setAttribute('aria-controls', translation.id); card.append(reveal, translation);
       actions.replaceChildren();
-      for (const [rating, label] of [['again', '❌ Снова'], ['hard', '🙁 Трудно'], ['good', '🙂 Хорошо'], ['easy', '😎 Легко']]) {
-        const seconds = word.intervals[rating], delay = seconds < 86400 ? seconds / 60 + ' мин.' : seconds / 86400 + ' дн.';
-        actions.append(button(label + ' · ' + delay, async () => {await request('/cards/' + word.id + '/review', 'POST', {rating}); await refresh(); $('account-status').textContent = 'Повторение сохранено.';}));
+      for (const [rating, label] of [['again', '❌ Again'], ['hard', '🙁 Hard'], ['good', '🙂 Good'], ['easy', '😎 Easy']]) {
+        const seconds = word.intervals[rating], delay = seconds < 86400 ? seconds / 60 + ' min' : seconds / 86400 + ' days';
+        actions.append(button(label + ' · ' + delay, async () => {await request('/cards/' + word.id + '/review', 'POST', {rating}); await refresh(); $('account-status').textContent = 'Review saved.';}));
       }
     }));
   }
@@ -186,20 +186,20 @@
   for (const course of window.MoonCourses) {const option = node('option', course.name); option.value = course.id; $('new-group-course').append(option);}
   $('connected-group-form').addEventListener('submit', event => {event.preventDefault(); run(async () => {
     await request('/groups', 'POST', {name: $('new-group-name').value.trim(), course_id: $('new-group-course').value});
-    $('connected-group-form').reset(); await refresh(); $('account-status').textContent = 'Группа создана.';
+    $('connected-group-form').reset(); await refresh(); $('account-status').textContent = 'Group created.';
   });});
   $('admin-sign-in').addEventListener('submit', event => {event.preventDefault(); const key = $('admin-key').value; $('admin-key').value = ''; run(() => signIn('/login/admin', {token: key}));});
   $('telegram-sign-in').addEventListener('click', () => run(() => signIn('/login/telegram', {init_data: initData()})));
-  $('sign-out').addEventListener('click', () => run(async () => {await request('/logout', 'POST'); clearSession(); $('account-status').textContent = 'Ты вышел из кабинета.';}));
+  $('sign-out').addEventListener('click', () => run(async () => {await request('/logout', 'POST'); clearSession(); $('account-status').textContent = 'You have signed out.';}));
   $('refresh-account').addEventListener('click', () => run(refresh));
   $('connected-deck-form').addEventListener('submit', event => {event.preventDefault(); run(async () => {
     const cards = MoonLearning.parseList($('connected-words').value);
-    if (!cards.length || cards.length > 100 || cards.some(card => !card.meaning)) throw new Error('Добавь от 1 до 100 выражений, каждому нужен перевод.');
+    if (!cards.length || cards.length > 100 || cards.some(card => !card.meaning)) throw new Error('Add 1–100 expressions, each with a meaning.');
     await request('/decks', 'POST', {title: $('connected-title').value.trim(), source: $('connected-source').value.trim(), group_id: profile.role === 'admin' ? Number($('connected-group').value) : profile.group_id, cards});
-    $('connected-deck-form').reset(); await refresh(); $('account-status').textContent = profile.role === 'admin' ? 'Список сохранён для группы.' : 'Список сохранён и ждёт проверки.';
+    $('connected-deck-form').reset(); await refresh(); $('account-status').textContent = profile.role === 'admin' ? 'List saved for the group.' : 'List saved and awaiting review.';
   });});
-  if (base) $('connection-state').textContent = 'Для кабинета указан учебный сервер. После входа списки и прогресс сохраняются в базе.';
-  else if (!configured) $('connection-state').textContent = 'Учебный сервер ещё не подключён. Вход и сохранение здесь пока недоступны; можно посмотреть демо.';
-  $('telegram-hint').textContent = initData() ? 'Готово к входу через Telegram.' : 'Для входа студента открой платформу через Mini App бота.';
+  if (base) $('connection-state').textContent = 'The learning server is connected. Your lists and progress are saved after sign-in.';
+  else if (!configured) $('connection-state').textContent = 'The learning server is not connected yet. Sign-in and saving are unavailable; you can explore the demo.';
+  $('telegram-hint').textContent = initData() ? 'Ready to sign in with Telegram.' : 'To sign in as a student, open the platform from the bot’s Mini App.';
   updateControls();
 })();

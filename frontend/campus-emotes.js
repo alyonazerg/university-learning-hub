@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const items = Object.freeze([{id: 'moon', name: 'Лунная улыбка'}, {id: 'sprout', name: 'Росточек'}, {id: 'spark', name: 'Звёздная поддержка'}, {id: 'happy', name: 'Радуюсь'}, {id: 'sad', name: 'Грущу'}, {id: 'anxious', name: 'Волнуюсь'}, {id: 'tired', name: 'Устал'}, {id: 'curious', name: 'Любопытно'}, {id: 'proud', name: 'Горжусь собой'}]);
+  const items = Object.freeze([{id: 'moon', name: 'Moon smile'}, {id: 'sprout', name: 'Seedling'}, {id: 'spark', name: 'Star support'}, {id: 'happy', name: 'Happy'}, {id: 'sad', name: 'Sad'}, {id: 'anxious', name: 'Nervous'}, {id: 'tired', name: 'Tired'}, {id: 'curious', name: 'Curious'}, {id: 'proud', name: 'Proud'}]);
   const namespace = 'http://www.w3.org/2000/svg';
   function shape(tag, attributes) {const element = document.createElementNS(namespace, tag); for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value); return element;}
   function icon(id) {
@@ -35,9 +35,9 @@
     return fragment;
   }
   function picker(field) {
-    const bar = document.createElement('div'); bar.className = 'emote-picker'; bar.setAttribute('aria-label', 'Смайлики Moon Campus');
+    const bar = document.createElement('div'); bar.className = 'emote-picker'; bar.setAttribute('aria-label', 'Moon Campus emojis');
     for (const item of items) {
-      const button = document.createElement('button'); button.type = 'button'; button.className = 'secondary'; button.setAttribute('aria-label', 'Вставить: ' + item.name); button.append(icon(item.id));
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'secondary'; button.setAttribute('aria-label', 'Insert: ' + item.name); button.append(icon(item.id));
       button.addEventListener('click', () => {
         const token = ':' + item.id + ':';
         const start = field.selectionStart ?? field.value.length, end = field.selectionEnd ?? start;

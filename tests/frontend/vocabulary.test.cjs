@@ -26,6 +26,8 @@ async function openVocabulary(t, options = {}) {
 }
 test('teacher bulk list reaches homework, and emergent words require approval for cards', async t => {
   const {page, errors, writes} = await openVocabulary(t);
+  assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+  assert(!/[А-Яа-яЁё]/.test((await page.locator('body').innerText()).replace(/жгучая боль|получать удовольствие|хотели бы вы/g, ''))); // Vocabulary meanings are learning content, not UI labels.
   await page.locator('#list-title').fill('Presentation Unit 2');
   await page.locator('#list-source').fill('Fictional slides');
   await page.locator('#word-list').fill('wonder; удивляться; I wonder.\nmoonlit; лунный; A garden.');
@@ -35,12 +37,12 @@ test('teacher bulk list reaches homework, and emergent words require approval fo
   await page.locator('#list-title').fill('Found in a story');
   await page.locator('#word-list').fill('stardust; звёздная пыль; Tiny stardust.');
   await page.locator('#save-list').click();
-  assert.match(await page.locator('#vocab-lists').textContent(), /На проверке/);
-  assert.match(await page.locator('.learning-progress').textContent(), /из 5/);
+  assert.match(await page.locator('#vocab-lists').textContent(), /Pending review/);
+  assert.match(await page.locator('.learning-progress').textContent(), /of 5/);
   await page.locator('#vocab-teacher').click();
-  await page.getByRole('button', {name: 'Одобрить для карточек группы'}).click();
+  await page.getByRole('button', {name: 'Approve for group flashcards'}).click();
   await page.locator('#vocab-student').click();
-  assert.match(await page.locator('.learning-progress').textContent(), /из 6/);
+  assert.match(await page.locator('.learning-progress').textContent(), /of 6/);
   await page.locator('#vocab-teacher').click();
   await page.locator('#vocab-homework').click();
   await page.locator('#new-task').click();
@@ -53,16 +55,16 @@ test('student cards record progress without farming, ranking is opt-in and cross
   await page.locator('#vocab-student').click();
   assert.equal(await page.locator('#rank-opt-in').isChecked(), false);
   assert.doesNotMatch(await page.locator('.own-group-rank').allTextContents().then(x=>x.join(' ')), /Silver Fern/);
-  await page.getByRole('button', {name: '👀 Показать', exact: true}).click();
-  await page.getByRole('button', {name: /🙂 Хорошо/}).click();
-  assert.match(await page.locator('.learning-progress').textContent(), /повторений: 1 · streak: 1/);
+  await page.getByRole('button', {name: '👀 Show', exact: true}).click();
+  await page.getByRole('button', {name: /🙂 Good/}).click();
+  assert.match(await page.locator('.learning-progress').textContent(), /reviews: 1 · streak: 1/);
   await page.locator('#rank-opt-in').check();
   assert.match((await page.locator('.own-group-rank').allTextContents()).join(' '), /Silver Fern1 XP/);
   const teamText = (await page.locator('.team-rank').allTextContents()).join(' ');
   assert.doesNotMatch(teamText, /Silver|Amber|Fern|Willow/);
   for (const width of [320, 375, 390, 430]) {await page.setViewportSize({width, height: 844}); assert(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth));}
   await page.reload(); await page.locator('#vocab-student').click();
-  assert.match(await page.locator('.learning-progress').textContent(), /повторений: 0 · streak: 0/);
+  assert.match(await page.locator('.learning-progress').textContent(), /reviews: 0 · streak: 0/);
   assert.deepEqual(errors, []);
 });
 test('one appointed editor per group can use the photo workflow, replacement revokes access', async t => {
@@ -91,7 +93,7 @@ test('real local OCR turns a synthetic board photo into a reviewed draft without
   await page.locator('#board-photo').setInputFiles({name: 'synthetic-board.png', mimeType: 'image/png', buffer: Buffer.from(data, 'base64')});
   await page.locator('#board-preview img').waitFor();
   await page.locator('#recognize-board').click();
-  await page.getByText('Черновик распознан. Исправь ошибки и оставь одну запись на строку; затем перенеси в список.', {exact: true}).waitFor({timeout: 60000});
+  await page.getByText('Text recognized. Correct any errors, use one entry per line, then transfer it to the list.', {exact: true}).waitFor({timeout: 60000});
   const draft = await page.locator('#board-text').inputValue();
   assert.match(draft, /moonlit/i); assert.match(draft, /stardust/i);
   assert.equal(await page.locator('.word-list-card').count(), 1);
@@ -109,22 +111,22 @@ test('definition-first cards reveal rich answer and translation independently on
   await page.locator('#vocab-student').click();
   assert.match(await page.locator('.card-definition').textContent(), /Sharp, intense burning/);
   assert.equal(await page.locator('.flashcard h3').count(),0);
-  await page.getByRole('button',{name:'👀 Показать',exact:true}).click();
+  await page.getByRole('button',{name:'👀 Show',exact:true}).click();
   assert.equal(await page.locator('.flashcard h3').textContent(),'searing pain');
   assert.match(await page.locator('.flashcard').textContent(),/Syn: burning pain/);
   assert.match(await page.locator('.flashcard').textContent(),/Coll: searing pain in the chest/);
   assert.equal(await page.locator('.card-example strong').textContent(),'searing pain');
   assert(!(await page.locator('#card-translation').isVisible()));
-  await page.getByRole('button',{name:'🇷🇺 Показать перевод',exact:true}).click();
+  await page.getByRole('button',{name:'🇷🇺 Show meaning',exact:true}).click();
   assert(await page.locator('#card-translation').isVisible());
   assert.equal(await page.locator('#card-translation').textContent(),'жгучая боль');
-  await page.getByRole('button',{name:'🇷🇺 Скрыть перевод',exact:true}).click();
+  await page.getByRole('button',{name:'🇷🇺 Hide meaning',exact:true}).click();
   assert(!(await page.locator('#card-translation').isVisible()));
   assert.equal(await page.locator('.training-actions button').count(),4);
-  await page.getByRole('button',{name:/🙁 Трудно/}).click();
+  await page.getByRole('button',{name:/🙁 Hard/}).click();
   assert.equal(await page.locator('.flashcard h3').count(),0);
   assert.equal(await page.locator('#card-translation').count(),0);
-  assert.match(await page.locator('.learning-progress').textContent(),/повторений: 1/);
+  assert.match(await page.locator('.learning-progress').textContent(),/reviews: 1/);
   assert.deepEqual(errors,[]);
 });
 test('rich card import is limited to appointed editors and still requires teacher approval', async t => {
@@ -132,13 +134,13 @@ test('rich card import is limited to appointed editors and still requires teache
   const card = {term:'<img src=x onerror=alert(1)>',definition:'A literal text example.',meaning:'пример',synonyms:['safe']};
   await page.locator('#vocab-student').click();
   await page.locator('#list-title').fill('Rich draft'); await page.locator('#word-list').fill(JSON.stringify([card]));
-  await page.locator('#save-list').click(); assert.match(await page.locator('#word-error').textContent(),/назначенный редактор/);
+  await page.locator('#save-list').click(); assert.match(await page.locator('#word-error').textContent(),/assigned editor/);
   await page.locator('#vocab-teacher').click(); await page.locator('#card-editor-student').selectOption('demo-student-1');
   await page.locator('#vocab-student').click(); await page.locator('#save-list').click();
   assert.match(await page.locator('#vocab-lists').textContent(),/Rich draft/);
   assert.equal(await page.locator('#vocab-lists img').count(),0);
-  assert.match(await page.locator('.learning-progress').textContent(),/из 3/);
-  await page.locator('#vocab-teacher').click(); await page.getByRole('button',{name:'Одобрить для карточек группы'}).click();
-  await page.locator('#vocab-student').click(); assert.match(await page.locator('.learning-progress').textContent(),/из 4/);
+  assert.match(await page.locator('.learning-progress').textContent(),/of 3/);
+  await page.locator('#vocab-teacher').click(); await page.getByRole('button',{name:'Approve for group flashcards'}).click();
+  await page.locator('#vocab-student').click(); assert.match(await page.locator('.learning-progress').textContent(),/of 4/);
   assert.deepEqual(errors,[]);
 });

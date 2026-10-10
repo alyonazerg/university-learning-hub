@@ -32,7 +32,7 @@ async function fixture(t, {connected = false, reserveStatus = 200, registerStatu
     });
   }
   await page.goto(`${origin}/#invite=${'x'.repeat(43)}`);
-  await page.waitForFunction(() => document.getElementById('pseudonym').textContent !== 'Выбираем…');
+  await page.waitForFunction(() => document.getElementById('pseudonym').textContent !== 'Choosing…');
   return {page, requests, errors};
 }
 
@@ -64,7 +64,7 @@ test('connected registration sends only signed auth, invitation and server token
   const {page, requests, errors} = await fixture(t, {connected: true});
   assert.equal(await page.locator('#pseudonym').textContent(), 'Silver Fern');
   await page.locator('#continue').click();
-  await page.waitForFunction(() => document.getElementById('continue').textContent === 'Профиль создан');
+  await page.waitForFunction(() => document.getElementById('continue').textContent === 'Profile created');
   assert(await page.locator('#continue').isDisabled());
   assert(await page.locator('#refresh').isDisabled());
   assert.deepEqual(Object.keys(requests[1]).sort(), ['init_data', 'invitation_token', 'pseudonym_token']);
@@ -74,19 +74,19 @@ test('connected registration sends only signed auth, invitation and server token
 test('failed reservation cannot enable registration', async t => {
   const {page} = await fixture(t, {connected: true, reserveStatus: 503});
   assert(await page.locator('#continue').isDisabled());
-  assert.match(await page.locator('#status').textContent(), /недоступна/);
+  assert.match(await page.locator('#status').textContent(), /unavailable/);
 });
 
 test('expired reservation disables submit', async t => {
   const {page} = await fixture(t, {connected: true, expiresIn: 0.05});
-  await page.waitForFunction(() => document.getElementById('status').textContent.includes('истекло'));
+  await page.waitForFunction(() => document.getElementById('status').textContent.includes('expired'));
   assert(await page.locator('#continue').isDisabled());
 });
 
 test('registration conflict is visible and permits a new reservation', async t => {
   const {page} = await fixture(t, {connected: true, registerStatus: 409});
   await page.locator('#continue').click();
-  await page.waitForFunction(() => document.getElementById('status').textContent.includes('использованы'));
+  await page.waitForFunction(() => document.getElementById('status').textContent.includes('already been used'));
   assert(await page.locator('#continue').isDisabled());
   assert(!(await page.locator('#refresh').isDisabled()));
 });

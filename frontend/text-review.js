@@ -22,11 +22,11 @@
       (match ? found : missing).push(term);
     }
     const suggestions = [];
-    if (missing.length) suggestions.push(`Попробуй употребить в подходящем контексте: ${missing.join(', ')}. Проверка ищет точные формы; другие формы могли остаться незамеченными.`);
-    if (/\b(?:i|i'm|i've|i'll|i'd)\b/.test(text)) suggestions.push('Проверь английское местоимение I: его пишут с заглавной буквы (например, i → I).');
-    if (/[^\n]\s{2,}[^\n]/.test(text)) suggestions.push('Проверь повторяющиеся пробелы: между словами обычно достаточно одного.');
-    if (/\s+[,.!?;:]/.test(text)) suggestions.push('Проверь пробел перед знаком препинания: например, friend ! → friend!');
-    if (text.trim() && !/[.!?…]["'”’)]?$/.test(text.trim())) suggestions.push('Проверь завершение текста: возможно, нужен конечный знак препинания.');
+    if (missing.length) suggestions.push(`Try using these in an appropriate context: ${missing.join(', ')}. This check looks for exact forms; other forms may have been missed.`);
+    if (/\b(?:i|i'm|i've|i'll|i'd)\b/.test(text)) suggestions.push('Check the pronoun I: it needs a capital letter (for example, i → I).');
+    if (/[^\n]\s{2,}[^\n]/.test(text)) suggestions.push('Check repeated spaces: one space between words is usually enough.');
+    if (/\s+[,.!?;:]/.test(text)) suggestions.push('Check spaces before punctuation: for example, friend ! → friend!');
+    if (text.trim() && !/[.!?…]["'”’)]?$/.test(text.trim())) suggestions.push('Check the end of your text: you may need final punctuation.');
     return {found, missing, suggestions, wordCount: words.length};
   }
   function analyseConstructions(text, constructions = []) {

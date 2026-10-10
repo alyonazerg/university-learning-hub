@@ -8,7 +8,7 @@
   const second = ['Fern', 'Willow', 'Clover', 'Lilac', 'Bloom', 'Sage', 'Fox', 'Rose', 'Comet', 'Iris', 'Owl', 'Wren', 'Maple', 'Moss', 'Lotus'];
   const groups = first.map((word, index) => ({
     id: `demo-group-${index + 1}`,
-    name: `Английский · группа ${String(index + 1).padStart(2, '0')}`,
+    name: `English · group ${String(index + 1).padStart(2, '0')}`,
     courseId: index % 2 ? 'grammar' : 'speech',
     members: second.map((ending, i) => ({alias: i % 5 === 4 ? null : `${word} ${ending}`, invitation: null})),
   }));
@@ -40,31 +40,31 @@
     $('pending-count').textContent = groups.reduce((sum, group) => sum + counts(group).pending, 0);
     const query = $('group-search').value.trim().toLocaleLowerCase('ru');
     const matching = groups.filter(group => group.name.toLocaleLowerCase('ru').includes(query) && ($('course-filter').value === 'all' || group.courseId === $('course-filter').value));
-    $('group-result-count').textContent = `${matching.length} из ${groups.length}`;
+    $('group-result-count').textContent = `${matching.length} of ${groups.length}`;
     $('group-list').replaceChildren();
     for (const group of matching) {
       const button = node('button', undefined, 'group-card');
       button.type = 'button';
       button.setAttribute('aria-pressed', String(group.id === selected));
       const {registered, pending} = counts(group);
-      button.append(node('strong', group.name), node('span', courseName(group.courseId)), node('span', `${registered} с профилем · ${pending} ожидают`));
+      button.append(node('strong', group.name), node('span', courseName(group.courseId)), node('span', `${registered} with profiles · ${pending} pending`));
       button.addEventListener('click', () => {
         selected = group.id;
         $('member-search').value = '';
         $('status-filter').value = 'all';
         render();
         revealSelection();
-        announce(`Выбрана ${group.name}`);
+        announce(`Selected ${group.name}`);
       });
       $('group-list').append(button);
     }
-    if (!matching.length) $('group-list').append(node('p', 'Групп с таким названием нет.', 'empty'));
+    if (!matching.length) $('group-list').append(node('p', 'No groups with this name.', 'empty'));
   }
   function renderMembers() {
     const group = current();
     const {registered, pending} = counts(group);
     $('selected-group-title').textContent = group.name;
-    $('group-summary').textContent = `${courseName(group.courseId)} · ${group.members.length} учебных мест · ${registered} с профилем · ${pending} ожидают`;
+    $('group-summary').textContent = `${courseName(group.courseId)} · ${group.members.length} learning places · ${registered} with profiles · ${pending} pending`;
     const percent = group.members.length ? Math.round(registered / group.members.length * 100) : 0;
     $('registration-percent').textContent = `${percent}%`;
     $('registration-progress').value = percent;
@@ -76,15 +76,15 @@
     $('member-list').replaceChildren();
     for (const member of members) {
       const row = node('li', undefined, 'member-row');
-      row.append(node('span', member.alias || 'Место для нового студента', 'member-alias'));
-      row.append(node('span', member.alias ? 'Профиль создан' : member.invitation ? 'Приглашение создано' : 'Ожидает приглашения', `member-status${member.alias ? '' : ' pending'}`));
+      row.append(node('span', member.alias || 'Place for a new student', 'member-alias'));
+      row.append(node('span', member.alias ? 'Profile created' : member.invitation ? 'Invitation created' : 'Awaiting invitation', `member-status${member.alias ? '' : ' pending'}`));
       $('member-list').append(row);
     }
-    if (!members.length) $('member-list').append(node('li', group.members.length ? 'Нет студентов с выбранными условиями.' : 'В новой группе пока нет студентов. Попробуй создать демо-приглашение.', 'empty'));
+    if (!members.length) $('member-list').append(node('li', group.members.length ? 'No students match the selected filters.' : 'No students in this new group yet. Try creating a demo invitation.', 'empty'));
     const invitation = invitations.get(group.id);
     $('invite-result').hidden = !invitation;
     $('invite-code').textContent = invitation || '';
-    $('copy-invite').textContent = 'Скопировать код';
+    $('copy-invite').textContent = 'Copy code';
   }
   function render() { renderGroups(); renderMembers(); }
   for (const course of courses) {
@@ -93,8 +93,8 @@
   $('course-filter').addEventListener('change', renderGroups);
   $('edit-group').addEventListener('click', () => {
     const group = current(); editing = group.id;
-    $('dialog-title').textContent = 'Название и курс группы';
-    $('group-form').querySelector('button[type=submit]').textContent = 'Сохранить';
+    $('dialog-title').textContent = 'Group name and course';
+    $('group-form').querySelector('button[type=submit]').textContent = 'Save';
     $('group-name').value = group.name; $('group-course').value = group.courseId;
     $('group-error').textContent = ''; $('group-dialog').showModal(); $('group-name').focus();
   });
@@ -102,8 +102,8 @@
   $('member-search').addEventListener('input', renderMembers);
   $('status-filter').addEventListener('change', renderMembers);
   $('add-group').addEventListener('click', () => {
-    editing = null; $('dialog-title').textContent = 'Новая учебная группа';
-    $('group-form').querySelector('button[type=submit]').textContent = 'Создать';
+    editing = null; $('dialog-title').textContent = 'New learning group';
+    $('group-form').querySelector('button[type=submit]').textContent = 'Create';
     $('group-form').reset();
     $('group-error').textContent = '';
     $('group-dialog').showModal();
@@ -113,9 +113,9 @@
   $('group-form').addEventListener('submit', event => {
     event.preventDefault();
     const name = $('group-name').value.trim();
-    if (!name) { $('group-error').textContent = 'Введи название группы.'; return; }
+    if (!name) { $('group-error').textContent = 'Enter a group name.'; return; }
     if (groups.some(group => group.id !== editing && group.name.toLocaleLowerCase('ru') === name.toLocaleLowerCase('ru'))) {
-      $('group-error').textContent = 'Группа с таким названием уже есть.';
+      $('group-error').textContent = 'A group with this name already exists.';
       return;
     }
     const group = editing ? current() : {id: `demo-group-${crypto.randomUUID()}`, members: []};
@@ -129,7 +129,7 @@
     $('group-dialog').close();
     render();
     revealSelection();
-    announce(`Демонстрационная группа «${name}» сохранена.`);
+    announce(`Demo group “${name}” saved.`);
   });
   $('create-invite').addEventListener('click', () => {
     const group = current();
@@ -138,22 +138,22 @@
     member.invitation = `DEMO-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
     invitations.set(group.id, member.invitation);
     render();
-    announce('Демо-приглашение создано. Этот учебный код не открывает настоящую регистрацию.');
+    announce('Demo invitation created. This sample code does not enable real registration.');
   });
   $('copy-invite').addEventListener('click', async () => {
     const code = invitations.get(current().id);
     if (!code) return;
     try {
       await navigator.clipboard.writeText(code);
-      $('copy-invite').textContent = 'Скопировано';
-      announce('Демонстрационный код скопирован.');
+      $('copy-invite').textContent = 'Copied';
+      announce('Demo code copied.');
     } catch {
-      announce('Не удалось скопировать автоматически. Выдели демонстрационный код и скопируй вручную.');
+      announce('Could not copy automatically. Select the demo code and copy it manually.');
     }
   });
   document.querySelector('.dashboard-links a').addEventListener('click', () => {
     try {sessionStorage.setItem('moon-demo-catalog', JSON.stringify(groups.map(({id, name, courseId}) => ({id, name, courseId}))));}
-    catch {announce('Передать демо-группы не удалось. В заданиях откроется исходный набор.');}
+    catch {announce('Could not transfer demo groups. Assignments will use the default set.');}
   });
   render();
 })();

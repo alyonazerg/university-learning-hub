@@ -4,7 +4,7 @@
   const student = Object.freeze({id: 'demo-student-1', alias: 'Silver Fern', groupId: 'demo-group-1'});
   const courses = window.MoonCourses;
   const courseName = id => courses.find(course => course.id === id).name;
-  const groups = Array.from({length: 8}, (_, i) => ({id: `demo-group-${i + 1}`, name: `Английский · группа ${String(i + 1).padStart(2, '0')}`, courseId: i % 2 ? 'grammar' : 'speech'}));
+  const groups = Array.from({length: 8}, (_, i) => ({id: `demo-group-${i + 1}`, name: `English · group ${String(i + 1).padStart(2, '0')}`, courseId: i % 2 ? 'grammar' : 'speech'}));
   // A one-time synthetic catalog handoff from the group dashboard, never credentials or student records.
   try {
     const raw = sessionStorage.getItem('moon-demo-catalog'); sessionStorage.removeItem('moon-demo-catalog');
@@ -34,8 +34,8 @@
   const firstAliases = ['Silver', 'Amber', 'Misty', 'Violet', 'Golden', 'Crystal', 'Moon', 'Velvet'];
   const roster = groups.flatMap((group, index) => ['Fern', 'Willow'].map((ending, i) => ({id: index === 0 ? `demo-student-${i + 1}` : `demo-student-${group.id}-${i}`, alias: `${firstAliases[index] || `Opal${index + 1}`} ${ending}`, groupId: group.id})));
   function permitted(task, learner = student) {return task.type !== 'compensation' || certificates.has(task.checkpointId + ':' + learner.id);}
-  const types = {regular: 'Обычное задание', imt: 'IMT', checkpoint: 'Срез', extra: 'Extra task', compensation: 'Компенсация'};
-  const notices = [{id: 'demo-notice-1', text: 'Добро пожаловать в учебную вселенную! :moon: Здесь будут новости курса.', groupIds: groups.map(group => group.id), createdAt: startedAt}];
+  const types = {regular: 'Regular assignment', imt: 'IMT', checkpoint: 'Checkpoint', extra: 'Extra task', compensation: 'Make-up assignment'};
+  const notices = [{id: 'demo-notice-1', text: 'Welcome to your learning universe! :moon: Course updates will appear here.', groupIds: groups.map(group => group.id), createdAt: startedAt}];
   const reactions = new Map();
   const comments = new Map();
   const wordLists = [{id: 'seed-list', title: 'Moonlit stories · Unit 1', courseId: 'speech', words: [{term: 'moonlit'}, {term: 'enjoy'}, {term: 'would you like'}]}];
@@ -55,7 +55,7 @@
   let courseFilter = 'all';
   let reviewing = null;
   let typeFilter = 'all';
-  const formatter = new Intl.DateTimeFormat('ru-RU', {timeZone: 'Europe/Moscow', dateStyle: 'medium', timeStyle: 'short'});
+  const formatter = new Intl.DateTimeFormat('en-GB', {timeZone: 'Europe/Moscow', dateStyle: 'medium', timeStyle: 'short'});
 
   function node(tag, text, className) {
     const element = document.createElement(tag);
@@ -82,11 +82,11 @@
   function taskState(task) {
     if (role === 'teacher') {
       const works = worksFor(task.id);
-      return works.length ? `Попыток: ${works.length} · на проверке: ${works.filter(work => !feedback.has(work.id)).length}` : 'Работы ещё не поступили';
+      return works.length ? `Attempts: ${works.length} · awaiting review: ${works.filter(work => !feedback.has(work.id)).length}` : 'No submissions yet';
     }
     const works = ownWorks(task.id);
     const latest = works.at(-1);
-    return !latest ? 'Можно сдать работу' : feedback.has(latest.id) ? 'Есть обратная связь' : 'Работа на проверке';
+    return !latest ? 'Ready to submit' : feedback.has(latest.id) ? 'Feedback available' : 'Work awaiting review';
   }
   function displayContent(work) {
     const box = node('div', undefined, 'work-content');
@@ -105,7 +105,7 @@
     if (!review) return null;
     const box = node('div', undefined, 'feedback-box');
     const comment = node('p'); comment.append(MoonEmotes.text(review.text));
-    box.append(node('strong', `Комментарий к попытке ${work.attempt}`), comment);
+    box.append(node('strong', `Feedback on attempt ${work.attempt}`), comment);
     return box;
   }
   function focusDetails() {
@@ -119,39 +119,39 @@
     $('teacher-view').setAttribute('aria-pressed', String(teacher));
     $('student-view').setAttribute('aria-pressed', String(!teacher));
     $('viewer-name').textContent = teacher ? '✦ Lunar Thyme' : student.alias;
-    $('viewer-role').textContent = teacher ? 'Преподаватель · демо' : 'Студент · демо';
-    $('view-description').textContent = teacher ? 'Создай задание, посмотри сдачи и помоги студентам сделать следующий шаг.' : `${student.alias} · ${groupName(student.groupId)}. Здесь только твои задания и работы.`;
+    $('viewer-role').textContent = teacher ? 'Teacher · demo' : 'Student · demo';
+    $('view-description').textContent = teacher ? 'Create assignments, review submissions and help students take the next step.' : `${student.alias} · ${groupName(student.groupId)}. Only your assignments and work appear here.`;
     $('new-task').hidden = !teacher;
     $('student-learning-summary').hidden = teacher;
     const ownTasks = tasks.filter(task => task.groupIds.includes(student.groupId));
-    $('student-learning-summary').textContent = `Твой прогресс по заданиям: сдано ${ownTasks.filter(task => ownWorks(task.id).length).length} из ${ownTasks.length}; с обратной связью ${ownTasks.filter(task => ownWorks(task.id).some(work => feedback.has(work.id))).length}. Это статусы работ, без оценок.`;
+    $('student-learning-summary').textContent = `Your assignment progress: submitted ${ownTasks.filter(task => ownWorks(task.id).length).length} of ${ownTasks.length}; with feedback ${ownTasks.filter(task => ownWorks(task.id).some(work => feedback.has(work.id))).length}. These are submission statuses, not grades.`;
     renderAnnouncements();
-    $('task-metric-label').textContent = teacher ? 'Задания всех групп' : 'Твои задания';
+    $('task-metric-label').textContent = teacher ? 'Assignments for all groups' : 'Your assignments';
     $('task-count').textContent = teacher ? tasks.length : visibleTasks().length;
     const accessible = teacher ? submissions : submissions.filter(work => work.studentId === student.id);
     $('pending-work-count').textContent = accessible.filter(work => !feedback.has(work.id)).length;
     $('feedback-count').textContent = accessible.filter(work => feedback.has(work.id)).length;
     $('homework-app').replaceChildren();
     const sidebar = node('section', undefined, 'groups-panel');
-    sidebar.setAttribute('aria-label', 'Список заданий');
-    sidebar.append(node('h2', teacher ? 'Все задания' : 'Твои задания'));
-    const courseLabel = node('label', 'Курс', 'input-label'); courseLabel.htmlFor = 'task-course-filter';
+    sidebar.setAttribute('aria-label', 'Assignment list');
+    sidebar.append(node('h2', teacher ? 'All assignments' : 'Your assignments'));
+    const courseLabel = node('label', 'Course', 'input-label'); courseLabel.htmlFor = 'task-course-filter';
     const courseSelect = node('select'); courseSelect.id = 'task-course-filter';
-    for (const course of [{id: 'all', name: 'Все курсы'}, ...courses]) {const option = node('option', course.name); option.value = course.id; courseSelect.append(option);}
+    for (const course of [{id: 'all', name: 'All courses'}, ...courses]) {const option = node('option', course.name); option.value = course.id; courseSelect.append(option);}
     courseSelect.value = courseFilter;
     courseSelect.addEventListener('change', () => {courseFilter = courseSelect.value; groupFilter = 'all'; render(); $('task-course-filter').focus();});
     sidebar.append(courseLabel, courseSelect);
-    const typeLabel = node('label', 'Тип задания', 'input-label'); typeLabel.htmlFor = 'task-type-filter';
+    const typeLabel = node('label', 'Assignment type', 'input-label'); typeLabel.htmlFor = 'task-type-filter';
     const typeSelect = node('select'); typeSelect.id = 'task-type-filter';
-    for (const [id, name] of Object.entries({all: 'Все типы', ...types})) {const option = node('option', name); option.value = id; typeSelect.append(option);}
+    for (const [id, name] of Object.entries({all: 'All types', ...types})) {const option = node('option', name); option.value = id; typeSelect.append(option);}
     typeSelect.value = typeFilter; typeSelect.addEventListener('change', () => {typeFilter = typeSelect.value; render(); $('task-type-filter').focus();});
     sidebar.append(typeLabel, typeSelect);
     if (teacher) {
-      const label = node('label', 'Учебная группа', 'input-label');
+      const label = node('label', 'Learning group', 'input-label');
       label.htmlFor = 'task-group-filter';
       const filter = node('select');
       filter.id = 'task-group-filter';
-      const all = node('option', 'Все группы'); all.value = 'all'; filter.append(all);
+      const all = node('option', 'All groups'); all.value = 'all'; filter.append(all);
       for (const group of groups.filter(group => courseFilter === 'all' || group.courseId === courseFilter)) { const option = node('option', group.name); option.value = group.id; filter.append(option); }
       filter.value = groupFilter;
       filter.addEventListener('change', () => {groupFilter = filter.value; render(); $('task-group-filter').focus();});
@@ -162,177 +162,177 @@
     for (const task of visibleTasks()) {
       const card = button('', () => {
         if (teacher) teacherSelected = task.id; else studentSelected = task.id;
-        render(); focusDetails(); announce(`Выбрано задание «${task.title}».`);
+        render(); focusDetails(); announce(`Selected assignment “${task.title}».`);
       }, 'task-card');
       card.setAttribute('aria-pressed', String(task.id === selected?.id));
-      card.append(node('strong', task.title), node('span', `${types[task.type]} · ${courseName(task.courseId)} · ${task.groupIds.map(groupName).join(', ')}`), node('span', `${formatter.format(task.deadline)} · МСК`), node('span', taskState(task), 'task-state'));
+      card.append(node('strong', task.title), node('span', `${types[task.type]} · ${courseName(task.courseId)} · ${task.groupIds.map(groupName).join(', ')}`), node('span', `${formatter.format(task.deadline)} · Moscow time`), node('span', taskState(task), 'task-state'));
       list.append(card);
     }
-    if (!visibleTasks().length) list.append(node('p', 'Для этой группы пока нет заданий.', 'empty'));
+    if (!visibleTasks().length) list.append(node('p', 'No assignments for this group yet.', 'empty'));
     sidebar.append(list);
     const details = node('section', undefined, 'members-panel assignment-details');
-    details.setAttribute('aria-label', 'Выбранное задание');
+    details.setAttribute('aria-label', 'Selected assignment');
     if (selected) renderDetails(details, selected);
-    else details.append(node('p', 'Выбери другую группу или создай новое задание.', 'empty'));
+    else details.append(node('p', 'Choose another group or create a new assignment.', 'empty'));
     $('homework-app').append(sidebar, details);
   }
   function renderDetails(details, task) {
     const title = node('h2', task.title);
     title.id = 'task-details-title'; title.tabIndex = -1;
-    details.append(node('div', 'Выбранное задание', 'eyebrow'), title, node('p', task.groupIds.map(groupName).join(', '), 'muted'), node('p', task.description, 'assignment-instructions'));
+    details.append(node('div', 'Selected assignment', 'eyebrow'), title, node('p', task.groupIds.map(groupName).join(', '), 'muted'), node('p', task.description, 'assignment-instructions'));
     const past = Date.now() > task.deadline;
-    const deadline = node('p', `Сдать до ${formatter.format(task.deadline)} · МСК${past ? '. Срок прошёл, работу можно отправить с отметкой об опоздании.' : ''}`, `deadline-note${past ? ' late-note' : ''}`);
-    details.append(deadline, node('p', `Курс: ${courseName(task.courseId)}`, 'muted'));
-    details.append(node('p', `${types[task.type]}${task.period ? ' · ' + task.period : ''} · начало ${formatter.format(task.startsAt)} · МСК`, 'muted'));
+    const deadline = node('p', `Due by ${formatter.format(task.deadline)} · Moscow time${past ? '. The deadline has passed. You can still submit your work, marked as late.' : ''}`, `deadline-note${past ? ' late-note' : ''}`);
+    details.append(deadline, node('p', `Course: ${courseName(task.courseId)}`, 'muted'));
+    details.append(node('p', `${types[task.type]}${task.period ? ' · ' + task.period : ''} · starts ${formatter.format(task.startsAt)} · Moscow time`, 'muted'));
     if (task.criteria) details.append(node('p', task.criteria, 'assignment-instructions'));
-    details.append(node('p', `Целевые конструкции: ${task.constructions.join('; ') || 'не заданы'}`, 'vocabulary-note'));
+    details.append(node('p', `Target structures: ${task.constructions.join('; ') || 'not set'}`, 'vocabulary-note'));
     details.append(reactionBar('task:' + task.id));
-    details.append(node('p', `Целевая лексика: ${task.vocabulary?.join(', ') || 'не задана'}`, 'vocabulary-note'));
-    details.append(node('p', 'Проверка ищет точные формы слов и фраз; смысл употребления оценивает преподаватель.', 'muted'));
+    details.append(node('p', `Target vocabulary: ${task.vocabulary?.join(', ') || 'not set'}`, 'vocabulary-note'));
+    details.append(node('p', 'This check looks for exact words and phrases; your teacher assesses their use in context.', 'muted'));
     if (task.type === 'checkpoint') {
-      details.append(node('p', `Учебный период: ${formatter.format(task.startsAt)} — ${formatter.format(task.periodEnd)} · МСК; тест: ${formatter.format(task.testAt)} · МСК`, 'checkpoint-dates'));
+      details.append(node('p', `Learning period: ${formatter.format(task.startsAt)} — ${formatter.format(task.periodEnd)} · Moscow time; test: ${formatter.format(task.testAt)} · Moscow time`, 'checkpoint-dates'));
       renderCheckpoint(details, task);
     }
-    if (task.type === 'compensation') details.append(node('p', `Компенсация за период: ${tasks.find(item => item.id === task.checkpointId)?.title || '—'}. Допуск выдаётся преподавателем после проверки справки.`, 'muted'));
+    if (task.type === 'compensation') details.append(node('p', `Make-up work for period: ${tasks.find(item => item.id === task.checkpointId)?.title || '—'}. Approval is granted by your teacher after checking your certificate.`, 'muted'));
     if (role === 'teacher') renderTeacherWorks(details, task);
     else renderStudentWork(details, task);
   }
   function renderCheckpoint(details, task) {
-    const section = node('section', undefined, 'checkpoint-results'); section.append(node('h3', 'Результаты среза и работы'));
+    const section = node('section', undefined, 'checkpoint-results'); section.append(node('h3', 'Checkpoint results and submissions'));
     const learners = roster.filter(learner => task.groupIds.includes(learner.groupId));
     if (role === 'teacher') {
-      section.append(node('p', 'Отметка справки действует только на этот период. Медицинские документы и диагнозы здесь не хранятся.', 'muted'));
+      section.append(node('p', 'Certificate approval applies to this period only. Medical documents and diagnoses are not stored here.', 'muted'));
       for (const learner of learners) {
         const row = node('label', undefined, 'certificate-row'); const checkbox = node('input'); checkbox.type = 'checkbox'; checkbox.checked = certificates.has(task.id + ':' + learner.id); checkbox.dataset.studentId = learner.id;
-        checkbox.addEventListener('change', () => {const key = task.id + ':' + learner.id; if (checkbox.checked) certificates.add(key); else certificates.delete(key); render(); announce('Допуск за период обновлён в демо.');});
-        row.append(checkbox, document.createTextNode(`${learner.alias} · справка за этот период проверена`)); section.append(row);
+        checkbox.addEventListener('change', () => {const key = task.id + ':' + learner.id; if (checkbox.checked) certificates.add(key); else certificates.delete(key); render(); announce('Approval for this period updated in the demo.');});
+        row.append(checkbox, document.createTextNode(`${learner.alias} · certificate checked for this period`)); section.append(row);
       }
       const form = node('form', undefined, 'result-form');
-      const learnerLabel = node('label', 'Студент', 'input-label'); learnerLabel.htmlFor = 'result-student'; const select = node('select'); select.id = 'result-student';
+      const learnerLabel = node('label', 'Student', 'input-label'); learnerLabel.htmlFor = 'result-student'; const select = node('select'); select.id = 'result-student';
       for (const learner of learners) {const option = node('option', learner.alias); option.value = learner.id; select.append(option);}
       const score = node('input'); score.id = 'result-score'; score.type = 'number'; score.min = 0; score.step = '0.01'; score.required = false;
       const maximum = node('input'); maximum.id = 'result-maximum'; maximum.type = 'number'; maximum.min = '0.01'; maximum.step = '0.01'; maximum.required = true; maximum.value = '10';
-      const scoreLabel = node('label', 'Результат', 'input-label'); scoreLabel.htmlFor = score.id; const maxLabel = node('label', 'Максимум', 'input-label'); maxLabel.htmlFor = maximum.id;
-      const photos = MoonPhotos.picker('result-photos'); const error = node('p', '', 'form-error'); error.setAttribute('role', 'alert'); const save = node('button', 'Сохранить результат и фото', 'primary'); save.type = 'submit';
+      const scoreLabel = node('label', 'Result', 'input-label'); scoreLabel.htmlFor = score.id; const maxLabel = node('label', 'Maximum', 'input-label'); maxLabel.htmlFor = maximum.id;
+      const photos = MoonPhotos.picker('result-photos'); const error = node('p', '', 'form-error'); error.setAttribute('role', 'alert'); const save = node('button', 'Save result and photos', 'primary'); save.type = 'submit';
       form.append(learnerLabel, select, scoreLabel, score, maxLabel, maximum, photos.element, error, save);
-      form.addEventListener('submit', event => {event.preventDefault(); const value = score.value.trim() ? Number(score.value) : null, max = Number(maximum.value); if ((value !== null && !Number.isFinite(value)) || (value === null && !photos.photos.length && !results.get(task.id + ':' + select.value)?.photos.length) || !Number.isFinite(max) || max <= 0 || value < 0 || value > max || photos.busy || photos.invalid) {error.textContent = 'Проверь баллы и дождись обработки допустимых фото.'; return;} results.set(task.id + ':' + select.value, Object.freeze({score: value, maximum: max, photos: photos.photos.length ? Object.freeze(photos.photos.slice()) : (results.get(task.id + ':' + select.value)?.photos || Object.freeze([]))})); render(); announce('Результат среза сохранён в демо.');});
+      form.addEventListener('submit', event => {event.preventDefault(); const value = score.value.trim() ? Number(score.value) : null, max = Number(maximum.value); if ((value !== null && !Number.isFinite(value)) || (value === null && !photos.photos.length && !results.get(task.id + ':' + select.value)?.photos.length) || !Number.isFinite(max) || max <= 0 || value < 0 || value > max || photos.busy || photos.invalid) {error.textContent = 'Check the scores and wait for supported photos to finish processing.'; return;} results.set(task.id + ':' + select.value, Object.freeze({score: value, maximum: max, photos: photos.photos.length ? Object.freeze(photos.photos.slice()) : (results.get(task.id + ':' + select.value)?.photos || Object.freeze([]))})); render(); announce('Checkpoint result saved in the demo.');});
       section.append(form);
-      const csvLabel = node('label', 'Импорт результатов CSV: псевдоним; баллы; максимум', 'input-label'); csvLabel.htmlFor = 'result-import'; const csv = node('input'); csv.id = 'result-import'; csv.type = 'file'; csv.accept = '.csv,.txt,text/csv,text/plain'; const csvError = node('p', '', 'form-error'); csvError.setAttribute('role', 'alert');
+      const csvLabel = node('label', 'Import results as CSV: alias; score; maximum', 'input-label'); csvLabel.htmlFor = 'result-import'; const csv = node('input'); csv.id = 'result-import'; csv.type = 'file'; csv.accept = '.csv,.txt,text/csv,text/plain'; const csvError = node('p', '', 'form-error'); csvError.setAttribute('role', 'alert');
       csv.addEventListener('change', async () => {try {
-        const file = csv.files[0]; if (!file) return; if (file.size > 100000 || !/\.(csv|txt)$/i.test(file.name)) throw new Error('Нужен TXT/CSV до 100 КБ.');
-        const text = await file.text(); if (role !== 'teacher') throw new Error('Вернись в режим преподавателя для импорта.'); const rows = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim()); if (!rows.length || rows.length > 200) throw new Error('Нужно от 1 до 200 строк.');
+        const file = csv.files[0]; if (!file) return; if (file.size > 100000 || !/\.(csv|txt)$/i.test(file.name)) throw new Error('Choose a TXT/CSV file up to 100 KB.');
+        const text = await file.text(); if (role !== 'teacher') throw new Error('Switch back to teacher mode to import results.'); const rows = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim()); if (!rows.length || rows.length > 200) throw new Error('Provide 1–200 rows.');
         const pending = [], seen = new Set();
-        for (const line of rows) {const parts = line.split(';').map(value => value.trim()); const learner = learners.find(item => item.alias.toLowerCase() === parts[0].toLowerCase()); const score = Number((parts[1] || '').replace(',', '.')), maximum = Number((parts[2] || '').replace(',', '.')); if (parts.length !== 3 || !parts[1] || !parts[2] || !learner || seen.has(learner.id) || !Number.isFinite(score) || !Number.isFinite(maximum) || maximum <= 0 || score < 0 || score > maximum) throw new Error('Проверь псевдонимы, повторы и баллы. Импорт не выполнен.'); seen.add(learner.id); pending.push({learner, score, maximum});}
-        for (const row of pending) {const key = task.id + ':' + row.learner.id; results.set(key, Object.freeze({score: row.score, maximum: row.maximum, photos: results.get(key)?.photos || Object.freeze([])}));} render(); announce('Результаты импортированы в демо.');
+        for (const line of rows) {const parts = line.split(';').map(value => value.trim()); const learner = learners.find(item => item.alias.toLowerCase() === parts[0].toLowerCase()); const score = Number((parts[1] || '').replace(',', '.')), maximum = Number((parts[2] || '').replace(',', '.')); if (parts.length !== 3 || !parts[1] || !parts[2] || !learner || seen.has(learner.id) || !Number.isFinite(score) || !Number.isFinite(maximum) || maximum <= 0 || score < 0 || score > maximum) throw new Error('Check aliases, duplicates and scores. Nothing has been imported.'); seen.add(learner.id); pending.push({learner, score, maximum});}
+        for (const row of pending) {const key = task.id + ':' + row.learner.id; results.set(key, Object.freeze({score: row.score, maximum: row.maximum, photos: results.get(key)?.photos || Object.freeze([])}));} render(); announce('Results imported in the demo.');
       } catch (error) {csvError.textContent = error.message;}}); section.append(csvLabel, csv, csvError);
     }
     for (const learner of learners.filter(learner => role === 'teacher' || learner.id === student.id)) {
       const result = results.get(task.id + ':' + learner.id); if (!result) continue;
-      const card = node('article', undefined, 'checkpoint-result'); card.dataset.studentId = learner.id; card.append(node('strong', learner.alias), node('p', result.score === null ? 'Фото работы: результат ещё не внесён' : `Результат: ${result.score} / ${result.maximum}`), MoonPhotos.gallery(result.photos)); section.append(card);
+      const card = node('article', undefined, 'checkpoint-result'); card.dataset.studentId = learner.id; card.append(node('strong', learner.alias), node('p', result.score === null ? 'Submission photos: result not entered yet' : `Result: ${result.score} / ${result.maximum}`), MoonPhotos.gallery(result.photos)); section.append(card);
     }
-    if (role === 'student') section.append(node('p', certificates.has(task.id + ':' + student.id) ? 'Допуск к компенсации за этот период открыт.' : 'Допуска к компенсации за этот период пока нет.', 'muted'));
+    if (role === 'student') section.append(node('p', certificates.has(task.id + ':' + student.id) ? 'Make-up approval granted for this period.' : 'Make-up approval has not been granted for this period yet.', 'muted'));
     details.append(section);
   }
   function analysisPanel(work, task) {
     const panel = node('div', undefined, 'analysis-box');
-    if (work.kind !== 'text' || !work.content.trim()) {panel.append(node('p', 'Текст отсутствует или передан ссылкой: лексика и конструкции не проверены. Фото не распознаются автоматически.')); return panel;}
+    if (work.kind !== 'text' || !work.content.trim()) {panel.append(node('p', 'No text provided, or a link was submitted: vocabulary and structures were not checked. Photos are not recognized automatically.')); return panel;}
     const result = MoonTextReview.analyse(work.content, task.vocabulary || []);
-    panel.append(node('strong', 'Лексика и подсказки'), node('p', `Найдено: ${result.found.join(', ') || '—'}`), node('p', `Не найдено: ${result.missing.join(', ') || '—'}`));
+    panel.append(node('strong', 'Vocabulary and suggestions'), node('p', `Found: ${result.found.join(', ') || '—'}`), node('p', `Not found: ${result.missing.join(', ') || '—'}`));
     const structures = MoonTextReview.analyseConstructions(work.content, task.constructions);
-    panel.append(node('p', `Конструкции · найдены шаблоны: ${structures.found.join('; ') || '—'}`), node('p', `Конструкции · не найдены: ${structures.missing.join('; ') || '—'}`));
-    panel.append(node('p', 'Совпадение шаблона не подтверждает правильность конструкции.', 'muted'));
+    panel.append(node('p', `Structures · patterns found: ${structures.found.join('; ') || '—'}`), node('p', `Structures · not found: ${structures.missing.join('; ') || '—'}`));
+    panel.append(node('p', 'A pattern match does not confirm that the structure is used correctly.', 'muted'));
     for (const suggestion of result.suggestions) panel.append(node('p', suggestion));
-    panel.append(node('p', 'Это подсказки по правилам, без проверки смысла и авторства. По тексту нельзя надёжно установить использование ИИ.', 'muted'));
+    panel.append(node('p', 'These rule-based suggestions do not assess meaning or authorship. Text alone cannot reliably establish AI use.', 'muted'));
     return panel;
   }
   function renderTeacherWorks(details, task) {
     const section = node('section', undefined, 'work-section');
-    section.append(node('h3', 'Сданные работы'), node('p', 'Каждая попытка хранится отдельно. Комментарий относится к выбранной попытке.', 'muted'));
+    section.append(node('h3', 'Submitted work'), node('p', 'Each attempt is stored separately. Feedback belongs to the selected attempt.', 'muted'));
     const list = node('div', undefined, 'submission-list');
     for (const work of worksFor(task.id).slice().reverse()) {
       const card = node('article', undefined, 'submission-card');
       const header = node('div', undefined, 'submission-header');
-      header.append(node('strong', work.alias), node('span', feedback.has(work.id) ? 'Проверено' : 'На проверке', 'member-status'));
-      card.append(header, node('p', `Попытка ${work.attempt} из 3 · ${formatter.format(work.createdAt)} · МСК${work.late ? ' · После срока' : ''}`, 'muted'), displayContent(work), analysisPanel(work, task));
+      header.append(node('strong', work.alias), node('span', feedback.has(work.id) ? 'Reviewed' : 'Pending review', 'member-status'));
+      card.append(header, node('p', `Attempt ${work.attempt} of 3 · ${formatter.format(work.createdAt)} · Moscow time${work.late ? ' · Late submission' : ''}`, 'muted'), displayContent(work), analysisPanel(work, task));
       const review = displayFeedback(work); if (review) card.append(review);
-      const reviewButton = button(review ? 'Изменить комментарий' : 'Оставить комментарий', () => openReview(work));
+      const reviewButton = button(review ? 'Edit comment' : 'Leave a comment', () => openReview(work));
       reviewButton.dataset.workId = work.id;
       card.append(reviewButton); list.append(card);
     }
-    if (!worksFor(task.id).length) list.append(node('p', 'Пока никто не сдал работу. Переключись в демо-кабинет студента и отправь первую попытку.', 'empty'));
+    if (!worksFor(task.id).length) list.append(node('p', 'No submissions yet. Switch to the student demo hub and submit the first attempt.', 'empty'));
     section.append(list); details.append(section);
   }
   function renderStudentWork(details, task) {
     const works = ownWorks(task.id);
     const section = node('section', undefined, 'work-section');
-    section.append(node('h3', 'Твоя работа'), node('p', `Использовано попыток: ${works.length} из 3. Предыдущие версии не заменяются.`, 'muted'));
+    section.append(node('h3', 'Your work'), node('p', `Attempts used: ${works.length} of 3. Previous versions are kept.`, 'muted'));
     if (works.length < 3 && permitted(task)) {
       const draft = drafts.get(task.id) || {kind: 'text', content: ''};
       const form = node('form', undefined, 'submission-form'); form.id = 'submission-form';
-      const typeLabel = node('label', 'Как сдаём?', 'input-label'); typeLabel.htmlFor = 'submission-kind';
+      const typeLabel = node('label', 'How to submit', 'input-label'); typeLabel.htmlFor = 'submission-kind';
       const type = node('select'); type.id = 'submission-kind';
-      for (const [value, label] of [['text', 'Текст'], ['url', 'Ссылка на документ']]) { const option = node('option', label); option.value = value; type.append(option); }
+      for (const [value, label] of [['text', 'Text'], ['url', 'Document link']]) { const option = node('option', label); option.value = value; type.append(option); }
       type.value = draft.kind;
       type.addEventListener('change', () => { drafts.set(task.id, {kind: type.value, content: ''}); render(); $('submission-content').focus(); });
-      const label = node('label', draft.kind === 'text' ? 'Текст вымышленной работы' : 'HTTPS-ссылка на документ', 'input-label'); label.htmlFor = 'submission-content';
+      const label = node('label', draft.kind === 'text' ? 'Sample submission text' : 'HTTPS document link', 'input-label'); label.htmlFor = 'submission-content';
       const content = node(draft.kind === 'text' ? 'textarea' : 'input');
       content.id = 'submission-content'; content.required = draft.kind === 'url'; content.maxLength = draft.kind === 'text' ? 6000 : 2048;
       if (draft.kind === 'text') content.rows = 6; else content.type = 'url';
       content.value = draft.content; content.placeholder = draft.kind === 'text' ? 'Dear imaginary friend…' : 'https://…';
       content.addEventListener('input', () => drafts.set(task.id, {kind: type.value, content: content.value}));
       const error = node('p', '', 'form-error'); error.id = 'submission-error'; error.setAttribute('role', 'alert'); content.setAttribute('aria-describedby', error.id);
-      const submit = node('button', 'Отправить демо-работу', 'primary'); submit.type = 'submit'; submit.disabled = pendingSubmissions.has(task.id);
+      const submit = node('button', 'Submit demo work', 'primary'); submit.type = 'submit'; submit.disabled = pendingSubmissions.has(task.id);
       form.append(typeLabel, type, label, content);
       if (draft.kind === 'text') form.append(MoonEmotes.picker(content));
       const photos = MoonPhotos.picker('submission-photos');
       form.append(photos.element, error, submit);
       form.addEventListener('submit', event => {event.preventDefault(); submitWork(task, type.value, content.value, submit, error, photos);});
       section.append(form);
-    } else if (!permitted(task)) section.append(node('p', 'Допуск к компенсации закрыт. Обратись к преподавателю; ранее сданные версии доступны ниже.', 'compensation-locked'));
-    else section.append(node('p', 'Все три попытки использованы. Дождись комментария преподавателя.', 'deadline-note'));
+    } else if (!permitted(task)) section.append(node('p', 'Make-up access is closed. Contact your teacher; previous submissions are available below.', 'compensation-locked'));
+    else section.append(node('p', 'All three attempts have been used. Wait for your teacher’s feedback.', 'deadline-note'));
     const list = node('div', undefined, 'submission-list');
     for (const work of works.slice().reverse()) {
       const card = node('article', undefined, 'submission-card');
-      card.append(node('strong', `Попытка ${work.attempt} из 3`), node('p', `${formatter.format(work.createdAt)} · МСК${work.late ? ' · После срока' : ''}`, 'muted'), displayContent(work), analysisPanel(work, task));
+      card.append(node('strong', `Attempt ${work.attempt} of 3`), node('p', `${formatter.format(work.createdAt)} · Moscow time${work.late ? ' · Late submission' : ''}`, 'muted'), displayContent(work), analysisPanel(work, task));
       const review = displayFeedback(work);
-      card.append(review || node('p', 'Работа на проверке. Комментарий появится здесь.', 'muted'));
+      card.append(review || node('p', 'Your work is awaiting review. Feedback will appear here.', 'muted'));
       list.append(card);
     }
     section.append(list); details.append(section);
   }
   async function submitWork(task, kind, rawContent, submit, error, photos) {
     if (pendingSubmissions.has(task.id)) return;
-    if (!permitted(task)) {error.textContent = 'Нет допуска к компенсации за этот период.'; return;}
-    if (Date.now() < task.startsAt) {error.textContent = 'Период выполнения ещё не начался.'; return;}
-    if (photos.busy || photos.invalid) {error.textContent = 'Дождись обработки фото или выбери допустимые файлы.'; return;}
+    if (!permitted(task)) {error.textContent = 'No make-up approval for this period.'; return;}
+    if (Date.now() < task.startsAt) {error.textContent = 'The assignment period has not started yet.'; return;}
+    if (photos.busy || photos.invalid) {error.textContent = 'Wait for photo processing or choose supported files.'; return;}
     const attachments = photos.photos.slice();
     const content = rawContent.trim();
-    if (!content && (!attachments.length || kind === 'url')) {error.textContent = 'Добавь текст, фото или ссылку.'; return;}
+    if (!content && (!attachments.length || kind === 'url')) {error.textContent = 'Add text, photos or a link.'; return;}
     if (kind === 'url') {
       try {
         const url = new URL(content);
         if (url.protocol !== 'https:' || url.username || url.password) throw new Error();
-      } catch {error.textContent = 'Нужна HTTPS-ссылка без логина и пароля в адресе.'; return;}
+      } catch {error.textContent = 'Use an HTTPS link without a username or password in the URL.'; return;}
     }
-    if (ownWorks(task.id).length >= 3) {error.textContent = 'Все три попытки уже использованы.'; return;}
+    if (ownWorks(task.id).length >= 3) {error.textContent = 'All three attempts have been used.'; return;}
     pendingSubmissions.add(task.id); submit.disabled = true; error.textContent = '';
     try {
       const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${kind}:${content}:${attachments.map(photo => photo.src).join('|')}`));
       const hash = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, '0')).join('');
       const works = ownWorks(task.id);
-      if (works.some(work => work.hash === hash)) {error.textContent = 'Эта версия уже отправлена. Измени работу перед новой попыткой.'; return;}
-      if (works.length >= 3) {error.textContent = 'Все три попытки уже использованы.'; return;}
-      if (!permitted(task)) {error.textContent = 'Допуск к компенсации закрыт.'; return;}
+      if (works.some(work => work.hash === hash)) {error.textContent = 'This version has already been submitted. Edit your work before another attempt.'; return;}
+      if (works.length >= 3) {error.textContent = 'All three attempts have been used.'; return;}
+      if (!permitted(task)) {error.textContent = 'Make-up access is closed.'; return;}
       const createdAt = Date.now();
       submissions.push(Object.freeze({id: `demo-work-${crypto.randomUUID()}`, taskId: task.id, studentId: student.id, alias: student.alias, attempt: works.length + 1, kind, content, photos: Object.freeze(attachments), hash, createdAt, late: createdAt > task.deadline}));
       drafts.delete(task.id);
-      render(); announce('Демо-работа отправлена. Переключись в кабинет преподавателя, чтобы оставить комментарий.');
-    } catch {error.textContent = 'Не удалось отправить демо-работу. Попробуй ещё раз.';}
+      render(); announce('Demo work submitted. Switch to the teacher hub to leave feedback.');
+    } catch {error.textContent = 'Could not submit demo work. Try again.';}
     finally {pendingSubmissions.delete(task.id); submit.disabled = false; const currentSubmit = $('submission-form')?.querySelector('button[type=submit]'); if (currentSubmit) currentSubmit.disabled = pendingSubmissions.has(selectedTask()?.id);}
   }
   function openReview(work) {
     reviewing = work.id;
-    $('review-context').textContent = `${work.alias} · попытка ${work.attempt} · ${tasks.find(task => task.id === work.taskId).title}`;
+    $('review-context').textContent = `${work.alias} · attempt ${work.attempt} · ${tasks.find(task => task.id === work.taskId).title}`;
     $('review-content').replaceChildren(displayContent(work));
     const task = tasks.find(task => task.id === work.taskId);
     $('review-analysis').replaceChildren(analysisPanel(work, task));
@@ -342,7 +342,7 @@
     $('review-dialog').showModal(); $('review-feedback').focus();
   }
   function reactionBar(id) {
-    const bar = node('div', undefined, 'reaction-bar'); bar.setAttribute('aria-label', 'Реакции');
+    const bar = node('div', undefined, 'reaction-bar'); bar.setAttribute('aria-label', 'Reactions');
     const actor = role === 'teacher' ? 'demo-teacher' : student.id;
     for (const emote of MoonEmotes.items) {
       const key = id + ':' + emote.id;
@@ -351,7 +351,7 @@
         if (actors.has(actor)) actors.delete(actor); else actors.add(actor);
         reactions.set(key, actors); render();
         Array.from(document.querySelectorAll('[data-reaction-target]')).find(element => element.dataset.reactionTarget === id && element.dataset.reaction === emote.id)?.focus({preventScroll: true});
-        announce('Реакция ' + emote.name + (actors.has(actor) ? ' добавлена.' : ' снята.'));
+        announce('Reaction ' + emote.name + (actors.has(actor) ? ' added.' : ' removed.'));
       });
       control.dataset.reaction = emote.id; control.dataset.reactionTarget = id; control.setAttribute('aria-label', `${emote.name}: ${actors.size}`); control.setAttribute('aria-pressed', String(actors.has(actor)));
       control.append(MoonEmotes.icon(emote.id), document.createTextNode(' ' + actors.size)); bar.append(control);
@@ -359,29 +359,29 @@
     return bar;
   }
   function renderComments(card, notice) {
-    const thread = node('section', undefined, 'post-comments'); thread.append(node('h3', 'Комментарии'));
+    const thread = node('section', undefined, 'post-comments'); thread.append(node('h3', 'Comments'));
     for (const comment of (comments.get(notice.id) || []).filter(comment => role === 'teacher' || comment.groupId === null || comment.groupId === student.groupId)) {
       const article = node('article', undefined, 'post-comment'); const text = node('p'); text.append(MoonEmotes.text(comment.text));
       article.append(node('strong', comment.alias), text, MoonPhotos.gallery(comment.photos)); thread.append(article);
     }
-    const form = node('form'); const field = node('textarea'); field.rows = 2; field.maxLength = 1000; field.placeholder = 'Комментарий к объявлению'; field.setAttribute('aria-label', 'Комментарий к объявлению');
+    const form = node('form'); const field = node('textarea'); field.rows = 2; field.maxLength = 1000; field.placeholder = 'Comment on announcement'; field.setAttribute('aria-label', 'Comment on announcement');
     const photos = MoonPhotos.picker('comment-photos-' + notice.id);
     const error = node('p', '', 'form-error'); error.setAttribute('role', 'alert');
-    const submit = node('button', 'Добавить комментарий', 'secondary'); submit.type = 'submit';
+    const submit = node('button', 'Add comment', 'secondary'); submit.type = 'submit';
     form.append(field, MoonEmotes.picker(field), photos.element, error, submit);
     form.addEventListener('submit', event => {
       event.preventDefault();
-      if (photos.busy || photos.invalid) {error.textContent = 'Дождись обработки фото или выбери допустимые файлы.'; return;}
-      const text = field.value.trim(); if (!text && !photos.photos.length) {error.textContent = 'Добавь текст или фото.'; return;}
+      if (photos.busy || photos.invalid) {error.textContent = 'Wait for photo processing or choose supported files.'; return;}
+      const text = field.value.trim(); if (!text && !photos.photos.length) {error.textContent = 'Add text or photos.'; return;}
       const existing = comments.get(notice.id) || [];
       existing.push(Object.freeze({groupId: role === 'teacher' ? null : student.groupId, alias: role === 'teacher' ? '✦ Lunar Thyme' : student.alias, text, photos: Object.freeze(photos.photos.slice())})); comments.set(notice.id, existing);
-      render(); announce('Комментарий добавлен в демо.');
+      render(); announce('Comment added in the demo.');
     });
     thread.append(form); card.append(thread);
   }
   function renderAnnouncements() {
-    const section = $('announcements'); section.replaceChildren(node('h2', 'Объявления'));
-    if (role === 'teacher') section.append(button('+ Дать объявление', () => {
+    const section = $('announcements'); section.replaceChildren(node('h2', 'Announcements'));
+    if (role === 'teacher') section.append(button('+ Post announcement', () => {
       $('announcement-form').reset(); $('announcement-error').textContent = '';
       $('announcement-groups').replaceChildren();
       for (const group of groups) {const label = node('label'); const checkbox = node('input'); checkbox.type = 'checkbox'; checkbox.value = group.id; checkbox.checked = true; label.append(checkbox, document.createTextNode(courseName(group.courseId) + ' · ' + group.name)); $('announcement-groups').append(label);}
@@ -390,11 +390,11 @@
     const visible = notices.filter(notice => role === 'teacher' || notice.groupIds.includes(student.groupId));
     for (const notice of visible) {
       const card = node('article', undefined, 'notice-card'); const text = node('p'); text.append(MoonEmotes.text(notice.text));
-      card.append(node('strong', '✦ Lunar Thyme'), node('p', `${formatter.format(notice.createdAt)} · МСК`, 'muted'), text);
+      card.append(node('strong', '✦ Lunar Thyme'), node('p', `${formatter.format(notice.createdAt)} · Moscow time`, 'muted'), text);
       if (role === 'teacher') card.append(node('p', notice.groupIds.map(groupName).join(', '), 'muted'));
       card.append(reactionBar('notice:' + notice.id)); renderComments(card, notice); section.append(card);
     }
-    if (!visible.length) section.append(node('p', 'Для твоей группы пока нет объявлений.', 'empty'));
+    if (!visible.length) section.append(node('p', 'No announcements for your group yet.', 'empty'));
   }
   $('announcement-emotes').append(MoonEmotes.picker($('announcement-text')));
   $('review-emotes').append(MoonEmotes.picker($('review-feedback')));
@@ -403,9 +403,9 @@
     event.preventDefault(); if (role !== 'teacher') return;
     const text = $('announcement-text').value.trim();
     const groupIds = Array.from($('announcement-groups').querySelectorAll('input:checked'), input => input.value);
-    if (!text || !groupIds.length) {$('announcement-error').textContent = 'Добавь текст и выбери хотя бы одну группу.'; return;}
+    if (!text || !groupIds.length) {$('announcement-error').textContent = 'Add text and choose at least one group.'; return;}
     notices.unshift({id: 'demo-notice-' + crypto.randomUUID(), text, groupIds, createdAt: Date.now()});
-    $('announcement-dialog').close(); render(); announce('Объявление опубликовано для выбранных групп в демо.');
+    $('announcement-dialog').close(); render(); announce('Announcement published for the selected groups in the demo.');
   });
   function localMoscow(timestamp) { return new Date(timestamp + 3 * 3600000).toISOString().slice(0, 16); }
   function parseMoscow(value) {
@@ -414,21 +414,21 @@
     return Number.isFinite(timestamp) && localMoscow(timestamp) === value ? timestamp : NaN;
   }
   function assignmentWordLists() {
-    $('assignment-word-list').replaceChildren(); const custom = node('option', 'Ввести вручную'); custom.value = ''; $('assignment-word-list').append(custom);
+    $('assignment-word-list').replaceChildren(); const custom = node('option', 'Enter manually'); custom.value = ''; $('assignment-word-list').append(custom);
     for (const list of wordLists.filter(list => list.courseId === $('assignment-course').value)) {const option = node('option', list.title); option.value = list.id; $('assignment-word-list').append(option);}
   }
   $('assignment-word-list').addEventListener('change', () => {
     const list = wordLists.find(list => list.id === $('assignment-word-list').value && list.courseId === $('assignment-course').value);
     if (list) {
       const text = list.words.map(word => word.term).join('\n');
-      if (text.length > $('assignment-vocabulary').maxLength) {$('assignment-error').textContent = 'Список слишком длинный для задания. Раздели его на меньшие списки.'; return;}
+      if (text.length > $('assignment-vocabulary').maxLength) {$('assignment-error').textContent = 'This list is too long for an assignment. Split it into smaller lists.'; return;}
       $('assignment-vocabulary').value = text; $('assignment-error').textContent = '';
     }
   });
   function assignmentGroups() {
     assignmentWordLists();
-    $('assignment-checkpoint').replaceChildren(); const empty = node('option', 'Выбрать срез для компенсации'); empty.value = ''; $('assignment-checkpoint').append(empty);
-    for (const checkpoint of tasks.filter(task => task.type === 'checkpoint' && task.courseId === $('assignment-course').value)) {const option = node('option', `${checkpoint.title} · ${checkpoint.period || 'период'}`); option.value = checkpoint.id; $('assignment-checkpoint').append(option);}
+    $('assignment-checkpoint').replaceChildren(); const empty = node('option', 'Choose a make-up checkpoint'); empty.value = ''; $('assignment-checkpoint').append(empty);
+    for (const checkpoint of tasks.filter(task => task.type === 'checkpoint' && task.courseId === $('assignment-course').value)) {const option = node('option', `${checkpoint.title} · ${checkpoint.period || 'period'}`); option.value = checkpoint.id; $('assignment-checkpoint').append(option);}
     const available = groups.filter(group => group.courseId === $('assignment-course').value);
     $('assignment-group').replaceChildren(); $('assignment-group-choices').replaceChildren();
     available.forEach((group, index) => {
@@ -452,8 +452,8 @@
     $('assignment-type').value = 'imt'; $('assignment-deadline').value = localMoscow(Date.now() + 30 * day);
   });
   $('assignment-type').addEventListener('change', () => {$('assignment-deadline').value = localMoscow(Date.now() + ($('assignment-type').value === 'imt' ? 30 : 1) * day);});
-  $('teacher-view').addEventListener('click', () => {role = 'teacher'; render(); announce('Демо-режим преподавателя.');});
-  $('student-view').addEventListener('click', () => {role = 'student'; courseFilter = 'all'; typeFilter = 'all'; render(); announce('Демо-режим студента Silver Fern.');});
+  $('teacher-view').addEventListener('click', () => {role = 'teacher'; render(); announce('Teacher demo mode.');});
+  $('student-view').addEventListener('click', () => {role = 'student'; courseFilter = 'all'; typeFilter = 'all'; render(); announce('Student demo mode: Silver Fern.');});
   $('new-task').addEventListener('click', () => {
     $('assignment-form').reset(); $('assignment-error').textContent = '';
     assignmentGroups();
@@ -467,26 +467,26 @@
     const title = $('assignment-title').value.trim();
     const description = $('assignment-description').value.trim();
     const deadline = parseMoscow($('assignment-deadline').value);
-    if (!title || !description) {$('assignment-error').textContent = 'Добавь название и инструкцию.'; return;}
-    if (!Number.isFinite(deadline) || (deadline <= Date.now() && $('assignment-type').value !== 'checkpoint')) {$('assignment-error').textContent = 'Выбери будущий срок сдачи по московскому времени.'; return;}
+    if (!title || !description) {$('assignment-error').textContent = 'Add a title and instructions.'; return;}
+    if (!Number.isFinite(deadline) || (deadline <= Date.now() && $('assignment-type').value !== 'checkpoint')) {$('assignment-error').textContent = 'Choose a future deadline in Moscow time.'; return;}
     const groupIds = Array.from($('assignment-group').selectedOptions, option => option.value);
     const courseId = $('assignment-course').value;
     const startsAt = parseMoscow($('assignment-start').value);
-    if (!groupIds.length || groupIds.some(id => !groups.some(group => group.id === id && group.courseId === courseId))) {$('assignment-error').textContent = 'Выбери группы одного курса.'; return;}
-    if (!Number.isFinite(startsAt) || startsAt >= deadline) {$('assignment-error').textContent = 'Начало периода должно быть раньше срока сдачи.'; return;}
+    if (!groupIds.length || groupIds.some(id => !groups.some(group => group.id === id && group.courseId === courseId))) {$('assignment-error').textContent = 'Choose groups from the same course.'; return;}
+    if (!Number.isFinite(startsAt) || startsAt >= deadline) {$('assignment-error').textContent = 'The start date must be before the deadline.'; return;}
     const task = {id: `demo-task-${crypto.randomUUID()}`, title, description, groupIds, courseId, deadline, startsAt, type: $('assignment-type').value, period: $('assignment-period').value.trim(), criteria: $('assignment-criteria').value.trim(), vocabulary: MoonTextReview.parseVocabulary($('assignment-vocabulary').value), constructions: $('assignment-constructions').value.split('\n').map(value => value.trim()).filter(Boolean)};
     if (task.type === 'checkpoint') {
       task.periodEnd = parseMoscow($('assignment-period-end').value); task.testAt = parseMoscow($('assignment-test-date').value);
-      if (!Number.isFinite(task.periodEnd) || task.periodEnd <= startsAt || !Number.isFinite(task.testAt)) {$('assignment-error').textContent = 'Для среза укажи конец периода после начала и дату теста.'; return;}
+      if (!Number.isFinite(task.periodEnd) || task.periodEnd <= startsAt || !Number.isFinite(task.testAt)) {$('assignment-error').textContent = 'For a checkpoint, set an end date after the start date and provide a test date.'; return;}
     }
     if (task.type === 'compensation') {
       const checkpoint = tasks.find(item => item.id === $('assignment-checkpoint').value && item.type === 'checkpoint');
-      if (!checkpoint || checkpoint.courseId !== courseId || groupIds.some(id => !checkpoint.groupIds.includes(id))) {$('assignment-error').textContent = 'Выбери срез того же курса и его группы.'; return;}
+      if (!checkpoint || checkpoint.courseId !== courseId || groupIds.some(id => !checkpoint.groupIds.includes(id))) {$('assignment-error').textContent = 'Choose a checkpoint and its groups from the same course.'; return;}
       task.checkpointId = checkpoint.id;
     }
     tasks.unshift(task); teacherSelected = task.id; groupFilter = 'all'; courseFilter = 'all'; typeFilter = 'all';
     if (task.groupIds.includes(student.groupId)) studentSelected = task.id;
-    $('assignment-dialog').close(); render(); focusDetails(); announce(`Демонстрационное задание «${title}» создано.`);
+    $('assignment-dialog').close(); render(); focusDetails(); announce(`Demo assignment “${title}” created.`);
   });
   $('use-suggestions').addEventListener('click', () => {
     const work = submissions.find(work => work.id === reviewing);
@@ -495,21 +495,21 @@
     const result = MoonTextReview.analyse(work.content, task.vocabulary || []);
     const structures = MoonTextReview.analyseConstructions(work.content, task.constructions);
     const hints = [...result.suggestions];
-    if (structures.missing.length) hints.push('Проверь целевые конструкции: ' + structures.missing.join('; ') + '. Шаблонный поиск не оценивает грамматику.');
-    const suggestion = hints.join('\n') || (task.vocabulary?.length ? 'Целевая лексика найдена; проверь её употребление в контексте.' : 'Целевая лексика не задана. Проверь текст и его смысл самостоятельно.');
+    if (structures.missing.length) hints.push('Check target structures: ' + structures.missing.join('; ') + '. Pattern matching does not assess grammar.');
+    const suggestion = hints.join('\n') || (task.vocabulary?.length ? 'Target vocabulary found; check its use in context.' : 'No target vocabulary specified. Review the text and its meaning yourself.');
     const field = $('review-feedback');
     const combined = [field.value.trim(), suggestion].filter(Boolean).join('\n');
-    if (combined.length > field.maxLength) {$('review-error').textContent = 'Комментарий слишком длинный; сократи его перед добавлением подсказок.'; return;}
+    if (combined.length > field.maxLength) {$('review-error').textContent = 'Your feedback is too long. Shorten it before adding suggestions.'; return;}
     field.value = combined; field.focus();
   });
   $('cancel-review').addEventListener('click', () => $('review-dialog').close());
   $('review-form').addEventListener('submit', event => {
     event.preventDefault();
     const text = $('review-feedback').value.trim();
-    if (!text) {$('review-error').textContent = 'Добавь комментарий студенту.'; return;}
+    if (!text) {$('review-error').textContent = 'Add feedback for the student.'; return;}
     if (!submissions.some(work => work.id === reviewing)) return;
     feedback.set(reviewing, Object.freeze({text, reviewedAt: Date.now()}));
-    $('review-dialog').close(); render(); announce('Комментарий сохранён в демо. Студент увидит его рядом со своей попыткой.');
+    $('review-dialog').close(); render(); announce('Feedback saved in the demo. The student will see it next to their attempt.');
   });
   render();
 })();

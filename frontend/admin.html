@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f4fb">
   <meta name="referrer" content="no-referrer">
-  <title>Moon Campus · Кабинет преподавателя</title>
+  <title>Moon Campus · Teacher hub</title>
   <link rel="stylesheet" href="admin.css">
   <script src="courses.js" defer></script>
   <script src="admin.js" defer></script>
@@ -13,62 +13,62 @@
 <body>
   <header class="topbar">
     <a class="brand" href="index.html"><span aria-hidden="true">✦</span> Moon Campus</a>
-    <div class="teacher"><span>✦ Lunar Thyme</span><span class="role">Преподаватель · демо</span></div>
+    <div class="teacher"><span>✦ Lunar Thyme</span><span class="role">Teacher · demo</span></div>
   </header>
   <main>
-    <section class="demo-banner" aria-label="Демонстрационный режим">
-      <span class="demo-badge">Демо</span>
-      <p>Все группы и студенты вымышлены. Изменения доступны для просмотра и сбрасываются при обновлении страницы.</p>
+    <section class="demo-banner" aria-label="Demo mode">
+      <span class="demo-badge">Demo</span>
+      <p>All groups and students are sample data. Changes can be previewed and reset on reload.</p>
     </section>
-    <nav class="dashboard-links" aria-label="Разделы демо"><a href="homework.html">Задания и сдачи →</a><a href="vocabulary.html">Словарь и прогресс →</a><a href="learning.html">Учебный кабинет →</a></nav>
+    <nav class="dashboard-links" aria-label="Demo sections"><a href="homework.html">Assignments and submissions →</a><a href="vocabulary.html">Vocabulary and progress →</a><a href="learning.html">Learning hub →</a></nav>
     <section class="page-heading">
-      <div><div class="eyebrow">Твоя учебная вселенная</div><h1>Кабинет преподавателя</h1><p>Группы, псевдонимы и первые шаги студентов — в одном месте.</p></div>
-      <button id="add-group" class="primary" type="button">+ Создать группу</button>
+      <div><div class="eyebrow">Your learning universe</div><h1>Teacher hub</h1><p>Groups, aliases and students’ first steps in one place.</p></div>
+      <button id="add-group" class="primary" type="button">+ Create group</button>
     </section>
-    <section class="metrics" aria-label="Обзор регистрации">
-      <article><span>Учебные группы</span><strong id="group-count">—</strong></article>
-      <article><span>Профиль создан</span><strong id="registered-count">—</strong></article>
-      <article><span>Ожидают регистрации</span><strong id="pending-count">—</strong></article>
+    <section class="metrics" aria-label="Registration overview">
+      <article><span>Learning groups</span><strong id="group-count">—</strong></article>
+      <article><span>Profile created</span><strong id="registered-count">—</strong></article>
+      <article><span>Awaiting registration</span><strong id="pending-count">—</strong></article>
     </section>
     <div class="workspace">
       <section class="groups-panel" aria-labelledby="groups-title">
-        <div class="section-heading"><h2 id="groups-title">Твои группы</h2><span id="group-result-count" class="muted"></span></div>
-        <label class="input-label" for="course-filter">Курс</label><select id="course-filter"><option value="all">Все курсы</option></select>
-        <label class="input-label" for="group-search">Найти группу</label>
-        <input id="group-search" type="search" placeholder="Название группы" maxlength="120" autocomplete="off">
+        <div class="section-heading"><h2 id="groups-title">Your groups</h2><span id="group-result-count" class="muted"></span></div>
+        <label class="input-label" for="course-filter">Course</label><select id="course-filter"><option value="all">All courses</option></select>
+        <label class="input-label" for="group-search">Find a group</label>
+        <input id="group-search" type="search" placeholder="Group name" maxlength="120" autocomplete="off">
         <div id="group-list" class="group-list"></div>
       </section>
       <section class="members-panel" aria-labelledby="selected-group-title">
-        <div class="section-heading"><div><div class="eyebrow">Выбранная группа</div><h2 id="selected-group-title" tabindex="-1"></h2></div><span class="active-badge">Активная</span></div>
-        <button id="edit-group" type="button" class="secondary">Название и курс группы</button>
+        <div class="section-heading"><div><div class="eyebrow">Selected group</div><h2 id="selected-group-title" tabindex="-1"></h2></div><span class="active-badge">Active</span></div>
+        <button id="edit-group" type="button" class="secondary">Group name and course</button>
         <p id="group-summary" class="muted"></p>
-        <div class="progress-label"><span>Регистрация</span><span id="registration-percent"></span></div>
-        <progress id="registration-progress" max="100" value="0" aria-label="Доля зарегистрированных студентов"></progress>
+        <div class="progress-label"><span>Registration</span><span id="registration-percent"></span></div>
+        <progress id="registration-progress" max="100" value="0" aria-label="Registration progress"></progress>
         <div class="member-tools">
-          <div><label class="input-label" for="member-search">Найти псевдоним</label><input id="member-search" type="search" placeholder="Например, Silver Fern" maxlength="80" autocomplete="off"></div>
-          <div><label class="input-label" for="status-filter">Статус</label><select id="status-filter"><option value="all">Все</option><option value="registered">Профиль создан</option><option value="pending">Ожидают регистрации</option></select></div>
+          <div><label class="input-label" for="member-search">Find an alias</label><input id="member-search" type="search" placeholder="For example, Silver Fern" maxlength="80" autocomplete="off"></div>
+          <div><label class="input-label" for="status-filter">Status</label><select id="status-filter"><option value="all">All</option><option value="registered">Profile created</option><option value="pending">Awaiting registration</option></select></div>
         </div>
-        <ul id="member-list" class="member-list" aria-label="Студенты выбранной группы"></ul>
+        <ul id="member-list" class="member-list" aria-label="Students in the selected group"></ul>
         <section class="invite-panel" aria-labelledby="invite-title">
-          <div><h3 id="invite-title">Приглашение в группу</h3><p>Попробуй создать учебный пример приглашения для выбранной группы.</p></div>
-          <button id="create-invite" class="secondary" type="button">Создать демо-приглашение</button>
-          <div id="invite-result" hidden><p class="invite-caption">Демонстрационный код · не открывает регистрацию</p><code id="invite-code"></code><button id="copy-invite" class="secondary" type="button">Скопировать код</button></div>
+          <div><h3 id="invite-title">Group invitation</h3><p>Try creating a sample invitation for the selected group.</p></div>
+          <button id="create-invite" class="secondary" type="button">Create demo invitation</button>
+          <div id="invite-result" hidden><p class="invite-caption">Demo code · does not enable registration</p><code id="invite-code"></code><button id="copy-invite" class="secondary" type="button">Copy code</button></div>
         </section>
       </section>
     </div>
     <p id="announcement" class="announcement" role="status" aria-live="polite"></p>
-    <footer><p>В учебном пространстве используются псевдонимы. Конфиденциальный реестр и реальные учебные записи в этом демо отсутствуют.</p><a href="index.html">Посмотреть регистрацию студента →</a></footer>
-    <noscript><p>Для просмотра кабинета включи JavaScript.</p></noscript>
+    <footer><p>The learning space uses aliases. This demo contains no confidential register or real learning records.</p><a href="index.html">Explore student registration →</a></footer>
+    <noscript><p>Enable JavaScript to view the hub.</p></noscript>
   </main>
   <dialog id="group-dialog" aria-labelledby="dialog-title">
     <form id="group-form">
-      <h2 id="dialog-title">Новая учебная группа</h2>
-      <p class="muted">Группа появится в демо-кабинете. После обновления страницы изменения сбросятся.</p>
-      <label class="input-label" for="group-name">Название группы</label>
-      <input id="group-name" name="name" type="text" required maxlength="120" autocomplete="off" placeholder="Например, Английский · группа 09" aria-describedby="group-error">
-      <label class="input-label" for="group-course">Курс группы</label><select id="group-course" required></select>
+      <h2 id="dialog-title">New learning group</h2>
+      <p class="muted">The group will appear in the demo hub. Changes reset on reload.</p>
+      <label class="input-label" for="group-name">Group name</label>
+      <input id="group-name" name="name" type="text" required maxlength="120" autocomplete="off" placeholder="For example, English · group 09" aria-describedby="group-error">
+      <label class="input-label" for="group-course">Group course</label><select id="group-course" required></select>
       <p id="group-error" class="form-error" role="alert"></p>
-      <div class="dialog-actions"><button id="cancel-group" class="secondary" type="button">Отмена</button><button class="primary" type="submit">Создать</button></div>
+      <div class="dialog-actions"><button id="cancel-group" class="secondary" type="button">Cancel</button><button class="primary" type="submit">Create</button></div>
     </form>
   </dialog>
 </body>

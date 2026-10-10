@@ -40,6 +40,8 @@ async function submitText(page, text) {
 
 test('full teacher → student → teacher → student feedback cycle', async t => {
   const {page, errors, writes} = await openHomework(t);
+  assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+  assert(!/[А-Яа-яЁё]/.test(await page.locator('body').innerText()));
   await createTask(page);
   assert.equal(await page.locator('#task-count').textContent(), '4');
   await page.locator('#student-view').click();
@@ -50,7 +52,7 @@ test('full teacher → student → teacher → student feedback cycle', async t 
   assert.equal(await page.locator('.submission-card').count(), 1);
   await page.locator('#teacher-view').click();
   assert.equal(await page.locator('.submission-card strong').first().textContent(), 'Silver Fern');
-  await page.getByRole('button', {name: 'Оставить комментарий'}).click();
+  await page.getByRole('button', {name: 'Leave a comment'}).click();
   await page.locator('#review-feedback').fill('Lovely imaginary garden. Add two questions in your next draft.');
   await page.locator('#review-form button[type=submit]').click();
   await page.locator('#student-view').click();
@@ -64,7 +66,7 @@ test('full teacher → student → teacher → student feedback cycle', async t 
 
 test('student projection excludes other groups, students and their feedback', async t => {
   const {page, errors} = await openHomework(t);
-  await page.getByRole('button', {name: 'Оставить комментарий'}).click();
+  await page.getByRole('button', {name: 'Leave a comment'}).click();
   await page.locator('#review-feedback').fill('Synthetic comment for a different demo student.');
   await page.locator('#review-form button[type=submit]').click();
   await createTask(page, {title: 'Group two only', group: 'demo-group-2'});
@@ -85,23 +87,23 @@ test('three immutable attempts, duplicate rejection and version-specific feedbac
   await submitText(page, 'Synthetic version one.');
   await page.waitForFunction(() => document.querySelectorAll('.submission-card').length === 1);
   await submitText(page, 'Synthetic version one.');
-  await page.waitForFunction(() => document.getElementById('submission-error').textContent.includes('уже отправлена'));
+  await page.waitForFunction(() => document.getElementById('submission-error').textContent.includes('already been submitted'));
   assert.equal(await page.locator('.submission-card').count(), 1);
   await page.locator('#teacher-view').click();
-  await page.locator('.submission-card').filter({hasText: 'Silver Fern'}).getByRole('button', {name: 'Оставить комментарий'}).click();
+  await page.locator('.submission-card').filter({hasText: 'Silver Fern'}).getByRole('button', {name: 'Leave a comment'}).click();
   await page.locator('#review-feedback').fill('Feedback only for version one.');
   await page.locator('#review-form button[type=submit]').click();
   await page.locator('#student-view').click();
   await submitText(page, 'Synthetic version two.');
   await page.waitForFunction(() => document.querySelectorAll('.submission-card').length === 2);
-  assert.match(await page.locator('.submission-card').first().textContent(), /Работа на проверке/);
+  assert.match(await page.locator('.submission-card').first().textContent(), /awaiting review/);
   assert(!(await page.locator('.submission-card').first().textContent()).includes('Feedback only'));
   assert.match(await page.locator('.submission-card').last().textContent(), /Synthetic version one/);
   assert.match(await page.locator('.submission-card').last().textContent(), /Feedback only for version one/);
   await submitText(page, 'Synthetic version three.');
   await page.waitForFunction(() => document.querySelectorAll('.submission-card').length === 3);
   assert.equal(await page.locator('#submission-form').count(), 0);
-  assert.match(await page.locator('main').textContent(), /Все три попытки использованы/);
+  assert.match(await page.locator('main').textContent(), /All three attempts have been used/);
   assert.deepEqual(errors, []);
 });
 
@@ -112,7 +114,7 @@ test('document links require HTTPS, are not fetched, and text is rendered litera
   await submitText(page, 'http://example.invalid/document');
   assert.match(await page.locator('#submission-error').textContent(), /HTTPS/);
   await submitText(page, 'https://name:password@example.invalid/document');
-  assert.match(await page.locator('#submission-error').textContent(), /без логина/);
+  assert.match(await page.locator('#submission-error').textContent(), /without a username/);
   await submitText(page, 'https://example.invalid/synthetic-document');
   await page.waitForFunction(() => document.querySelectorAll('.submission-card').length === 1);
   const link = page.locator('.submission-card a');
@@ -132,10 +134,10 @@ test('deadlines use Moscow regardless of browser timezone, and lateness adds no 
   assert.match(await page.locator('.deadline-note').textContent(), /18:00/);
   await page.clock.fastForward(31 * 3600000); // 10 Oct 16:00 UTC = 19:00 MSK.
   await page.locator('#student-view').click();
-  assert.match(await page.locator('.deadline-note').textContent(), /Срок прошёл/);
+  assert.match(await page.locator('.deadline-note').textContent(), /The deadline has passed/);
   await submitText(page, 'Synthetic late work.');
   await page.waitForFunction(() => document.querySelectorAll('.submission-card').length === 1);
-  assert.match(await page.locator('.submission-card').textContent(), /После срока/);
+  assert.match(await page.locator('.submission-card').textContent(), /Late submission/);
   assert(!(await page.locator('main').textContent()).includes('20%'));
   assert.deepEqual(errors, []);
 });
@@ -164,7 +166,7 @@ test('course filtering and lexical suggestions require teacher approval before f
   const {page, errors} = await openHomework(t);
   await page.locator('#task-course-filter').selectOption('grammar');
   assert.equal(await page.locator('.task-card').count(), 1);
-  assert.match(await page.locator('.task-card').textContent(), /Грамматика/);
+  assert.match(await page.locator('.task-card').textContent(), /English Grammar/);
   await page.locator('#new-task').click();
   await page.locator('#assignment-title').fill('Vocabulary exercise');
   await page.locator('#assignment-description').fill('Use the target words in a fictional story.');
@@ -174,8 +176,8 @@ test('course filtering and lexical suggestions require teacher approval before f
   await submitText(page, 'i like art. Would you like tea?');
   await page.locator('#teacher-view').click();
   await page.locator('.submission-card button').click();
-  assert.match(await page.locator('#review-analysis').textContent(), /Найдено: art, would you like/);
-  assert.match(await page.locator('#review-analysis').textContent(), /Не найдено: moonlit/);
+  assert.match(await page.locator('#review-analysis').textContent(), /Found: art, would you like/);
+  assert.match(await page.locator('#review-analysis').textContent(), /Not found: moonlit/);
   await page.locator('#use-suggestions').click();
   assert.match(await page.locator('#review-feedback').inputValue(), /moonlit/);
   await page.locator('#cancel-review').click();
@@ -208,8 +210,8 @@ test('multi-group IMT is a single task with independent group visibility and con
   assert.doesNotMatch(await page.locator('.task-card').textContent(), /Opinion Essay/);
   await page.locator('#student-view').click();
   await submitText(page, 'I would rather read books than watch TV.');
-  assert.match(await page.locator('.submission-card .analysis-box').textContent(), /найдены шаблоны: would rather/);
-  assert.match(await page.locator('.submission-card .analysis-box').textContent(), /не найдены: used to/);
+  assert.match(await page.locator('.submission-card .analysis-box').textContent(), /patterns found: would rather/);
+  assert.match(await page.locator('.submission-card .analysis-box').textContent(), /not found: used to/);
   await page.locator('#teacher-view').click();
   await page.locator('#task-group-filter').selectOption('all');
   await page.locator('#task-type-filter').selectOption('imt');
@@ -219,17 +221,17 @@ test('multi-group IMT is a single task with independent group visibility and con
 
 test('announcements target groups, local emotes render safely, and reactions toggle per viewer', async t => {
   const {page, errors, writes, external} = await openHomework(t, {...devices['iPhone 13']});
-  await page.getByRole('button', {name: '+ Дать объявление', exact: true}).click();
+  await page.getByRole('button', {name: '+ Post announcement', exact: true}).click();
   await page.locator('#announcement-text').fill('<img src=x> Fictional news ');
   await page.locator('#announcement-emotes button').first().click();
   for (const checkbox of await page.locator('#announcement-groups input').all()) await checkbox.uncheck();
   await page.locator('#announcement-form button[type=submit]').click();
-  assert.match(await page.locator('#announcement-error').textContent(), /выбери/);
+  assert.match(await page.locator('#announcement-error').textContent(), /choose/);
   await page.locator('#announcement-groups input[value="demo-group-2"]').check();
   await page.locator('#announcement-form button[type=submit]').click();
   assert.equal(await page.locator('#announcements .notice-card').count(), 2);
-  assert.equal(await page.locator('#announcements .notice-card').first().locator(':scope > p svg[aria-label="Лунная улыбка"]').count(), 1);
-  assert.equal(await page.locator('#announcements .notice-card').first().locator('.reaction-bar svg[aria-label="Лунная улыбка"]').count(), 1);
+  assert.equal(await page.locator('#announcements .notice-card').first().locator(':scope > p svg[aria-label="Moon smile"]').count(), 1);
+  assert.equal(await page.locator('#announcements .notice-card').first().locator('.reaction-bar svg[aria-label="Moon smile"]').count(), 1);
   assert.equal(await page.locator('img').count(), 0);
   await page.locator('#student-view').click();
   assert.equal(await page.locator('#announcements .notice-card').count(), 1);
@@ -251,12 +253,12 @@ test('empty task audience and reversed period are rejected; future Extra task ca
   await page.locator('#assignment-type').selectOption('extra');
   for (const box of await page.locator('#assignment-group-choices input').all()) await box.uncheck();
   await page.locator('#assignment-form button[type=submit]').click();
-  assert.match(await page.locator('#assignment-error').textContent(), /Выбери группы/);
+  assert.match(await page.locator('#assignment-error').textContent(), /Choose groups/);
   await page.locator('#assignment-group-choices input[value="demo-group-1"]').check();
   const deadline = await page.locator('#assignment-deadline').inputValue();
   await page.locator('#assignment-start').fill(deadline);
   await page.locator('#assignment-form button[type=submit]').click();
-  assert.match(await page.locator('#assignment-error').textContent(), /раньше/);
+  assert.match(await page.locator('#assignment-error').textContent(), /before/);
   const futureStart = new Date(Date.now() + 3 * 3600000 + 3600000).toISOString().slice(0, 16);
   await page.locator('#assignment-start').fill(futureStart);
   await page.locator('#assignment-form button[type=submit]').click();
@@ -264,7 +266,7 @@ test('empty task audience and reversed period are rejected; future Extra task ca
   assert.equal(await page.locator('.task-card').count(), 1);
   await page.locator('#student-view').click();
   await submitText(page, 'Future draft.');
-  assert.match(await page.locator('#submission-error').textContent(), /ещё не начался/);
+  assert.match(await page.locator('#submission-error').textContent(), /not started yet/);
   assert.equal(await page.locator('.submission-card').count(), 0);
   assert.deepEqual(errors, []);
 });
@@ -277,19 +279,19 @@ test('photos attach to homework snapshots and post comments; unsafe files are re
   await page.locator('#submission-form .photo-gallery img').waitFor();
   await page.locator('#submission-form button[type=submit]').click();
   await page.locator('.submission-card .photo-gallery img').waitFor();
-  assert.match(await page.locator('.submission-card .analysis-box').textContent(), /Фото не распознаются/);
+  assert.match(await page.locator('.submission-card .analysis-box').textContent(), /Photos are not recognized/);
   const notice = page.locator('#announcements .notice-card').first();
   await notice.locator('input[type=file]').setInputFiles(image);
   await notice.locator('form .photo-gallery img').waitFor();
-  await notice.locator('form').getByRole('button', {name: 'Вставить: Волнуюсь', exact: true}).click();
-  await notice.getByRole('button', {name: 'Добавить комментарий', exact: true}).click();
+  await notice.locator('form').getByRole('button', {name: 'Insert: Nervous', exact: true}).click();
+  await notice.getByRole('button', {name: 'Add comment', exact: true}).click();
   await notice.locator('.post-comment .photo-gallery img').waitFor();
-  assert.equal(await notice.locator('.post-comment svg[aria-label="Волнуюсь"]').count(), 1);
+  assert.equal(await notice.locator('.post-comment svg[aria-label="Nervous"]').count(), 1);
   await page.locator('#submission-photos').setInputFiles({name: 'unsafe.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg/>')});
   assert.match(await page.locator('#submission-form').textContent(), /JPG, PNG/);
   await page.locator('#submission-content').fill('Another text.');
   await page.locator('#submission-form button[type=submit]').click();
-  assert.match(await page.locator('#submission-error').textContent(), /допустимые/);
+  assert.match(await page.locator('#submission-error').textContent(), /supported/);
   assert.deepEqual(errors, []);
 });
 
@@ -307,19 +309,19 @@ async function createCheckpoint(page, title = 'Checkpoint One') {
 test('checkpoint dates, private results/photo and atomic CSV import', async t => {
   const {page, errors} = await openHomework(t, {...devices['iPhone 13']});
   await createCheckpoint(page);
-  assert.match(await page.locator('.checkpoint-dates').textContent(), /Учебный период:.*тест:.*МСК/);
+  assert.match(await page.locator('.checkpoint-dates').textContent(), /Learning period:.*test:.*Moscow time/);
   const image = {name: 'fictional-work.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l5sAAAAASUVORK5CYII=', 'base64')};
   await page.locator('#result-score').fill('');
   await page.locator('#result-photos').setInputFiles(image);
   await page.locator('.result-form .photo-gallery img').waitFor();
-  await page.getByRole('button', {name: 'Сохранить результат и фото', exact: true}).click();
-  assert.match(await page.locator('.checkpoint-result').textContent(), /результат ещё не внесён/);
+  await page.getByRole('button', {name: 'Save result and photos', exact: true}).click();
+  assert.match(await page.locator('.checkpoint-result').textContent(), /result not entered yet/);
   await page.locator('#result-score').fill('7');
-  await page.getByRole('button', {name: 'Сохранить результат и фото', exact: true}).click();
+  await page.getByRole('button', {name: 'Save result and photos', exact: true}).click();
   assert.equal(await page.locator('.checkpoint-result img').count(), 1);
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await page.locator('#result-import').setInputFiles({name: 'results.csv', mimeType: 'text/csv', buffer: Buffer.from('Silver Fern;9;10\nUnknown Alias;5;10')});
-  await page.getByText('Проверь псевдонимы, повторы и баллы. Импорт не выполнен.', {exact: true}).waitFor();
+  await page.getByText('Check aliases, duplicates and scores. Nothing has been imported.', {exact: true}).waitFor();
   assert.match(await page.locator('.checkpoint-result').textContent(), /7 \/ 10/);
   await page.locator('#result-import').setInputFiles({name: 'valid.csv', mimeType: 'text/csv', buffer: Buffer.from('Silver Fern;9;10\nSilver Willow;4;10')});
   await page.locator('.checkpoint-result').nth(1).waitFor();
@@ -340,7 +342,7 @@ test('compensation permission is period-specific and revocation preserves older 
   await page.locator('#assignment-title').fill('Compensation One');
   await page.locator('#assignment-description').fill('Fictional compensation.');
   await page.locator('#assignment-type').selectOption('compensation');
-  await page.locator('#assignment-checkpoint').selectOption({label: 'Period One · период'});
+  await page.locator('#assignment-checkpoint').selectOption({label: 'Period One · period'});
   await page.locator('#assignment-form button[type=submit]').click();
   await page.locator('#student-view').click();
   assert.doesNotMatch((await page.locator('.task-card').allTextContents()).join(' '), /Compensation One/);
@@ -358,7 +360,7 @@ test('compensation permission is period-specific and revocation preserves older 
   await page.locator('#assignment-title').fill('Compensation Two');
   await page.locator('#assignment-description').fill('Another fictional compensation.');
   await page.locator('#assignment-type').selectOption('compensation');
-  await page.locator('#assignment-checkpoint').selectOption({label: 'Period Two · период'});
+  await page.locator('#assignment-checkpoint').selectOption({label: 'Period Two · period'});
   await page.locator('#assignment-form button[type=submit]').click();
   await page.locator('#student-view').click();
   assert.doesNotMatch((await page.locator('.task-card').allTextContents()).join(' '), /Compensation Two/);
@@ -368,7 +370,7 @@ test('compensation permission is period-specific and revocation preserves older 
   await page.locator('#student-view').click();
   await page.locator('.task-card').filter({hasText: 'Compensation One'}).click();
   assert.equal(await page.locator('#submission-form').count(), 0);
-  assert.match(await page.locator('.compensation-locked').textContent(), /закрыт/);
+  assert.match(await page.locator('.compensation-locked').textContent(), /closed/);
   assert.match(await page.locator('.submission-card .work-content').textContent(), /fictional compensation answer/);
   assert.deepEqual(errors, []);
 });

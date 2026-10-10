@@ -1,4 +1,4 @@
 window.MoonCourses = Object.freeze([
-  Object.freeze({id: 'speech', name: 'Практика речи'}),
-  Object.freeze({id: 'grammar', name: 'Грамматика (иностранный язык)'}),
+  Object.freeze({id: 'speech', name: 'Speaking Practice'}),
+  Object.freeze({id: 'grammar', name: 'English Grammar'}),
 ]);
