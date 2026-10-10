@@ -48,7 +48,7 @@
     return response.status === 204 ? null : response.json();
   }
   function updateControls() {
-    document.querySelectorAll('button, input, textarea, select').forEach(element => {element.disabled = busy || !base;});
+    document.querySelectorAll('button, input, textarea, select').forEach(element => {element.disabled = busy || !base || element.dataset.unavailable === 'true';});
     $('telegram-sign-in').disabled = busy || !base || !initData();
     if (profile?.role === 'admin') $('connected-save').disabled = busy || !$('connected-group').options.length;
   }

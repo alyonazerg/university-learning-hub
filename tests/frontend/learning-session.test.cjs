@@ -205,3 +205,20 @@ test('coursework, certificate access, photos and alias attendance survive a real
   for (const width of [320,375,390,430]) {await page.setViewportSize({width,height:844});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
   assert.deepEqual(errors,[]);
 });
+
+test('empty groups explain unavailable task and attendance forms without layout overflow', async t => {
+  const {pageFor,errors}=await open(t); const page=await pageFor();
+  await page.route('**/learning/groups', route=>route.fulfill({contentType:'application/json',body:'[]'}));
+  await teacher(page); await page.getByText('Создать задание',{exact:true}).click();
+  assert.match(await page.locator('#server-task-form fieldset').textContent(),/пока нет групп/);
+  assert(await page.locator('#server-task-save').isDisabled());
+  assert.equal(await page.locator('#server-lesson-group').textContent(),'Сначала создай группу');
+  assert(await page.getByRole('button',{name:'Добавить занятие',exact:true}).isDisabled());
+  for(const width of [320,390,1280]) {
+    await page.setViewportSize({width,height:900});
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    assert(await page.locator('#server-task-form fieldset').evaluate(el=>el.getBoundingClientRect().height>60));
+    assert(await page.locator('#server-lesson-title').evaluate(el=>{const label=el.previousElementSibling;return el.getBoundingClientRect().top-label.getBoundingClientRect().bottom>=6;}));
+  }
+  assert.deepEqual(errors,[]);
+});

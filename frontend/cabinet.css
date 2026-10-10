@@ -34,3 +34,11 @@
   .schedule-card .muted {grid-column:1;}
   #sign-in form button {width:100%; white-space:normal;}
 }
+
+#workspace .form-field[hidden] {display:none;}
+#workspace fieldset {margin:0; padding:14px 16px 16px; display:grid; gap:10px;}
+#workspace legend {padding:0 6px; max-width:100%; line-height:1.45;}
+#workspace fieldset p {margin:0;}
+#workspace .attendance-choice {display:flex; align-items:center; gap:10px; min-height:44px; overflow-wrap:anywhere;}
+#workspace input[type=checkbox] {width:22px; height:22px; min-height:22px; padding:0; margin:0; flex:0 0 22px;}
+#workspace button:disabled {opacity:.55; cursor:not-allowed;}

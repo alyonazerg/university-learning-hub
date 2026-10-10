@@ -8,13 +8,13 @@
     const label = node('label', title, 'input-label'); label.htmlFor = id;
     const input = node(type === 'textarea' ? 'textarea' : 'input'); input.id = id; input.required = true;
     if (type !== 'textarea') input.type = type; else input.rows = 4;
-    input.maxLength = max; form.append(label, input); return input;
+    input.maxLength = max; const wrapper = node('div', undefined, 'form-field'); wrapper.append(label, input); form.append(wrapper); return input;
   }
   function select(form, title, id, options) {
     const label = node('label', title, 'input-label'); label.htmlFor = id;
     const input = node('select'); input.id = id;
     for (const [value, text] of options) {const option = node('option', text); option.value = value; input.append(option);}
-    form.append(label, input); return input;
+    const wrapper = node('div', undefined, 'form-field'); wrapper.append(label, input); form.append(wrapper); return input;
   }
   function submit(form, title) {const button = node('button', title, 'primary'); button.type = 'submit'; form.append(button); return button;}
   function button(title, action, run) {const element = node('button', title, 'secondary'); element.type = 'button'; element.addEventListener('click', () => run(action)); return element;}
@@ -106,7 +106,10 @@
     const description = field(form, 'Описание', 'server-task-description', 'textarea', 20000);
     const course = select(form, 'Курс', 'server-task-course', window.MoonCourses.map(item => [item.id, item.name]));
     const roster = node('fieldset'); roster.append(node('legend', 'Группы · можно выбрать несколько')); form.append(roster);
-    function groupChoices() {roster.querySelectorAll('label').forEach(item => item.remove());
+    function groupChoices() {roster.querySelectorAll('label, p').forEach(item => item.remove());
+      const available = groups.filter(item => item.course_id === course.value);
+      if (!available.length) roster.append(node('p', 'Для этого курса пока нет групп. Создай группу в разделе «Группы».', 'muted'));
+      const save = form.querySelector('#server-task-save'); if (save) {save.disabled = !available.length; save.dataset.unavailable = String(!available.length);}
       for (const group of groups.filter(item => item.course_id === course.value)) {const label = node('label', undefined, 'attendance-choice'), input = node('input'); input.type = 'checkbox'; input.value = group.id; input.setAttribute('aria-label', 'Задание для ' + group.name); label.append(input, document.createTextNode(' ' + group.name)); roster.append(label);}
     }
     const kind = select(form, 'Тип задания', 'server-task-kind', Object.entries(types));
@@ -117,9 +120,9 @@
     const vocabulary = field(form, 'Целевая лексика · одно выражение на строку', 'server-task-vocabulary', 'textarea', 20000); vocabulary.required = false;
     const constructions = field(form, 'Целевые конструкции · одна на строку', 'server-task-constructions', 'textarea', 20000); constructions.required = false;
     const criteria = field(form, 'Критерии (необязательно)', 'server-task-criteria', 'textarea', 10000); criteria.required = false;
-    function mode() {test.hidden = kind.value !== 'checkpoint'; test.previousSibling.hidden = test.hidden; checkpoint.hidden = kind.value !== 'compensation'; checkpoint.previousSibling.hidden = checkpoint.hidden; checkpoint.required = !checkpoint.hidden;}
+    function mode() {test.hidden = kind.value !== 'checkpoint'; test.parentElement.hidden = test.hidden; checkpoint.hidden = kind.value !== 'compensation'; checkpoint.parentElement.hidden = checkpoint.hidden; checkpoint.required = !checkpoint.hidden;}
     course.addEventListener('change', groupChoices); kind.addEventListener('change', mode); groupChoices(); mode();
-    const save = submit(form, 'Сохранить задание'); save.id = 'server-task-save';
+    const save = submit(form, 'Сохранить задание'); save.id = 'server-task-save'; groupChoices();
     form.addEventListener('submit', event => {event.preventDefault(); run(async () => {
       const ids = [...roster.querySelectorAll('input:checked')].map(input => Number(input.value));
       if (!ids.length) throw new Error('Выбери хотя бы одну группу.');
@@ -152,10 +155,12 @@
     area.append(node('p', 'В журнале только учебные псевдонимы. ФИО вводить не нужно. Даты и время — по Москве.', 'muted'));
     if (profile.role === 'admin') {
       const form = node('form'); form.id = 'server-lesson-form';
-      const group = select(form, 'Группа занятия', 'server-lesson-group', groups.map(item => [item.id, item.name]));
+      const group = select(form, 'Группа занятия', 'server-lesson-group', groups.length ? groups.map(item => [item.id, item.name]) : [['', 'Сначала создай группу']]);
+      group.required = true; group.disabled = !groups.length; group.dataset.unavailable = String(!groups.length);
+      if (!groups.length) form.append(node('p', 'Добавление занятий станет доступно после создания группы в разделе «Группы».', 'muted'));
       const title = field(form, 'Тема занятия', 'server-lesson-title');
       const date = field(form, 'Дата и время · Москва', 'server-lesson-date', 'datetime-local'); date.value = moscowInput();
-      submit(form, 'Добавить занятие'); form.addEventListener('submit', event => {event.preventDefault(); run(async () => {
+      const addLesson = submit(form, 'Добавить занятие'); addLesson.disabled = !groups.length; addLesson.dataset.unavailable = String(!groups.length); form.addEventListener('submit', event => {event.preventDefault(); run(async () => {
         await request('/attendance', 'POST', {group_id: Number(group.value), title: title.value.trim(), starts_at: dateValue(date.value)}); await done('Занятие сохранено.');
       });}); area.append(form);
     }
