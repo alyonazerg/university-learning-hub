@@ -59,6 +59,54 @@ test('unconfigured published cabinet disables login and never pretends to save',
   assert(await page.locator('#telegram-sign-in').isDisabled());
   assert(!(await page.locator('#workspace').isVisible()));assert.deepEqual(errors,[]);
 });
+
+test('older API without planning still allows teacher login and existing cabinet sections',async t=>{
+  const {pageFor,errors}=await open(t);const page=await pageFor();
+  await page.route('**/learning/plans',route=>route.fulfill({status:404,contentType:'application/json',body:'{"detail":"Not Found"}'}));
+  await teacher(page);
+  assert(await page.locator('#connected-groups').isVisible());
+  assert.match(await page.locator('#connected-schedule').textContent(),/обновления сервера/);
+  assert.deepEqual(errors,[]);
+});
+
+test('schedule and thematic plan persist, create one attendance journal and keep cabinet spacing on mobile',async t=>{
+  const {pageFor,errors,restart}=await open(t);const page=await pageFor();await teacher(page);
+  await page.locator('#connected-schedule summary').click();
+  await page.locator('#weekly-from').fill('2026-10-12');await page.locator('#weekly-until').fill('2026-10-26');
+  await page.locator('#weekly-time').fill('10:00');await page.getByRole('button',{name:'Добавить расписание',exact:true}).click();
+  await page.getByText('Расписание сохранено. Темы доступны в плане.',{exact:true}).waitFor();
+  assert.equal(await page.locator('#connected-schedule .schedule-card').count(),3);
+  await page.getByText('Добавить список тем',{exact:true}).click();
+  await page.locator('#plan-bulk-topics').fill('Revision\nSpeaking workshop');
+  await page.getByRole('button',{name:'Сохранить список тем',exact:true}).click();
+  await page.getByText('Список тем сохранён. Даты можно назначить позже.',{exact:true}).waitFor();
+  assert.equal(await page.locator('#connected-planning article').count(),5);
+  const first=page.locator('#connected-planning article').first();await first.getByText('Редактировать тему',{exact:true}).click();
+  await first.locator('[id^=plan-topic-]').fill('Narrative tenses');
+  await first.locator('[id^=plan-materials-]').fill('Unit 2');
+  await first.getByRole('button',{name:'Сохранить изменения темы',exact:true}).click();await page.getByText('Тема сохранена.',{exact:true}).waitFor();
+  await first.getByRole('button',{name:'Создать журнал посещаемости',exact:true}).click();await page.getByText('Журнал занятия готов.',{exact:true}).waitFor();
+  assert.equal(await page.locator('#connected-attendance article').count(),1);
+  await first.getByRole('button',{name:'Открыть посещаемость',exact:true}).click();await page.getByText('Журнал занятия готов.',{exact:true}).waitFor();
+  assert.equal(await page.locator('#connected-attendance article').count(),1);
+  await restart();await page.reload();await teacher(page);
+  assert.match(await page.locator('#connected-planning').textContent(),/Narrative tenses/);
+  for(const width of [320,390,1280]){
+    await page.setViewportSize({width,height:900});
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    const gaps=await page.evaluate(()=>{
+      const group=document.querySelector('#connected-groups').getBoundingClientRect(),next=document.querySelector('#connected-schedule').getBoundingClientRect();
+      const course=document.querySelector('#new-group-course').getBoundingClientRect(),button=document.querySelector('#connected-group-form button').getBoundingClientRect();
+      const editor=document.querySelector('#group-editors article select').getBoundingClientRect(),save=document.querySelector('#group-editors article button').getBoundingClientRect();
+      return {panels:next.top-group.bottom,button:button.top-course.bottom,editor:save.top-editor.bottom};
+    });assert(gaps.panels>=18);assert(gaps.button>=12);assert(gaps.editor>=12);
+  }
+  await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:'/workspace/work/cabinet-planning-desktop.png'});
+  const learner=await pageFor(11);await student(learner);assert.match(await learner.locator('#connected-planning').textContent(),/Narrative tenses/);
+  assert.equal(await learner.getByText('Добавить регулярное расписание',{exact:true}).count(),0);
+  const foreign=await pageFor(22);await student(foreign);assert.equal(await foreign.locator('#connected-schedule .schedule-card').count(),0);
+  assert.deepEqual(errors,[]);
+});
 test('real API saves cards and reviews through browser reload and server restart',async t=>{
   const {pageFor,errors,restart}=await open(t);const teacherPage=await pageFor();await teacher(teacherPage);
   await teacherPage.locator('#connected-title').fill('Persistent target vocabulary');

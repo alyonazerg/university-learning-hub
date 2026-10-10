@@ -9,6 +9,11 @@
   } catch { $('connection-state').textContent = 'Адрес сервера настроен неверно. Обратись к администратору.'; }
   const initData = () => window.Telegram?.WebApp?.initData || '';
   const messages = {
+    'Lessons overlap in this group': 'Время занятий этой группы пересекается. Проверь расписание.',
+    'Lesson already has an attendance journal': 'Для занятия уже создан журнал. Дату и тему нельзя изменить.',
+    'Attendance topic differs; review the existing journal': 'На это время уже есть журнал с другой темой. Проверь посещаемость.',
+    'Plan group cannot be changed': 'Группу существующей темы нельзя изменить.',
+    'Set a lesson date first': 'Сначала назначь дату занятия.',
     'Invalid or expired Telegram authentication': 'Вход через Telegram устарел. Открой приложение заново.',
     'Registered student required': 'Сначала зарегистрируйся по приглашению преподавателя.',
     'Administrator access required': 'Недостаточно прав или неверный ключ преподавателя.',
@@ -36,6 +41,7 @@
     const response = await fetch(base + '/learning' + path, {method, cache: 'no-store', headers: {...(body ? {'Content-Type': 'application/json'} : {}), ...(token ? {Authorization: 'Bearer ' + token} : {})}, ...(body ? {body: JSON.stringify(body)} : {})});
     if (!response.ok) {
       let detail; try {detail = (await response.json()).detail;} catch { /* generic message below */ }
+      if (response.status === 404 && path === '/plans') return null;
       if ((response.status === 401 || (path === '/me' && [403, 404].includes(response.status))) && token) clearSession();
       throw new Error(messages[detail] || (response.status === 422 ? 'Проверь заполнение полей, даты периода и формат данных.' : 'Не удалось выполнить действие. Попробуй снова.'));
     }
@@ -58,11 +64,12 @@
     $('connected-decks').replaceChildren(); $('connected-study').replaceChildren(); $('group-editors').replaceChildren(); $('connected-group').replaceChildren();
     $('connected-deck-form').reset(); $('connected-group-form').reset(); $('admin-key').value = ''; $('account-name').textContent = 'Учебный кабинет';
     MoonCoursework.clear();
+    MoonPlanning.clear();
   }
   async function refresh() {
     const version = generation;
     const me = await request('/me');
-    const [decks, extra, coursework] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me)]);
+    const [decks, extra, coursework, plans] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me), request('/plans')]);
     if (version !== generation || !token) return;
     profile = me; $('sign-in').hidden = true; $('workspace').hidden = false;
     $('account-name').textContent = me.role === 'admin' ? 'Преподаватель' : me.pseudonym;
@@ -75,6 +82,7 @@
     $('connected-study').hidden = me.role !== 'student';
     if (me.role === 'student') renderStudy(extra);
     MoonCoursework.render(coursework, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});
+    MoonPlanning.render(plans, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});
   }
   function renderGroups(groups) {
     const previous = $('connected-group').value;

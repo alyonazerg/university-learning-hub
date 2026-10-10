@@ -7,5 +7,5 @@ RUN --mount=type=secret,id=proxy_ca \
       NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca npm ci --ignore-scripts --no-audit --no-fund; \
     else npm ci --ignore-scripts --no-audit --no-fund; fi && npm run build
 FROM nginx:alpine
-COPY --chmod=644 index.html styles.css config.js registration.js admin.html admin.css admin.js homework.html homework.css homework.js courses.js text-review.js campus-emotes.js photo-attachments.js learning-model.js vocabulary.html vocabulary.css vocabulary.js learning.html learning-session.js coursework-session.js /usr/share/nginx/html/
+COPY --chmod=644 index.html styles.css config.js registration.js admin.html admin.css admin.js homework.html homework.css homework.js courses.js text-review.js campus-emotes.js photo-attachments.js learning-model.js vocabulary.html vocabulary.css vocabulary.js learning.html learning-session.js coursework-session.js planning-model.js planning-session.js cabinet.css /usr/share/nginx/html/
 COPY --from=ocr-assets /build/ocr /usr/share/nginx/html/ocr

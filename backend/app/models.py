@@ -168,3 +168,22 @@ class AttendanceMark(Base):
     student_id: Mapped[int] = mapped_column(ForeignKey('students.id'), primary_key=True)
     status: Mapped[str] = mapped_column(String(16))
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class LessonPlan(Base):
+    __tablename__ = 'lesson_plans'
+    __table_args__ = (UniqueConstraint('group_id', 'starts_at', name='uq_plan_group_time'),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    group_id: Mapped[int] = mapped_column(ForeignKey('groups.id'), index=True)
+    position: Mapped[int] = mapped_column()
+    topic: Mapped[str] = mapped_column(String(200))
+    starts_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    duration_minutes: Mapped[int] = mapped_column(default=90)
+    room: Mapped[str] = mapped_column(String(200), default='')
+    kind: Mapped[str] = mapped_column(String(16), default='lesson')
+    objectives: Mapped[str] = mapped_column(Text, default='')
+    materials: Mapped[str] = mapped_column(Text, default='')
+    vocabulary: Mapped[list] = mapped_column(JSON, default=list)
+    constructions: Mapped[list] = mapped_column(JSON, default=list)
+    completed: Mapped[bool] = mapped_column(Boolean, default=False)
+    attendance_lesson_id: Mapped[str | None] = mapped_column(ForeignKey('attendance_lessons.id'), nullable=True)

@@ -153,3 +153,6 @@ app.include_router(learning_router)
 
 from .homework import router as homework_router
 app.include_router(homework_router)
+
+from .planning import router as planning_router
+app.include_router(planning_router)
