@@ -1,6 +1,11 @@
 {
   "name": "moon-campus-ui-tests",
   "private": true,
-  "scripts": {"test": "node --test *.test.cjs"},
-  "devDependencies": {"playwright": "1.62.1"}
+  "scripts": {
+    "test": "node --test *.test.cjs",
+    "pretest": "npm run build --prefix ../../frontend"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
 }

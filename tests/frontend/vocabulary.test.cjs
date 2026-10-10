@@ -65,3 +65,39 @@ test('student cards record progress without farming, ranking is opt-in and cross
   assert.match(await page.locator('.learning-progress').textContent(), /повторений: 0 · streak: 0/);
   assert.deepEqual(errors, []);
 });
+test('one appointed editor per group can use the photo workflow, replacement revokes access', async t => {
+  const {page, errors} = await openVocabulary(t);
+  await page.locator('#card-editor-group').selectOption('demo-group-3');
+  await page.locator('#card-editor-student').selectOption('demo-group-3-fern');
+  await page.locator('#vocab-student').click();
+  assert(await page.locator('#board-photo').isDisabled());
+  assert(!(await page.locator('#board-workspace').isVisible()));
+  await page.locator('#vocab-teacher').click();
+  await page.locator('#card-editor-group').selectOption('demo-group-1');
+  await page.locator('#card-editor-student').selectOption('demo-student-1');
+  await page.locator('#vocab-student').click();
+  assert(!(await page.locator('#board-photo').isDisabled()));
+  assert(await page.locator('#board-workspace').isVisible());
+  await page.locator('#vocab-teacher').click();
+  await page.locator('#card-editor-student').selectOption('demo-student-2');
+  await page.locator('#vocab-student').click();
+  assert(await page.locator('#board-photo').isDisabled());
+  assert(await page.locator('#save-list').isEnabled()); // emergent suggestions remain available
+  assert.deepEqual(errors, []);
+});
+test('real local OCR turns a synthetic board photo into a reviewed draft without external requests', {timeout: 90000}, async t => {
+  const {page, errors, writes, external} = await openVocabulary(t);
+  const data = await page.evaluate(() => {const canvas = document.createElement('canvas'); canvas.width = 800; canvas.height = 300; const context = canvas.getContext('2d'); context.fillStyle = 'white'; context.fillRect(0,0,800,300); context.fillStyle = 'black'; context.font = '48px Arial'; context.fillText('moonlit', 40, 70); context.fillText('wonder', 40, 150); context.fillText('stardust', 40, 230); return canvas.toDataURL('image/png').split(',')[1];});
+  await page.locator('#board-photo').setInputFiles({name: 'synthetic-board.png', mimeType: 'image/png', buffer: Buffer.from(data, 'base64')});
+  await page.locator('#board-preview img').waitFor();
+  await page.locator('#recognize-board').click();
+  await page.getByText('Черновик распознан. Исправь ошибки и оставь одну запись на строку; затем перенеси в список.', {exact: true}).waitFor({timeout: 60000});
+  const draft = await page.locator('#board-text').inputValue();
+  assert.match(draft, /moonlit/i); assert.match(draft, /stardust/i);
+  assert.equal(await page.locator('.word-list-card').count(), 1);
+  await page.locator('#apply-board').click();
+  assert.match(await page.locator('#word-list').inputValue(), /wonder/i);
+  assert.equal(await page.locator('.word-list-card').count(), 1);
+  assert.deepEqual(errors, []); assert.deepEqual(writes, []);
+  assert.deepEqual(external.filter(url => /^https?:/.test(url)), []);
+});

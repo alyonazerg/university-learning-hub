@@ -18,3 +18,17 @@ Vocabulary, emergent words, cards, streaks, team rankings and local photo previe
 [vocabulary.html](vocabulary.html), with [demo boundaries](../docs/learning-preview.md).
 Telegram/Beget prerequisites are documented in
 [hosting-and-telegram.md](../docs/hosting-and-telegram.md).
+
+Local board-photo OCR requires generated assets:
+
+```sh
+npm ci --prefix frontend --ignore-scripts
+npm run build --prefix frontend
+npm ci --prefix tests/frontend
+npm test --prefix tests/frontend
+```
+
+Recognition runs locally in the browser with same-origin English/Russian models.
+It creates reviewable text drafts; LLM authoring and the user's earlier bot format
+are not yet configured. The generated `frontend/ocr/` folder is ignored in Git and
+built by Pages/Docker. Student editor appointments remain synthetic UI state.

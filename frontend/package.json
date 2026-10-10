@@ -1,0 +1,11 @@
+{
+  "name": "moon-campus-static-assets",
+  "private": true,
+  "scripts": {"build": "node build-ocr.cjs"},
+  "dependencies": {
+    "tesseract.js": "6.0.1",
+    "tesseract.js-core": "6.0.0",
+    "@tesseract.js-data/eng": "1.0.0",
+    "@tesseract.js-data/rus": "1.0.0"
+  }
+}

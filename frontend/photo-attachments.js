@@ -34,5 +34,5 @@
     });
     element.append(label, input, error, preview); return state;
   }
-  window.MoonPhotos = Object.freeze({picker, gallery});
+  window.MoonPhotos = Object.freeze({picker, gallery, prepare});
 })();

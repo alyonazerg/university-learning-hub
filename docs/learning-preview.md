@@ -49,7 +49,43 @@ pride, alongside the original lunar/botanical/support emotes. They render locall
 in comments, work and feedback and are available as reactions. Emote tokens are
 literal text during vocabulary/construction analysis, not evidence of grammar.
 
-Verification: `npm test --prefix tests/frontend` includes 30 tests, with vocabulary
+Verification: `npm test --prefix tests/frontend` includes 32 tests, with vocabulary
 handoff, moderation, SRS/streak boundaries, ranking privacy, mobile bounds and
 photo attachments/rejection. Offline Telegram contract checks are separate:
 `python -m unittest bot.test_contracts`.
+
+## Assigned card editors and board-photo OCR
+
+A teacher can appoint exactly one demo student per group as a card editor. A new
+appointment replaces the previous one; no appointment means teacher-only photo
+processing. Other students retain manual emergent-word proposals. This is a UI
+demonstration, not server-side authorization. Production editor assignment must
+be checked on every draft/generation request, with group isolation and revocation.
+
+Board-photo OCR is genuinely implemented with Tesseract.js 6.0.1, local English
+and Russian trained data and same-origin WebAssembly workers. No photo is posted
+to an API, AI provider, CDN or Telegram. Models download once from the Pages site
+and may be cached by the library; images and extracted drafts are not persisted.
+Handwriting, glare and multi-column boards are unreliable; review remains mandatory.
+One JPEG/PNG/WebP up to 5 MB is decoded/re-encoded locally, resized to 1280 px and
+shown as a preview. Recognized text must be edited before copying into the list,
+then saved separately. Role changes clear board drafts; in-flight results are
+discarded if the role/appointment changes. Recognition has a 90-second timeout.
+
+OCR does not generate translations, pronunciation or examples. The requested
+“same format as my teacher bot” is still awaiting a user-provided example, and
+there is no configured LLM. No paid AI API is connected. Do not describe plain
+OCR/list parsing as AI card authoring. The eventual authoring flow should use the
+confirmed card schema, editable drafts and teacher approval of student work.
+
+Assets come from exact versions and npm lockfile integrity checks, with licenses
+and language source notes retained. Generated frontend/ocr is ignored, not checked
+into Git. Reproduce with `npm ci --prefix frontend --ignore-scripts` followed by
+`npm run build --prefix frontend`. Pages builds them before uploading only static
+web assets; node_modules, lockfiles and build scripts are not published. The nginx
+Dockerfile uses a separate Node build stage for the same assets.
+
+`npm test --prefix tests/frontend` builds OCR assets via pretest (runtime packages
+must be installed first), then exercises real OCR on a synthetic board image,
+editor replacement/group isolation, draft review and existing learning workflows.
+The OCR integration test uses the actual worker/models, not a mocked recognizer.

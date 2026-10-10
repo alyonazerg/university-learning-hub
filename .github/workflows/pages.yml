@@ -21,6 +21,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        if: hashFiles('frontend/package-lock.json') != ''
+        with:
+          node-version: '22'
+      - name: Build local OCR assets
+        if: hashFiles('frontend/package-lock.json') != ''
+        run: |
+          npm ci --prefix frontend --ignore-scripts --no-audit --no-fund
+          npm run build --prefix frontend
       - name: Read current main frontend for a branch preview
         if: github.ref_name != 'main'
         uses: actions/checkout@v4
@@ -34,12 +43,14 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/moon-campus-pages"
           if [ "$DEPLOY_BRANCH" = main ]; then
-            cp -a frontend/. "$RUNNER_TEMP/moon-campus-pages/"
+            cp frontend/*.html frontend/*.css frontend/*.js "$RUNNER_TEMP/moon-campus-pages/"
+            if [ -d frontend/ocr ]; then cp -a frontend/ocr "$RUNNER_TEMP/moon-campus-pages/"; fi
           else
             cp -a .pages-live/frontend/. "$RUNNER_TEMP/moon-campus-pages/"
             mkdir -p "$RUNNER_TEMP/moon-campus-pages/preview"
             cp frontend/index.html frontend/styles.css frontend/config.js frontend/registration.js frontend/admin.html frontend/admin.css frontend/admin.js frontend/homework.html frontend/homework.css frontend/homework.js frontend/courses.js frontend/text-review.js frontend/campus-emotes.js frontend/photo-attachments.js frontend/learning-model.js frontend/vocabulary.html frontend/vocabulary.css frontend/vocabulary.js "$RUNNER_TEMP/moon-campus-pages/preview/"
           fi
+          if [ "$DEPLOY_BRANCH" != main ] && [ -d frontend/ocr ]; then cp -a frontend/ocr "$RUNNER_TEMP/moon-campus-pages/preview/"; fi
           touch "$RUNNER_TEMP/moon-campus-pages/.nojekyll"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
