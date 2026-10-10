@@ -37,3 +37,5 @@ All grading and privacy features must be verified before real student onboarding
 ## Registration milestone
 
 See [registration contract and deployment notes](docs/registration.md) for group-bound invitations, server-issued pseudonyms, migration of existing databases, and frontend preview limitations. The connected vocabulary cabinet now has server-side sessions and private review storage; see [server-backed learning](docs/server-learning.md). The connected cabinet also saves assignments, submissions, compensation access and pseudonymous attendance; see [server coursework and attendance](docs/server-coursework-attendance.md). Announcements and rankings remain browser demos.
+
+For an optional separate API on a Beget VPS while retaining Pages, see [Beget launch instructions](docs/beget-launch.md).

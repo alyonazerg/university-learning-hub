@@ -1,0 +1,25 @@
+# Run together with docker-compose.yml after configuring the server's private .env.
+services:
+  db:
+    restart: unless-stopped
+  api:
+    restart: unless-stopped
+  frontend:
+    restart: unless-stopped
+  https:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?Set API_DOMAIN to the API hostname}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+volumes:
+  caddy_data:
+  caddy_config:

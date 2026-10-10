@@ -30,6 +30,10 @@ jobs:
         run: |
           npm ci --prefix frontend --ignore-scripts --no-audit --no-fund
           npm run build --prefix frontend
+      - name: Configure public API origin
+        env:
+          MOON_CAMPUS_API_BASE: ${{ vars.MOON_CAMPUS_API_BASE }}
+        run: node frontend/configure-api.cjs
       - name: Read current main frontend for a branch preview
         if: github.ref_name != 'main'
         uses: actions/checkout@v4
