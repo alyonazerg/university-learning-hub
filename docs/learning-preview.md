@@ -17,9 +17,18 @@ Students can propose emergent vocabulary with meanings and examples. Proposals
 are visible as pending and cannot enter shared flashcards until the teacher
 approves them. The synthetic student belongs to group 01, speech practice.
 
-Flashcards reveal meanings/examples before self-assessment. Remembered words are
-scheduled after 1, 3, 7 and 14 days; forgotten words return after 10 minutes.
-Three consecutive successful reviews mark a word as reinforced. The progress
+The confirmed teacher-bot format starts with an English definition and a Show
+button. The answer includes expression, transcription, synonyms, antonyms,
+collocations and an example with the expression highlighted. Russian meaning is
+revealed separately and resets for the next card. Simple legacy word lists have
+no definition, so their front explicitly asks for the expression's translation.
+Four ratings show their actual next interval: Again 10 minutes; initial Hard,
+Good and Easy are 1, 3 and 7 days. Subsequent intervals multiply the previous
+interval by 1.2, 2 and 3 respectively, rounded and capped at 365 days. Again resets
+the interval and reinforcement; Hard preserves reinforcement; Good/Easy advance
+it by one. This is a transparent demo algorithm, not a reconstruction of the
+old bot's scheduler from one screenshot. Three successful Good/Easy reviews
+without an Again mark a word as reinforced. The progress
 summary displays reinforced words, activity count and streak in Europe/Moscow.
 A streak remains active until the day after the last review; duplicate days do
 not increase it. One XP per word/card/day rewards activity, not academic grades.
@@ -38,7 +47,7 @@ Homework/announcement comments accept up to three JPG/PNG/WebP photos of at most
 5 MB each. A canvas re-encodes them as JPEG previews up to 1280 px, discarding source
 metadata; invalid images/SVG are rejected. Photos are never uploaded in Pages.
 A photo-only homework attempt is possible; original text/photo snapshots and
-fingerprints are retained separately per attempt. OCR is not implemented.
+fingerprints are retained separately per attempt. OCR of submitted homework is not implemented.
 Student comments are projected only within their group; teacher comments reach
 the post audience. Server enforcement remains necessary.
 Pending image preparation prevents submission, and invalid files require replacing
@@ -49,7 +58,7 @@ pride, alongside the original lunar/botanical/support emotes. They render locall
 in comments, work and feedback and are available as reactions. Emote tokens are
 literal text during vocabulary/construction analysis, not evidence of grammar.
 
-Verification: `npm test --prefix tests/frontend` includes 32 tests, with vocabulary
+Verification: `npm test --prefix tests/frontend` includes 36 tests, with vocabulary
 handoff, moderation, SRS/streak boundaries, ranking privacy, mobile bounds and
 photo attachments/rejection. Offline Telegram contract checks are separate:
 `python -m unittest bot.test_contracts`.
@@ -72,9 +81,16 @@ shown as a preview. Recognized text must be edited before copying into the list,
 then saved separately. Role changes clear board drafts; in-flight results are
 discarded if the role/appointment changes. Recognition has a 90-second timeout.
 
-OCR does not generate translations, pronunciation or examples. The requested
-“same format as my teacher bot” is still awaiting a user-provided example, and
-there is no configured LLM. No paid AI API is connected. Do not describe plain
+OCR does not generate translations, pronunciation or examples. The teacher-bot card format is now confirmed and implemented from the supplied
+screenshots. A full-card JSON array can be pasted or imported (same 15,000-character
+limit), with a sample button for teachers/appointed editors. Supported fields are
+`term`, `meaning`, `definition`, `transcription`, `synonyms`, `antonyms`,
+`collocations`, `example`. Definition/term/meaning are required; optional arrays
+accept up to 10 strings each. Types and field lengths are checked atomically;
+case-equivalent expressions are deduplicated and rendering uses text nodes.
+Other students retain simple emergent-list proposals. Full drafts by student
+editors still require teacher approval. Authors may import a reviewed externally
+prepared AI draft, but there is no configured LLM or one-click generation here. No paid AI API is connected. Do not describe plain
 OCR/list parsing as AI card authoring. The eventual authoring flow should use the
 confirmed card schema, editable drafts and teacher approval of student work.
 

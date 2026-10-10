@@ -9,3 +9,9 @@
 .rank-row span { overflow-wrap: anywhere; }
 #vocab-ranking label { display: flex; gap: 12px; align-items: center; min-height: 44px; }
 #vocab-ranking input[type=checkbox] { width: 20px; height: 20px; }
+
+.flashcard {text-align:left; overflow-wrap:anywhere;}
+.card-definition {margin:0 0 1.2rem; padding:.8rem 1rem; border-left:4px solid #7b74bb; background:#eef3f7; border-radius:6px;}
+.card-transcription {color:#635d79;}
+.card-example {margin-top:1.5rem;}
+.training-actions button {min-height:44px;}

@@ -12,8 +12,8 @@
 <label class="input-label" for="list-source">Источник / презентация</label><input id="list-source" maxlength="150" placeholder="Название презентации или темы">
 <label class="input-label" for="list-course">Курс</label><select id="list-course"></select>
 <label class="input-label" for="word-list">Слова списком · слово; перевод; пример — одна запись на строку</label><textarea id="word-list" required maxlength="15000" rows="6" placeholder="moonlit; освещённый луной; A moonlit garden."></textarea>
-<label class="input-label" for="word-file">Или импортировать список TXT / CSV с разделителем ;</label><input id="word-file" type="file" accept=".txt,.csv,text/plain,text/csv">
-<p class="muted">Из презентации можно вставить подготовленный список. Импорт произвольных PDF/PPTX здесь пока не выполняется.</p><p id="word-error" class="form-error" role="alert"></p><button id="save-list" class="primary" type="submit">Сохранить целевой список</button></form></section>
+<label class="input-label" for="word-file">Или импортировать TXT / CSV / JSON</label><input id="word-file" type="file" accept=".txt,.csv,.json,text/plain,text/csv,application/json">
+<div id="rich-card-help"><p class="muted">Полная карточка: выражение, английское определение, транскрипция, синонимы, антонимы, сочетания, пример и перевод. Можно вставить массив JSON, в том числе подготовленный твоим ИИ, затем проверить и сохранить. ИИ-генератор на сайте пока не подключён.</p><button id="card-template" type="button" class="secondary">Вставить пример полной карточки</button></div><p class="muted">Из презентации можно вставить подготовленный список. Импорт произвольных PDF/PPTX здесь пока не выполняется.</p><p id="word-error" class="form-error" role="alert"></p><button id="save-list" class="primary" type="submit">Сохранить целевой список</button></form></section>
 <section id="vocab-lists" class="members-panel" aria-label="Списки слов"></section>
 <section id="vocab-training" class="members-panel" aria-label="Карточки и личный прогресс"></section>
 <section id="vocab-ranking" class="members-panel" aria-label="Лидерборды"></section>

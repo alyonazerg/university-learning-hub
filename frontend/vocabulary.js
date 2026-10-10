@@ -2,7 +2,7 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const courses = window.MoonCourses;
-  const lists = [{id: 'seed-list', title: 'Moonlit stories · Unit 1', source: 'Вымышленная презентация', courseId: 'speech', kind: 'target', status: 'approved', words: [{term: 'moonlit', meaning: 'освещённый луной', example: 'A moonlit garden.'}, {term: 'enjoy', meaning: 'получать удовольствие', example: 'I enjoy reading.'}, {term: 'would you like', meaning: 'хотели бы вы', example: 'Would you like some tea?'}]}];
+  const lists = [{id: 'seed-list', title: 'Выражения · формат карточек', source: 'Вымышленная презентация', courseId: 'speech', kind: 'target', status: 'approved', words: [{term: 'searing pain', transcription: '[ˈsɪərɪŋ peɪn]', definition: 'Sharp, intense burning sensation that causes acute physical suffering.', synonyms: ['burning pain', 'scorching pain', 'acute pain'], antonyms: ['dull ache', 'mild discomfort'], collocations: ['searing pain in the chest'], meaning: 'жгучая боль', example: 'She felt a searing pain shoot through her lower back when she lifted the box.'}, {term: 'enjoy', meaning: 'получать удовольствие', example: 'I enjoy reading.'}, {term: 'would you like', meaning: 'хотели бы вы', example: 'Would you like some tea?'}]}];
   const editorByGroup = new Map();
   let assignmentGroup = 'demo-group-1';
   let boardPhoto = null, recognizing = false, boardVersion = 0;
@@ -48,6 +48,7 @@
     }
     $('editor-access').textContent = role === 'teacher' ? 'Ты можешь оформлять карточки всех групп. Назначение нового редактора заменяет предыдущего.' : mayFormat() ? 'Ты назначен редактором карточек группы 01. Черновики проверяет преподаватель перед публикацией.' : 'Оформление по фото доступно преподавателю и назначенному редактору. Ты можешь предложить emergent vocabulary текстом.';
     $('board-workspace').hidden = !mayFormat();
+    $('rich-card-help').hidden = !mayFormat();
     $('board-photo').disabled = !mayFormat() || recognizing;
     $('recognize-board').disabled = !mayFormat() || !boardPhoto || recognizing;
     $('apply-board').disabled = !mayFormat() || recognizing;
@@ -98,14 +99,38 @@
     const word = due.find(word => word.id === selectedWord) || due[0];
     if (!word) {section.append(node('p', 'На сегодня карточки закончились. Возвращайся к следующему повторению.'), button('Проверить очередь повторений', renderTraining)); return;}
     selectedWord = word.id;
-    const card = node('article', undefined, 'flashcard'); card.append(node('h3', word.term));
-    if (flipped) card.append(node('p', word.meaning || 'Перевод не указан'), node('p', word.example || 'Добавь свой пример при обсуждении слова.'));
+    section.append(node('p', `📚 Осталось: ${due.length}`));
+    const card = node('article', undefined, 'flashcard');
+    card.append(node('blockquote', word.definition || 'Вспомни перевод выражения: ' + word.term, 'card-definition'));
+    if (flipped) {
+      card.append(node('h3', word.term), node('p', word.transcription || '', 'card-transcription'));
+      for (const [field, label] of [['synonyms', 'Syn'], ['antonyms', 'Ant'], ['collocations', 'Coll']]) {
+        if (word[field]?.length) {const line = node('p'); line.append(node('em', label + ': '), document.createTextNode(word[field].join(', '))); card.append(line);}
+      }
+      if (word.example) {
+        const example = node('p', undefined, 'card-example'); example.append(node('em', 'Ex: '));
+        const index = word.example.toLowerCase().indexOf(word.term.toLowerCase());
+        if (index >= 0) example.append(document.createTextNode(word.example.slice(0, index)), node('strong', word.example.slice(index, index + word.term.length)), document.createTextNode(word.example.slice(index + word.term.length)));
+        else example.append(document.createTextNode(word.example));
+        card.append(example);
+      }
+      const translation = node('p', word.meaning || 'Перевод не указан'); translation.hidden = true; translation.id = 'card-translation';
+      const reveal = button('🇷🇺 Показать перевод', () => {translation.hidden = !translation.hidden; reveal.setAttribute('aria-expanded', String(!translation.hidden)); reveal.textContent = translation.hidden ? '🇷🇺 Показать перевод' : '🇷🇺 Скрыть перевод';});
+      reveal.setAttribute('aria-expanded', 'false'); reveal.setAttribute('aria-controls', translation.id); card.append(reveal, translation);
+    }
     section.append(card);
     const actions = node('div', undefined, 'training-actions');
-    if (!flipped) actions.append(button('Показать перевод и пример', () => {flipped = true; renderTraining();}));
-    else for (const [label, remembered] of [['Ещё учу', false], ['Помню', true]]) actions.append(button(label, () => {
-      MoonLearning.review(state, word.id, remembered); flipped = false; selectedWord = null; renderTraining(); renderRanking(); $('vocab-status').textContent = 'Повторение записано в демо.';
-    }));
+    if (!flipped) actions.append(button('👀 Показать', () => {flipped = true; renderTraining();}));
+    else {
+      const options = MoonLearning.reviewOptions(state, word.id);
+      for (const [label, rating] of [['❌ Снова', 'again'], ['🙁 Трудно', 'hard'], ['🙂 Хорошо', 'good'], ['😎 Легко', 'easy']]) {
+        const delay = options[rating], interval = delay < 86400000 ? `${delay / 60000} мин.` : `${delay / 86400000} дн.`;
+        actions.append(button(label + ' · ' + interval, () => {
+          if (!MoonLearning.review(state, word.id, rating)) return;
+          flipped = false; selectedWord = null; renderTraining(); renderRanking(); $('vocab-status').textContent = 'Повторение записано в демо.';
+        }));
+      }
+    }
     section.append(actions);
   }
   function renderRanking() {
@@ -132,7 +157,9 @@
   $('word-list-form').addEventListener('submit', event => {
     event.preventDefault(); $('word-error').textContent = '';
     try {
-      const title = $('list-title').value.trim(), words = MoonLearning.parseList($('word-list').value);
+      const title = $('list-title').value.trim(), text = $('word-list').value;
+      if (text.trim().startsWith('[') && !mayFormat()) throw new Error('Полные карточки оформляет преподаватель или назначенный редактор.');
+      const words = MoonLearning.parseList(text);
       if (!title || !words.length || words.length > 100) throw new Error('Добавь название и от 1 до 100 слов.');
       if (role === 'student' && words.some(word => !word.meaning)) throw new Error('Добавь значение к каждому предлагаемому слову.');
       lists.push({id: 'demo-list-' + crypto.randomUUID(), title, words, source: $('list-source').value.trim(), courseId: role === 'student' ? 'speech' : $('list-course').value, kind: role === 'teacher' ? 'target' : 'emergent', status: role === 'teacher' ? 'approved' : 'pending'});
@@ -141,7 +168,7 @@
   });
   $('word-file').addEventListener('change', async () => {
     const file = $('word-file').files[0]; if (!file) return;
-    if (!/\.(txt|csv)$/i.test(file.name) || file.size > 100000) {$('word-error').textContent = 'Нужен TXT или CSV до 100 КБ.'; return;}
+    if (!/\.(txt|csv|json)$/i.test(file.name) || file.size > 100000) {$('word-error').textContent = 'Нужен TXT, CSV или JSON до 100 КБ.'; return;}
     const text = await file.text();
     if (text.length > 15000) {$('word-error').textContent = 'Список должен быть не длиннее 15 000 символов.'; return;}
     $('word-list').value = text; $('word-error').textContent = '';
@@ -149,6 +176,11 @@
   $('vocab-homework').addEventListener('click', () => {
     if (role !== 'teacher') return;
     try {sessionStorage.setItem('moon-demo-word-lists', JSON.stringify(lists.filter(list => list.kind === 'target' && list.status === 'approved')));} catch { /* Optional catalog handoff. */ }
+  });
+  $('card-template').addEventListener('click', () => {
+    if (!mayFormat()) return;
+    $('word-list').value = JSON.stringify(lists[0].words.filter(word => word.definition), null, 2);
+    $('word-list').focus();
   });
   render();
 })();
