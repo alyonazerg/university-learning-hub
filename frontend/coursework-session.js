@@ -162,7 +162,7 @@
       const date = field(form, 'Дата и время · Москва', 'server-lesson-date', 'datetime-local'); date.value = moscowInput();
       const addLesson = submit(form, 'Добавить занятие'); addLesson.disabled = !groups.length; addLesson.dataset.unavailable = String(!groups.length); form.addEventListener('submit', event => {event.preventDefault(); run(async () => {
         await request('/attendance', 'POST', {group_id: Number(group.value), title: title.value.trim(), starts_at: dateValue(date.value)}); await done('Занятие сохранено.');
-      });}); area.append(form);
+      });}); const details = node('details'); details.append(node('summary', 'Добавить занятие вручную'), form); area.append(details);
     }
     if (!lessons.length) area.append(node('p', 'Занятий пока нет.'));
     if (profile.role === 'student' && lessons.length) {

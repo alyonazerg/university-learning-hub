@@ -64,8 +64,34 @@
     $('connected-decks').replaceChildren(); $('connected-study').replaceChildren(); $('group-editors').replaceChildren(); $('connected-group').replaceChildren();
     $('connected-deck-form').reset(); $('connected-group-form').reset(); $('admin-key').value = ''; $('account-name').textContent = 'Учебный кабинет';
     MoonCoursework.clear();
-    MoonPlanning.clear();
+    MoonPlanning.clear(); activeSection = ''; $('connection-info').hidden = false;
   }
+  const cabinetSections = {
+    'connected-groups': ['connected-groups'],
+    'connected-schedule': ['connected-schedule'],
+    'connected-planning': ['connected-planning'],
+    'connected-vocabulary-editor': ['connected-decks', 'connected-study', 'connected-vocabulary-editor'],
+    'connected-coursework': ['connected-coursework'],
+    'connected-attendance': ['connected-attendance']
+  };
+  let activeSection = '';
+  function showSection(id, focus = false) {
+    if (!cabinetSections[id] || (id === 'connected-groups' && profile?.role !== 'admin')) id = 'connected-schedule';
+    activeSection = id;
+    const visible = cabinetSections[id];
+    for (const section of Object.values(cabinetSections).flat()) $(section).classList.toggle('cabinet-inactive', !visible.includes(section));
+    document.querySelectorAll('.dashboard-links a').forEach(link => {
+      const selected = link.hash === '#' + id;
+      if (selected) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+      link.hidden = link.hash === '#connected-groups' && profile?.role !== 'admin';
+    });
+    if (focus) {const heading = $(visible[0]).querySelector('h2'); if (heading) {heading.tabIndex = -1; heading.focus({preventScroll:true});} $(visible[0]).scrollIntoView({block:'start'});}
+  }
+  window.MoonCabinet = {show: id => showSection(id, true)};
+  document.querySelectorAll('.dashboard-links a').forEach(link => link.addEventListener('click', event => {
+    event.preventDefault(); history.replaceState(null, '', link.hash); showSection(link.hash.slice(1), true);
+  }));
+  window.addEventListener('hashchange', () => {if (profile) showSection(location.hash.slice(1), true);});
   async function refresh() {
     const version = generation;
     const me = await request('/me');
@@ -83,6 +109,8 @@
     if (me.role === 'student') renderStudy(extra);
     MoonCoursework.render(coursework, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});
     MoonPlanning.render(plans, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});
+    $('connection-info').hidden = true;
+    showSection(activeSection || location.hash.slice(1) || (me.role === 'admin' && !extra.length ? 'connected-groups' : 'connected-schedule'));
   }
   function renderGroups(groups) {
     const previous = $('connected-group').value;

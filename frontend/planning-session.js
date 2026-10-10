@@ -30,6 +30,7 @@
       if(!groups.some(group=>String(group.id)===selectedGroup))selectedGroup=String(groups[0].id);
       const picker=n('div',undefined,'planning-toolbar');const group=select(picker,'Группа','planning-group-filter',groups.map(item=>[item.id,item.name]),selectedGroup);
       group.addEventListener('change',()=>{selectedGroup=group.value;render(plans,{profile,groups,request,run,refresh});});timetable.append(picker);
+      const planPicker=picker.cloneNode(true); const planSelect=planPicker.querySelector('select');planSelect.id='plan-group-filter';planPicker.querySelector('label').htmlFor=planSelect.id;planSelect.value=selectedGroup;planSelect.addEventListener('change',()=>{selectedGroup=planSelect.value;render(plans,{profile,groups,request,run,refresh});});planning.append(planPicker);
     } else selectedGroup=String(profile.group_id);
     const gid=Number(selectedGroup), rows=plans.filter(row=>row.group_id===gid), groupName=groups.find(group=>group.id===gid)?.name||'';
     timetable.append(n('p',(groupName?groupName+' · ':'')+'Время занятий — по Москве.','muted'));
@@ -59,7 +60,7 @@
       if(profile.role==='admin'){
         const details=n('details');details.append(n('summary','Редактировать тему'));details.append(editor(row,gid,rows,request,run,done));article.append(details);
         article.append(button(row.completed?'Вернуть в план':'Отметить проведённым',async()=>{await request('/plans/'+row.id,'PUT',{...planBody(row),completed:!row.completed});await done('План обновлён.');},run));
-        if(row.starts_at)article.append(button(row.attendance_lesson_id?'Открыть посещаемость':'Создать журнал посещаемости',async()=>{const result=await request('/plans/'+row.id+'/attendance','POST');await done('Журнал занятия готов.');document.querySelector('[data-lesson-id="'+result.lesson_id+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});},run));
+        if(row.starts_at)article.append(button(row.attendance_lesson_id?'Открыть посещаемость':'Создать журнал посещаемости',async()=>{const result=await request('/plans/'+row.id+'/attendance','POST');await done('Журнал занятия готов.');window.MoonCabinet?.show('connected-attendance');document.querySelector('[data-lesson-id="'+result.lesson_id+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});},run));
       }
       planning.append(article);
     }
