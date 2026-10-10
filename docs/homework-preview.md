@@ -48,7 +48,7 @@ attempt limits, retain immutable snapshots and protect submissions/feedback.
 
 ## Verification
 
-`npm test --prefix tests/frontend` runs 28 tests (22 browser checks and six model/text-analysis unit checks), including eleven homework
+`npm test --prefix tests/frontend` runs 30 tests (24 browser checks and six model/text-analysis unit checks), including thirteen homework
 checks: the complete role-switch cycle; cross-group/other-student exclusion; attempt
 limits, duplicate handling and immutable versions; safe document links and literal
 text; Moscow deadlines and late labels; mobile layouts and keyboard dialogs.
@@ -115,3 +115,37 @@ with no outbound message, API write or notification. These UI projections still
 provide no production authorization boundary.
 
 Photo comments/submissions, mood emotes, vocabulary-list handoff and personal task status are documented in learning-preview.md.
+
+## Checkpoint periods, results and compensation
+
+Checkpoint creation has separate study start/end, test timestamp and submission
+deadline (all Moscow). The test date may fall outside the study period. Historical
+checkpoints are allowed for entering completed results; other task deadlines must
+remain in the future. End of period must follow its start.
+
+Teachers enter a synthetic student's result/maximum and attach up to three photos,
+or save photos alone while the result is still pending,
+or import semicolon-separated `alias;score;maximum` TXT/CSV up to 100 KB/200 rows.
+The small assessment roster contains two synthetic students per group. Import
+validates the complete batch before modifying results; unknown aliases, repeats,
+missing/invalid numeric values and scores outside [0,maximum] reject the batch.
+CSV updates retain attached photos. Students see only their own result/photos,
+without the teacher import UI. Results are academic records separate from XP.
+
+Compensation tasks reference a specific checkpoint and a subset of its groups,
+with the same course. The teacher checks «справка за этот период проверена» for a
+student on that checkpoint. No certificate file, diagnosis or medical narrative
+is collected. This grants eligibility only for that student/period; it does not
+permit compensation for another period. Without eligibility the task is hidden
+unless the student already has a submission, in which case old versions/feedback
+remain visible with the submission form locked. Eligibility is checked again
+before acknowledging a new attempt. Revocation never deletes earlier versions.
+The normal three-attempt limit and text/photo/link submissions still apply.
+
+These are memory-only synthetic demonstrations, not production access controls.
+Before real use, checkpoint/results/compensation and media must be stored privately
+and authorized on the server. Suggested clearance record: student ID, checkpoint
+ID, approved-by/at, revoked-at; no medical attachment. Period changes require
+clearance review. Server transactions must enforce eligibility, attempt limits
+and immutable history for web and Telegram submissions alike. Do not enter real
+results or health information into publicly hosted Pages demos.

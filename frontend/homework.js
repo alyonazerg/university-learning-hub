@@ -29,7 +29,12 @@
   tasks[1].vocabulary = ['usually', 'often', 'study'];
   tasks[2].vocabulary = ['behind', 'beautiful', 'between'];
   for (const task of tasks) {task.groupIds = [task.groupId]; task.courseId = groups.find(group => group.id === task.groupId).courseId; task.type = 'regular'; task.startsAt = startedAt; task.constructions = [];}
-  const types = {regular: 'Обычное задание', imt: 'IMT', checkpoint: 'Срез', extra: 'Extra task'};
+  const results = new Map();
+  const certificates = new Set();
+  const firstAliases = ['Silver', 'Amber', 'Misty', 'Violet', 'Golden', 'Crystal', 'Moon', 'Velvet'];
+  const roster = groups.flatMap((group, index) => ['Fern', 'Willow'].map((ending, i) => ({id: index === 0 ? `demo-student-${i + 1}` : `demo-student-${group.id}-${i}`, alias: `${firstAliases[index] || `Opal${index + 1}`} ${ending}`, groupId: group.id})));
+  function permitted(task, learner = student) {return task.type !== 'compensation' || certificates.has(task.checkpointId + ':' + learner.id);}
+  const types = {regular: 'Обычное задание', imt: 'IMT', checkpoint: 'Срез', extra: 'Extra task', compensation: 'Компенсация'};
   const notices = [{id: 'demo-notice-1', text: 'Добро пожаловать в учебную вселенную! :moon: Здесь будут новости курса.', groupIds: groups.map(group => group.id), createdAt: startedAt}];
   const reactions = new Map();
   const comments = new Map();
@@ -68,7 +73,7 @@
   function announce(message) { $('homework-announcement').textContent = message; }
   function ownWorks(taskId) { return submissions.filter(work => work.taskId === taskId && work.studentId === student.id); }
   function worksFor(taskId) { return submissions.filter(work => work.taskId === taskId); }
-  function visibleTasks() { return tasks.filter(task => (typeFilter === 'all' || task.type === typeFilter) && (courseFilter === 'all' || task.courseId === courseFilter) && (role === 'teacher' ? groupFilter === 'all' || task.groupIds.includes(groupFilter) : task.groupIds.includes(student.groupId))); }
+  function visibleTasks() { return tasks.filter(task => (typeFilter === 'all' || task.type === typeFilter) && (courseFilter === 'all' || task.courseId === courseFilter) && (role === 'teacher' ? groupFilter === 'all' || task.groupIds.includes(groupFilter) : task.groupIds.includes(student.groupId) && (permitted(task) || ownWorks(task.id).length > 0))); }
   function selectedTask() {
     const visible = visibleTasks();
     const id = role === 'teacher' ? teacherSelected : studentSelected;
@@ -184,8 +189,49 @@
     details.append(reactionBar('task:' + task.id));
     details.append(node('p', `Целевая лексика: ${task.vocabulary?.join(', ') || 'не задана'}`, 'vocabulary-note'));
     details.append(node('p', 'Проверка ищет точные формы слов и фраз; смысл употребления оценивает преподаватель.', 'muted'));
+    if (task.type === 'checkpoint') {
+      details.append(node('p', `Учебный период: ${formatter.format(task.startsAt)} — ${formatter.format(task.periodEnd)} · МСК; тест: ${formatter.format(task.testAt)} · МСК`, 'checkpoint-dates'));
+      renderCheckpoint(details, task);
+    }
+    if (task.type === 'compensation') details.append(node('p', `Компенсация за период: ${tasks.find(item => item.id === task.checkpointId)?.title || '—'}. Допуск выдаётся преподавателем после проверки справки.`, 'muted'));
     if (role === 'teacher') renderTeacherWorks(details, task);
     else renderStudentWork(details, task);
+  }
+  function renderCheckpoint(details, task) {
+    const section = node('section', undefined, 'checkpoint-results'); section.append(node('h3', 'Результаты среза и работы'));
+    const learners = roster.filter(learner => task.groupIds.includes(learner.groupId));
+    if (role === 'teacher') {
+      section.append(node('p', 'Отметка справки действует только на этот период. Медицинские документы и диагнозы здесь не хранятся.', 'muted'));
+      for (const learner of learners) {
+        const row = node('label', undefined, 'certificate-row'); const checkbox = node('input'); checkbox.type = 'checkbox'; checkbox.checked = certificates.has(task.id + ':' + learner.id); checkbox.dataset.studentId = learner.id;
+        checkbox.addEventListener('change', () => {const key = task.id + ':' + learner.id; if (checkbox.checked) certificates.add(key); else certificates.delete(key); render(); announce('Допуск за период обновлён в демо.');});
+        row.append(checkbox, document.createTextNode(`${learner.alias} · справка за этот период проверена`)); section.append(row);
+      }
+      const form = node('form', undefined, 'result-form');
+      const learnerLabel = node('label', 'Студент', 'input-label'); learnerLabel.htmlFor = 'result-student'; const select = node('select'); select.id = 'result-student';
+      for (const learner of learners) {const option = node('option', learner.alias); option.value = learner.id; select.append(option);}
+      const score = node('input'); score.id = 'result-score'; score.type = 'number'; score.min = 0; score.step = '0.01'; score.required = false;
+      const maximum = node('input'); maximum.id = 'result-maximum'; maximum.type = 'number'; maximum.min = '0.01'; maximum.step = '0.01'; maximum.required = true; maximum.value = '10';
+      const scoreLabel = node('label', 'Результат', 'input-label'); scoreLabel.htmlFor = score.id; const maxLabel = node('label', 'Максимум', 'input-label'); maxLabel.htmlFor = maximum.id;
+      const photos = MoonPhotos.picker('result-photos'); const error = node('p', '', 'form-error'); error.setAttribute('role', 'alert'); const save = node('button', 'Сохранить результат и фото', 'primary'); save.type = 'submit';
+      form.append(learnerLabel, select, scoreLabel, score, maxLabel, maximum, photos.element, error, save);
+      form.addEventListener('submit', event => {event.preventDefault(); const value = score.value.trim() ? Number(score.value) : null, max = Number(maximum.value); if ((value !== null && !Number.isFinite(value)) || (value === null && !photos.photos.length && !results.get(task.id + ':' + select.value)?.photos.length) || !Number.isFinite(max) || max <= 0 || value < 0 || value > max || photos.busy || photos.invalid) {error.textContent = 'Проверь баллы и дождись обработки допустимых фото.'; return;} results.set(task.id + ':' + select.value, Object.freeze({score: value, maximum: max, photos: photos.photos.length ? Object.freeze(photos.photos.slice()) : (results.get(task.id + ':' + select.value)?.photos || Object.freeze([]))})); render(); announce('Результат среза сохранён в демо.');});
+      section.append(form);
+      const csvLabel = node('label', 'Импорт результатов CSV: псевдоним; баллы; максимум', 'input-label'); csvLabel.htmlFor = 'result-import'; const csv = node('input'); csv.id = 'result-import'; csv.type = 'file'; csv.accept = '.csv,.txt,text/csv,text/plain'; const csvError = node('p', '', 'form-error'); csvError.setAttribute('role', 'alert');
+      csv.addEventListener('change', async () => {try {
+        const file = csv.files[0]; if (!file) return; if (file.size > 100000 || !/\.(csv|txt)$/i.test(file.name)) throw new Error('Нужен TXT/CSV до 100 КБ.');
+        const text = await file.text(); if (role !== 'teacher') throw new Error('Вернись в режим преподавателя для импорта.'); const rows = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim()); if (!rows.length || rows.length > 200) throw new Error('Нужно от 1 до 200 строк.');
+        const pending = [], seen = new Set();
+        for (const line of rows) {const parts = line.split(';').map(value => value.trim()); const learner = learners.find(item => item.alias.toLowerCase() === parts[0].toLowerCase()); const score = Number((parts[1] || '').replace(',', '.')), maximum = Number((parts[2] || '').replace(',', '.')); if (parts.length !== 3 || !parts[1] || !parts[2] || !learner || seen.has(learner.id) || !Number.isFinite(score) || !Number.isFinite(maximum) || maximum <= 0 || score < 0 || score > maximum) throw new Error('Проверь псевдонимы, повторы и баллы. Импорт не выполнен.'); seen.add(learner.id); pending.push({learner, score, maximum});}
+        for (const row of pending) {const key = task.id + ':' + row.learner.id; results.set(key, Object.freeze({score: row.score, maximum: row.maximum, photos: results.get(key)?.photos || Object.freeze([])}));} render(); announce('Результаты импортированы в демо.');
+      } catch (error) {csvError.textContent = error.message;}}); section.append(csvLabel, csv, csvError);
+    }
+    for (const learner of learners.filter(learner => role === 'teacher' || learner.id === student.id)) {
+      const result = results.get(task.id + ':' + learner.id); if (!result) continue;
+      const card = node('article', undefined, 'checkpoint-result'); card.dataset.studentId = learner.id; card.append(node('strong', learner.alias), node('p', result.score === null ? 'Фото работы: результат ещё не внесён' : `Результат: ${result.score} / ${result.maximum}`), MoonPhotos.gallery(result.photos)); section.append(card);
+    }
+    if (role === 'student') section.append(node('p', certificates.has(task.id + ':' + student.id) ? 'Допуск к компенсации за этот период открыт.' : 'Допуска к компенсации за этот период пока нет.', 'muted'));
+    details.append(section);
   }
   function analysisPanel(work, task) {
     const panel = node('div', undefined, 'analysis-box');
@@ -220,7 +266,7 @@
     const works = ownWorks(task.id);
     const section = node('section', undefined, 'work-section');
     section.append(node('h3', 'Твоя работа'), node('p', `Использовано попыток: ${works.length} из 3. Предыдущие версии не заменяются.`, 'muted'));
-    if (works.length < 3) {
+    if (works.length < 3 && permitted(task)) {
       const draft = drafts.get(task.id) || {kind: 'text', content: ''};
       const form = node('form', undefined, 'submission-form'); form.id = 'submission-form';
       const typeLabel = node('label', 'Как сдаём?', 'input-label'); typeLabel.htmlFor = 'submission-kind';
@@ -242,7 +288,8 @@
       form.append(photos.element, error, submit);
       form.addEventListener('submit', event => {event.preventDefault(); submitWork(task, type.value, content.value, submit, error, photos);});
       section.append(form);
-    } else section.append(node('p', 'Все три попытки использованы. Дождись комментария преподавателя.', 'deadline-note'));
+    } else if (!permitted(task)) section.append(node('p', 'Допуск к компенсации закрыт. Обратись к преподавателю; ранее сданные версии доступны ниже.', 'compensation-locked'));
+    else section.append(node('p', 'Все три попытки использованы. Дождись комментария преподавателя.', 'deadline-note'));
     const list = node('div', undefined, 'submission-list');
     for (const work of works.slice().reverse()) {
       const card = node('article', undefined, 'submission-card');
@@ -255,6 +302,7 @@
   }
   async function submitWork(task, kind, rawContent, submit, error, photos) {
     if (pendingSubmissions.has(task.id)) return;
+    if (!permitted(task)) {error.textContent = 'Нет допуска к компенсации за этот период.'; return;}
     if (Date.now() < task.startsAt) {error.textContent = 'Период выполнения ещё не начался.'; return;}
     if (photos.busy || photos.invalid) {error.textContent = 'Дождись обработки фото или выбери допустимые файлы.'; return;}
     const attachments = photos.photos.slice();
@@ -274,6 +322,7 @@
       const works = ownWorks(task.id);
       if (works.some(work => work.hash === hash)) {error.textContent = 'Эта версия уже отправлена. Измени работу перед новой попыткой.'; return;}
       if (works.length >= 3) {error.textContent = 'Все три попытки уже использованы.'; return;}
+      if (!permitted(task)) {error.textContent = 'Допуск к компенсации закрыт.'; return;}
       const createdAt = Date.now();
       submissions.push(Object.freeze({id: `demo-work-${crypto.randomUUID()}`, taskId: task.id, studentId: student.id, alias: student.alias, attempt: works.length + 1, kind, content, photos: Object.freeze(attachments), hash, createdAt, late: createdAt > task.deadline}));
       drafts.delete(task.id);
@@ -378,6 +427,8 @@
   });
   function assignmentGroups() {
     assignmentWordLists();
+    $('assignment-checkpoint').replaceChildren(); const empty = node('option', 'Выбрать срез для компенсации'); empty.value = ''; $('assignment-checkpoint').append(empty);
+    for (const checkpoint of tasks.filter(task => task.type === 'checkpoint' && task.courseId === $('assignment-course').value)) {const option = node('option', `${checkpoint.title} · ${checkpoint.period || 'период'}`); option.value = checkpoint.id; $('assignment-checkpoint').append(option);}
     const available = groups.filter(group => group.courseId === $('assignment-course').value);
     $('assignment-group').replaceChildren(); $('assignment-group-choices').replaceChildren();
     available.forEach((group, index) => {
@@ -417,13 +468,22 @@
     const description = $('assignment-description').value.trim();
     const deadline = parseMoscow($('assignment-deadline').value);
     if (!title || !description) {$('assignment-error').textContent = 'Добавь название и инструкцию.'; return;}
-    if (!Number.isFinite(deadline) || deadline <= Date.now()) {$('assignment-error').textContent = 'Выбери будущий срок сдачи по московскому времени.'; return;}
+    if (!Number.isFinite(deadline) || (deadline <= Date.now() && $('assignment-type').value !== 'checkpoint')) {$('assignment-error').textContent = 'Выбери будущий срок сдачи по московскому времени.'; return;}
     const groupIds = Array.from($('assignment-group').selectedOptions, option => option.value);
     const courseId = $('assignment-course').value;
     const startsAt = parseMoscow($('assignment-start').value);
     if (!groupIds.length || groupIds.some(id => !groups.some(group => group.id === id && group.courseId === courseId))) {$('assignment-error').textContent = 'Выбери группы одного курса.'; return;}
     if (!Number.isFinite(startsAt) || startsAt >= deadline) {$('assignment-error').textContent = 'Начало периода должно быть раньше срока сдачи.'; return;}
     const task = {id: `demo-task-${crypto.randomUUID()}`, title, description, groupIds, courseId, deadline, startsAt, type: $('assignment-type').value, period: $('assignment-period').value.trim(), criteria: $('assignment-criteria').value.trim(), vocabulary: MoonTextReview.parseVocabulary($('assignment-vocabulary').value), constructions: $('assignment-constructions').value.split('\n').map(value => value.trim()).filter(Boolean)};
+    if (task.type === 'checkpoint') {
+      task.periodEnd = parseMoscow($('assignment-period-end').value); task.testAt = parseMoscow($('assignment-test-date').value);
+      if (!Number.isFinite(task.periodEnd) || task.periodEnd <= startsAt || !Number.isFinite(task.testAt)) {$('assignment-error').textContent = 'Для среза укажи конец периода после начала и дату теста.'; return;}
+    }
+    if (task.type === 'compensation') {
+      const checkpoint = tasks.find(item => item.id === $('assignment-checkpoint').value && item.type === 'checkpoint');
+      if (!checkpoint || checkpoint.courseId !== courseId || groupIds.some(id => !checkpoint.groupIds.includes(id))) {$('assignment-error').textContent = 'Выбери срез того же курса и его группы.'; return;}
+      task.checkpointId = checkpoint.id;
+    }
     tasks.unshift(task); teacherSelected = task.id; groupFilter = 'all'; courseFilter = 'all'; typeFilter = 'all';
     if (task.groupIds.includes(student.groupId)) studentSelected = task.id;
     $('assignment-dialog').close(); render(); focusDetails(); announce(`Демонстрационное задание «${title}» создано.`);

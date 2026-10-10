@@ -37,9 +37,13 @@
     <p class="muted">Выбери одну или несколько групп одного курса. Каждая увидит задание в своём кабинете.</p>
     <label class="input-label" for="assignment-title">Название</label><input id="assignment-title" required maxlength="120" autocomplete="off">
     <label class="input-label" for="assignment-template">Пример IMT · можно полностью изменить</label><select id="assignment-template"><option value="">Своё задание</option><option value="essay">Opinion Essay + Oral Defense</option><option value="shadowing">Shadowing Your Favorite Actor</option><option value="mindmap">Vocabulary Mind Map</option></select>
-    <label class="input-label" for="assignment-type">Тип задания</label><select id="assignment-type"><option value="regular">Обычное задание</option><option value="imt">IMT · Individual Monthly Task</option><option value="checkpoint">Срез</option><option value="extra">Extra task</option></select>
+    <label class="input-label" for="assignment-type">Тип задания</label><select id="assignment-type"><option value="regular">Обычное задание</option><option value="imt">IMT · Individual Monthly Task</option><option value="checkpoint">Срез</option><option value="extra">Extra task</option><option value="compensation">Компенсационное задание</option></select>
     <label class="input-label" for="assignment-period">Период / срез</label><input id="assignment-period" maxlength="100" placeholder="Например, IMT 1 · сентябрь — середина октября">
     <label class="input-label" for="assignment-start">Начало периода · МСК</label><input id="assignment-start" type="datetime-local" required>
+    <label class="input-label" for="assignment-period-end">Конец учебного периода · МСК (для среза)</label><input id="assignment-period-end" type="datetime-local">
+    <label class="input-label" for="assignment-test-date">Дата и время теста · МСК (для среза)</label><input id="assignment-test-date" type="datetime-local">
+    <label class="input-label" for="assignment-checkpoint">Срез / период для компенсации</label><select id="assignment-checkpoint"><option value="">Выбрать при создании компенсации</option></select>
+    <p class="muted">Допуск к компенсации преподаватель отмечает у студента в выбранном срезе. Загружать справку не требуется.</p>
     <label class="input-label" for="assignment-description">Инструкция</label><textarea id="assignment-description" required maxlength="4000" rows="5"></textarea>
     <label class="input-label" for="assignment-word-list">Заранее подготовленный список</label><select id="assignment-word-list"><option value="">Ввести вручную</option></select>
     <label class="input-label" for="assignment-vocabulary">Целевая лексика · слова и фразы через запятую или с новой строки</label><textarea id="assignment-vocabulary" maxlength="1500" rows="3" placeholder="enjoy, would you like, moonlit"></textarea>

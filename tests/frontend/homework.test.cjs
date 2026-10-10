@@ -292,3 +292,83 @@ test('photos attach to homework snapshots and post comments; unsafe files are re
   assert.match(await page.locator('#submission-error').textContent(), /допустимые/);
   assert.deepEqual(errors, []);
 });
+
+async function createCheckpoint(page, title = 'Checkpoint One') {
+  await page.locator('#new-task').click();
+  await page.locator('#assignment-title').fill(title);
+  await page.locator('#assignment-description').fill('Fictional checkpoint assessment.');
+  await page.locator('#assignment-type').selectOption('checkpoint');
+  const deadline = await page.locator('#assignment-deadline').inputValue();
+  await page.locator('#assignment-period-end').fill(deadline);
+  await page.locator('#assignment-test-date').fill(deadline);
+  await page.locator('#assignment-form button[type=submit]').click();
+}
+
+test('checkpoint dates, private results/photo and atomic CSV import', async t => {
+  const {page, errors} = await openHomework(t, {...devices['iPhone 13']});
+  await createCheckpoint(page);
+  assert.match(await page.locator('.checkpoint-dates').textContent(), /Учебный период:.*тест:.*МСК/);
+  const image = {name: 'fictional-work.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l5sAAAAASUVORK5CYII=', 'base64')};
+  await page.locator('#result-score').fill('');
+  await page.locator('#result-photos').setInputFiles(image);
+  await page.locator('.result-form .photo-gallery img').waitFor();
+  await page.getByRole('button', {name: 'Сохранить результат и фото', exact: true}).click();
+  assert.match(await page.locator('.checkpoint-result').textContent(), /результат ещё не внесён/);
+  await page.locator('#result-score').fill('7');
+  await page.getByRole('button', {name: 'Сохранить результат и фото', exact: true}).click();
+  assert.equal(await page.locator('.checkpoint-result img').count(), 1);
+  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.locator('#result-import').setInputFiles({name: 'results.csv', mimeType: 'text/csv', buffer: Buffer.from('Silver Fern;9;10\nUnknown Alias;5;10')});
+  await page.getByText('Проверь псевдонимы, повторы и баллы. Импорт не выполнен.', {exact: true}).waitFor();
+  assert.match(await page.locator('.checkpoint-result').textContent(), /7 \/ 10/);
+  await page.locator('#result-import').setInputFiles({name: 'valid.csv', mimeType: 'text/csv', buffer: Buffer.from('Silver Fern;9;10\nSilver Willow;4;10')});
+  await page.locator('.checkpoint-result').nth(1).waitFor();
+  assert.equal(await page.locator('.checkpoint-result').count(), 2);
+  await page.locator('#student-view').click();
+  assert.equal(await page.locator('.checkpoint-result').count(), 1);
+  assert.match(await page.locator('.checkpoint-result').textContent(), /Silver Fern.*9 \/ 10/s);
+  assert.doesNotMatch(await page.locator('.checkpoint-results').textContent(), /Silver Willow/);
+  assert.equal(await page.locator('.checkpoint-result img').count(), 1);
+  assert.equal(await page.locator('#result-import').count(), 0);
+  assert.deepEqual(errors, []);
+});
+
+test('compensation permission is period-specific and revocation preserves older versions', async t => {
+  const {page, errors} = await openHomework(t);
+  await createCheckpoint(page, 'Period One');
+  await page.locator('#new-task').click();
+  await page.locator('#assignment-title').fill('Compensation One');
+  await page.locator('#assignment-description').fill('Fictional compensation.');
+  await page.locator('#assignment-type').selectOption('compensation');
+  await page.locator('#assignment-checkpoint').selectOption({label: 'Period One · период'});
+  await page.locator('#assignment-form button[type=submit]').click();
+  await page.locator('#student-view').click();
+  assert.doesNotMatch((await page.locator('.task-card').allTextContents()).join(' '), /Compensation One/);
+  await page.locator('#teacher-view').click();
+  await page.locator('.task-card').filter({hasText: 'Period One'}).click();
+  await page.locator('.certificate-row input[data-student-id="demo-student-1"]').check();
+  await page.locator('#student-view').click();
+  await page.locator('.task-card').filter({hasText: 'Compensation One'}).click();
+  await submitText(page, 'A fictional compensation answer.');
+  await page.locator('.submission-card').waitFor();
+  await page.locator('#teacher-view').click();
+  await createCheckpoint(page, 'Period Two');
+  assert.equal(await page.locator('.certificate-row input[data-student-id="demo-student-1"]').isChecked(), false);
+  await page.locator('#new-task').click();
+  await page.locator('#assignment-title').fill('Compensation Two');
+  await page.locator('#assignment-description').fill('Another fictional compensation.');
+  await page.locator('#assignment-type').selectOption('compensation');
+  await page.locator('#assignment-checkpoint').selectOption({label: 'Period Two · период'});
+  await page.locator('#assignment-form button[type=submit]').click();
+  await page.locator('#student-view').click();
+  assert.doesNotMatch((await page.locator('.task-card').allTextContents()).join(' '), /Compensation Two/);
+  await page.locator('#teacher-view').click();
+  await page.locator('.task-card').filter({hasText: 'Period One'}).click();
+  await page.locator('.certificate-row input[data-student-id="demo-student-1"]').uncheck();
+  await page.locator('#student-view').click();
+  await page.locator('.task-card').filter({hasText: 'Compensation One'}).click();
+  assert.equal(await page.locator('#submission-form').count(), 0);
+  assert.match(await page.locator('.compensation-locked').textContent(), /закрыт/);
+  assert.match(await page.locator('.submission-card .work-content').textContent(), /fictional compensation answer/);
+  assert.deepEqual(errors, []);
+});

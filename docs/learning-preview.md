@@ -49,7 +49,7 @@ pride, alongside the original lunar/botanical/support emotes. They render locall
 in comments, work and feedback and are available as reactions. Emote tokens are
 literal text during vocabulary/construction analysis, not evidence of grammar.
 
-Verification: `npm test --prefix tests/frontend` includes 28 tests, with vocabulary
+Verification: `npm test --prefix tests/frontend` includes 30 tests, with vocabulary
 handoff, moderation, SRS/streak boundaries, ranking privacy, mobile bounds and
 photo attachments/rejection. Offline Telegram contract checks are separate:
 `python -m unittest bot.test_contracts`.

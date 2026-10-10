@@ -64,3 +64,8 @@ fieldset { border: 1px solid var(--line); border-radius: 12px; margin-top: 16px;
 .post-comments { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
 .post-comment { margin: 12px 0; background: #faf8fd; padding: 12px; border-radius: 12px; }
 .post-comments form { display: grid; gap: 10px; }
+.checkpoint-results { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 18px; }
+.certificate-row { display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 10px 0; }
+.certificate-row input { width: 20px; height: 20px; flex-shrink: 0; }
+.result-form { display: grid; gap: 10px; margin: 20px 0; }
+.checkpoint-result { padding: 14px; margin: 12px 0; border: 1px solid var(--line); border-radius: 12px; }
