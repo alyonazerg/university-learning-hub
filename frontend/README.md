@@ -7,8 +7,8 @@ See [registration setup and API contract](../docs/registration.md) for the
 server-backed flow, secure configuration and limitations. UI tests live outside
 this directory in `tests/frontend/`, so they are not included in Pages artifacts.
 The teacher demonstration dashboard is in `admin.html`; see
-[teacher preview notes](../docs/teacher-preview.md). Authenticated teacher access
-and React/TypeScript profiles are subsequent milestones.
+[teacher preview notes](../docs/teacher-preview.md). A separate authenticated vocabulary cabinet is in `learning.html`; the demo
+role switch is not used for server-backed access.
 
 The end-to-end synthetic homework demonstration is in `homework.html`.
 See [homework preview notes](../docs/homework-preview.md) for the role switch,
@@ -29,6 +29,10 @@ npm test --prefix tests/frontend
 ```
 
 Recognition runs locally in the browser with same-origin English/Russian models.
-It creates reviewable text drafts; LLM authoring and the user's earlier bot format
-are not yet configured. The generated `frontend/ocr/` folder is ignored in Git and
+It creates reviewable text drafts. The teacher-bot card format is implemented;
+LLM authoring is not connected. The generated `frontend/ocr/` folder is ignored in Git and
 built by Pages/Docker. Student editor appointments remain synthetic UI state.
+
+See [server-backed learning](../docs/server-learning.md) for `learning.html`,
+API configuration, server roles, persistent vocabulary and review progress. The
+public Pages configuration has no API URL and explicitly disables connected login.

@@ -48,7 +48,7 @@ attempt limits, retain immutable snapshots and protect submissions/feedback.
 
 ## Verification
 
-`npm test --prefix tests/frontend` runs 36 tests (28 browser checks and eight model/text-analysis unit checks), including thirteen homework
+`npm test --prefix tests/frontend` runs 39 tests (31 browser checks and eight model/text-analysis unit checks), including thirteen homework
 checks: the complete role-switch cycle; cross-group/other-student exclusion; attempt
 limits, duplicate handling and immutable versions; safe document links and literal
 text; Moscow deadlines and late labels; mobile layouts and keyboard dialogs.

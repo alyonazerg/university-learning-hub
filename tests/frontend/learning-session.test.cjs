@@ -1,0 +1,99 @@
+const {test} = require('node:test');
+const assert = require('node:assert/strict');
+const {chromium,devices} = require('playwright');
+const {spawn,spawnSync} = require('node:child_process');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const net = require('node:net');
+const crypto = require('node:crypto');
+const root = path.resolve(__dirname,'../..');
+async function open(t,connected=true) {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(),'ulh-connected-'));
+  t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));
+  const env = {...process.env,DATABASE_URL:'sqlite:///'+path.join(directory,'learning.db'),ADMIN_TOKEN:'synthetic-browser-admin',TELEGRAM_BOT_TOKEN:'synthetic-browser-bot',CORS_ORIGINS:'["http://127.0.0.1:8080"]'};
+  const python = path.join(root,'.venv/bin/python');
+  let api;
+  let port;
+  async function startApi() {
+    api = spawn(python,['-m','uvicorn','app.main:app','--host','127.0.0.1','--port',String(port)],{cwd:path.join(root,'backend'),env});
+    await new Promise((resolve,reject)=>{api.stderr.on('data',data=>{if(data.toString().includes('Application startup complete')) resolve();});api.on('error',reject);api.on('exit',code=>reject(new Error('API exited '+code)));});
+  }
+  if(connected) {
+    const seed=spawnSync(python,[path.join(__dirname,'learning-fixture.py')],{cwd:path.join(root,'backend'),env:{...env,PYTHONPATH:path.join(root,'backend')},encoding:'utf8'});
+    assert.equal(seed.status,0,seed.stderr);
+    port = await new Promise(resolve=>{const socket=net.createServer();socket.listen(0,'127.0.0.1',()=>{const number=socket.address().port;socket.close(()=>resolve(number));});});
+    await startApi();
+    t.after(()=>api?.kill());
+  }
+  const staticServer=spawn('python',['-m','http.server','0','--bind','127.0.0.1','--directory',path.join(root,'frontend')],{env:{...process.env,PYTHONUNBUFFERED:'1'}});
+  t.after(()=>staticServer.kill());
+  const origin=await new Promise((resolve,reject)=>{staticServer.stdout.on('data',data=>{const match=data.toString().match(/port (\d+)/);if(match)resolve('http://127.0.0.1:'+match[1]);});staticServer.on('error',reject);});
+  // Set the exact real browser origin for API CORS. Restart without changing the DB.
+  if(connected) {env.CORS_ORIGINS=JSON.stringify([origin]); const stopped=new Promise(resolve=>api.once('exit',resolve));api.kill();await stopped;await startApi();}
+  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());
+  const context=await browser.newContext({...devices['iPhone 13']});
+  await context.route('https://telegram.org/js/telegram-web-app.js',route=>route.fulfill({body:'// Offline SDK fixture'}));
+  const apiBase=connected?'http://127.0.0.1:'+port:'';
+  await context.route('**/config.js',route=>route.fulfill({contentType:'text/javascript',body:'window.MOON_CAMPUS_API_BASE='+JSON.stringify(apiBase)+';'}));
+  const errors=[];context.on('page',page=>page.on('pageerror',error=>errors.push(error.message)));
+  async function pageFor(uid) {
+    const page=await context.newPage();
+    if(uid) {
+      const data={auth_date:String(Math.floor(Date.now()/1000)),user:JSON.stringify({id:uid})};
+      const check=Object.keys(data).sort().map(key=>key+'='+data[key]).join('\n');
+      const secret=crypto.createHmac('sha256','WebAppData').update('synthetic-browser-bot').digest();
+      const hash=crypto.createHmac('sha256',secret).update(check).digest('hex');
+      const initData=new URLSearchParams({...data,hash}).toString();
+      await page.addInitScript(value=>{window.Telegram={WebApp:{initData:value}};},initData);
+    }
+    await page.goto(origin+'/learning.html');return page;
+  }
+  return {pageFor,errors,restart:async()=>{const stopped=new Promise(resolve=>api.once('exit',resolve));api.kill();await stopped;await startApi();}};
+}
+async function teacher(page) {await page.locator('summary').first().click();await page.locator('#admin-key').fill('synthetic-browser-admin');await page.getByRole('button',{name:'Войти как преподаватель',exact:true}).click();await page.locator('#workspace').waitFor();}
+async function student(page) {await page.locator('#telegram-sign-in').click();await page.locator('#workspace').waitFor();}
+test('unconfigured published cabinet disables login and never pretends to save',async t=>{
+  const {pageFor,errors}=await open(t,false);const page=await pageFor();
+  assert.match(await page.locator('#connection-state').textContent(),/ещё не подключён/);
+  assert(await page.locator('#telegram-sign-in').isDisabled());
+  assert(!(await page.locator('#workspace').isVisible()));assert.deepEqual(errors,[]);
+});
+test('real API saves cards and reviews through browser reload and server restart',async t=>{
+  const {pageFor,errors,restart}=await open(t);const teacherPage=await pageFor();await teacher(teacherPage);
+  await teacherPage.locator('#connected-title').fill('Persistent target vocabulary');
+  await teacherPage.locator('#connected-words').fill(JSON.stringify([{term:'searing pain',meaning:'жгучая боль',definition:'Intense burning pain.',transcription:'[IPA]',synonyms:['burning pain'],antonyms:['dull ache'],collocations:['pain in the chest'],example:'She felt a searing pain.'}]));
+  await teacherPage.locator('#connected-save').click();await teacherPage.getByText('Список сохранён для группы.',{exact:true}).waitFor();
+  const page=await pageFor(11);await student(page);
+  assert.match(await page.locator('.card-definition').textContent(),/Intense burning pain/);
+  await page.getByRole('button',{name:'👀 Показать',exact:true}).click();
+  await page.getByRole('button',{name:'🇷🇺 Показать перевод',exact:true}).click();assert(await page.locator('#connected-translation').isVisible());
+  await page.getByRole('button',{name:/🙂 Хорошо/}).click();await page.getByText('Повторение сохранено.',{exact:true}).waitFor();
+  assert.match(await page.locator('.learning-progress').textContent(),/XP: 1 · streak: 1/);
+  await restart();await page.locator('#refresh-account').click();await page.getByRole('button',{name:'Обновить кабинет'}).waitFor({state:'visible'});
+  // Wait for the real HTTP refresh to settle before asserting durable state.
+  await page.waitForFunction(()=>!document.getElementById('refresh-account').disabled);
+  assert.match(await page.locator('.learning-progress').textContent(),/XP: 1/);
+  await page.reload();await student(page);assert.match(await page.locator('.learning-progress').textContent(),/XP: 1/);
+  const other=await pageFor(12);await student(other);assert.match(await other.locator('.learning-progress').textContent(),/XP: 0/);
+  const foreign=await pageFor(22);await student(foreign);assert.match(await foreign.locator('.learning-progress').textContent(),/из 0/);
+  for(const width of [320,375,390,430]){await page.setViewportSize({width,height:844});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
+  await page.locator('#sign-out').click();await page.locator('#sign-in').waitFor();assert.equal(await page.locator('#connected-decks article').count(),0);
+  assert.deepEqual(errors,[]);
+});
+test('real API enforces editor assignment and teacher approval in the browser',async t=>{
+  const {pageFor,errors}=await open(t);const adminPage=await pageFor();await teacher(adminPage);
+  const page=await pageFor(11);await student(page);
+  await page.locator('#connected-title').fill('Rich student draft');await page.locator('#connected-words').fill(JSON.stringify([{term:'moonlit',meaning:'лунный',definition:'Lit by the moon.'}]));
+  await page.locator('#connected-save').click();await page.getByText('Полные карточки оформляет назначенный редактор. Можно предложить простой список слов.',{exact:true}).waitFor();
+  await adminPage.locator('#editor-1').selectOption({label:'Silver Fern'});await adminPage.getByRole('button',{name:'Сохранить редактора · Synthetic speech',exact:true}).click();await adminPage.getByText('Редактор группы сохранён.',{exact:true}).waitFor();
+  await page.locator('#refresh-account').click();await page.getByText(/Ты редактор карточек своей группы/).waitFor();
+  await page.locator('#connected-save').click();await page.getByText('Список сохранён и ждёт проверки.',{exact:true}).waitFor();assert.match(await page.locator('.learning-progress').textContent(),/из 0/);
+  await adminPage.locator('#refresh-account').click();await adminPage.getByRole('button',{name:'Исправить · Rich student draft',exact:true}).click();
+  await adminPage.locator('#connected-decks textarea').fill(JSON.stringify([{term:'moonlit',meaning:'освещённый луной',definition:'Illuminated by moonlight.'}]));
+  await adminPage.getByRole('button',{name:'Сохранить исправления',exact:true}).click();await adminPage.getByText('Черновик исправлен. Теперь можно одобрить список.',{exact:true}).waitFor();
+  await adminPage.getByRole('button',{name:'Одобрить · Rich student draft',exact:true}).click();await adminPage.getByText('Список одобрен.',{exact:true}).waitFor();
+  await page.locator('#refresh-account').click();await page.locator('.card-definition').waitFor();assert.match(await page.locator('.learning-progress').textContent(),/из 1/);assert.equal(await page.locator('.card-definition').textContent(),'Illuminated by moonlight.');
+  await adminPage.locator('#new-group-name').fill('Evening grammar');await adminPage.locator('#new-group-course').selectOption('grammar');await adminPage.getByRole('button',{name:'Создать группу',exact:true}).click();await adminPage.getByText('Группа создана.',{exact:true}).waitFor();
+  assert.match(await adminPage.locator('#group-editors').textContent(),/Evening grammar/);assert.deepEqual(errors,[]);
+});

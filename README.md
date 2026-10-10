@@ -36,4 +36,4 @@ All grading and privacy features must be verified before real student onboarding
 
 ## Registration milestone
 
-See [registration contract and deployment notes](docs/registration.md) for group-bound invitations, server-issued pseudonyms, migration of existing databases, and frontend preview limitations. This milestone does not yet provide the full administrator dashboard or student sessions.
+See [registration contract and deployment notes](docs/registration.md) for group-bound invitations, server-issued pseudonyms, migration of existing databases, and frontend preview limitations. The connected vocabulary cabinet now has server-side sessions and private review storage; see [server-backed learning](docs/server-learning.md). Homework, announcements and rankings remain browser demos.

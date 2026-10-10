@@ -58,7 +58,7 @@ pride, alongside the original lunar/botanical/support emotes. They render locall
 in comments, work and feedback and are available as reactions. Emote tokens are
 literal text during vocabulary/construction analysis, not evidence of grammar.
 
-Verification: `npm test --prefix tests/frontend` includes 36 tests, with vocabulary
+Verification: `npm test --prefix tests/frontend` includes 39 tests, with vocabulary
 handoff, moderation, SRS/streak boundaries, ranking privacy, mobile bounds and
 photo attachments/rejection. Offline Telegram contract checks are separate:
 `python -m unittest bot.test_contracts`.
@@ -105,3 +105,9 @@ Dockerfile uses a separate Node build stage for the same assets.
 must be installed first), then exercises real OCR on a synthetic board image,
 editor replacement/group isolation, draft review and existing learning workflows.
 The OCR integration test uses the actual worker/models, not a mocked recognizer.
+
+## Connected cabinet
+
+The separate `learning.html` implements server-backed vocabulary rather than
+saving demo state. See [server-learning.md](server-learning.md) for the tested
+flow and current deployment prerequisites. The Pages API URL remains empty.

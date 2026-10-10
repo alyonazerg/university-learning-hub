@@ -15,7 +15,7 @@ from .pseudonyms import choose_pseudonym
 from .schemas import GroupCreate, PseudonymView, StudentView, TelegramAuthentication, TelegramRegistration
 
 app = FastAPI(title='University Learning Hub API', version=settings.app_version)
-app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=['POST', 'GET'], allow_headers=['Content-Type', 'X-Admin-Token'])
+app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=['POST', 'GET', 'PUT'], allow_headers=['Content-Type', 'X-Admin-Token', 'Authorization'])
 
 
 def now():
@@ -113,7 +113,7 @@ def register(payload: TelegramRegistration, response: Response, session=Depends(
 
 @app.post('/groups', status_code=201, dependencies=[Depends(require_admin)])
 def create_group(payload: GroupCreate, session=Depends(db)):
-    group = Group(name=payload.name)
+    group = Group(name=payload.name, course_id=payload.course_id)
     session.add(group)
     try:
         session.commit()
@@ -146,3 +146,7 @@ def list_groups(response: Response, session=Depends(db)):
 def identity_registry(response: Response, session=Depends(db)):
     response.headers['Cache-Control'] = 'no-store'
     return [{'student_id': i.student.public_id, 'legal_name': i.legal_name} for i in session.query(IdentityRegistry).all()]
+
+
+from .learning import router as learning_router
+app.include_router(learning_router)
