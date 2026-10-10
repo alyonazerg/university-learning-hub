@@ -31,6 +31,7 @@ jobs:
           npm ci --prefix frontend --ignore-scripts --no-audit --no-fund
           npm run build --prefix frontend
       - name: Configure public API origin
+        if: vars.MOON_CAMPUS_API_BASE != ''
         env:
           MOON_CAMPUS_API_BASE: ${{ vars.MOON_CAMPUS_API_BASE }}
         run: node frontend/configure-api.cjs
