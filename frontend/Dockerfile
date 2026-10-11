@@ -21,3 +21,7 @@ COPY --chmod=644 midcheck.html midcheck-config.js midcheck-app.js midcheck-timin
 COPY --chmod=644 assessments /usr/share/nginx/html/assessments
 
 COPY --chmod=644 revision-test.html revision-test.js revision-session.js revision-tests.css /usr/share/nginx/html/
+
+# Static directories require traversal permission; documents only need read access.
+RUN find /usr/share/nginx/html -type d -exec chmod 755 {} + \
+    && find /usr/share/nginx/html -type f -exec chmod 644 {} +
