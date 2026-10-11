@@ -56,6 +56,9 @@ jobs:
             cp frontend/index.html frontend/styles.css frontend/config.js frontend/registration.js frontend/admin.html frontend/admin.css frontend/admin.js frontend/homework.html frontend/homework.css frontend/homework.js frontend/courses.js frontend/text-review.js frontend/campus-emotes.js frontend/photo-attachments.js frontend/learning-model.js frontend/vocabulary.html frontend/vocabulary.css frontend/vocabulary.js frontend/learning.html frontend/learning-session.js frontend/coursework-session.js frontend/planning-model.js frontend/planning-session.js frontend/cabinet.css "$RUNNER_TEMP/moon-campus-pages/preview/"
           fi
           if [ "$DEPLOY_BRANCH" != main ] && [ -d frontend/ocr ]; then cp -a frontend/ocr "$RUNNER_TEMP/moon-campus-pages/preview/"; fi
+          if [ "$DEPLOY_BRANCH" != main ]; then
+            sed 's|<head>|<head><base href="preview/">|' frontend/index.html > "$RUNNER_TEMP/moon-campus-pages/join.html"
+          fi
           touch "$RUNNER_TEMP/moon-campus-pages/.nojekyll"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
