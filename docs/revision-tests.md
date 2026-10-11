@@ -6,7 +6,7 @@ After submission, the receipt shows the Attempt ID. In the teacher cabinet, sele
 
 ## Speaking procedure
 
-Call submitted students individually; they reveal the individual question and answer immediately for 60–90 seconds. In Results → Speaking, choose the second submitted student from the same group and assign the dialogue after both individual answers. Both students get the same situation with roles A/B. Each opens the card when instructed. Once both cards are open, a shared timer gives 30 seconds to read, then 60 seconds to prepare, then 2–3 minutes to speak. For an odd participant, choose Teacher as partner. Written tests need not finish simultaneously.
+Call submitted students individually; they reveal the individual question and answer immediately for 60–90 seconds. Save all four individual criteria for each participant, then use Results → Pair students to select two assessed students in the same group. Both receive the same situation and only their own role A or B, filtered on the server. Each opens the card when instructed. Once both cards are open, a shared timer gives 30 seconds to read, then 60 seconds to prepare, then 2–3 minutes to speak. For an odd participant, choose Teacher as partner. Written tests need not finish simultaneously.
 
 ## Essay review with AI
 
@@ -36,7 +36,7 @@ The student learning hub has **My results**. Its list is stored on the current b
 
 ## Criterion grading and semester plan
 
-Essay grading uses Content, Organisation, Grammar, Vocabulary (each 0–5). Speaking uses Task fulfilment/interaction, Fluency/coherence, Vocabulary, Grammar, Pronunciation (each 0–4). The server validates complete breakdowns and derives the total; old total-only marks remain readable without invented criterion scores. Criteria are included in private student results and exports.
+Essay grading uses Content, Organisation, Grammar, Vocabulary (each 0–5). Individual speaking uses Vocabulary, Grammar, Coherence, Content (each 0–5); dialogue uses Vocabulary, Grammar, Coherence, Communication strategies (each 0–5). Older five-criterion assessments remain stored as legacy evidence. The server validates complete breakdowns and derives the total; old total-only marks remain readable without invented criterion scores. Criteria are included in private student results and exports.
 
 RT1 covers Unit 7, RT2 Unit 8 (first assessment), RT3 Unit 9, Final RT Units 7–9 (second assessment), each worth up to 3 rating points. Choosing a semester stage in the draft editor fills the unit and title. No future questions or fixed dates are fabricated. Migration 012 labels the untouched default Unit 7 tests RT1; custom titles and existing attempts are preserved.
 

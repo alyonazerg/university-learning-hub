@@ -4,13 +4,13 @@ Private university learning platform for eight teaching groups (~120 students).
 
 ## Status
 
-**v0.1.0 — foundation scaffold.** No student data, Google integration or AI processing enabled yet.
+**Current development handoff (12 October 2026):** connected cabinet and revision tests use server-backed records; optional AI essay review is teacher-confirmed. Read [the platform development brief](docs/platform-development-brief.md) and [the Moon Campus skill](.agents/skills/moon-campus/SKILL.md) before changes. Deployment status must be checked separately.
 
 ## Structure
 
 - `backend/` — FastAPI application and tests
 - `bot/` — aiogram entrypoint (placeholder)
-- `frontend/` — React app (planned)
+- `frontend/` — static HTML/CSS/JavaScript cabinet and public tests
 - `worker/` — asynchronous processing (planned)
 - `docs/` — architecture and security decisions
 
