@@ -24,7 +24,7 @@ for(const screen of ['warmup','question','essay'])test(`research choice is not r
   const file=path.resolve(__dirname,'../../frontend',u.pathname.slice(1));
   try{return route.fulfill({body:await fs.readFile(file),contentType:u.pathname.endsWith('.js')?'text/javascript':u.pathname.endsWith('.css')?'text/css':u.pathname.endsWith('.html')?'text/html':'image/svg+xml'});}catch{return route.fulfill({status:404,body:''});}
  });
- await page.goto('http://moon.test/revision-test.html?test=test');
+ await page.goto('http://moon.test/revision-test.html?test=test');await page.getByRole('button',{name:'Continue my saved attempt'}).click();
  if(screen==='question')await page.locator('#test-answer').fill('New answer');
  if(screen==='essay'){await page.locator('#writing-answer').fill('Updated essay');const accepted=await page.evaluate(()=>{const data=new DataTransfer();data.setData('text/plain','external generated essay');const event=new ClipboardEvent('paste',{clipboardData:data,bubbles:true,cancelable:true});const accepted=document.getElementById('writing-answer').dispatchEvent(event);window.dispatchEvent(new Event('blur'));window.dispatchEvent(new Event('focus'));return accepted;});assert.equal(accepted,false);assert.equal(await page.locator('#writing-answer').inputValue(),'Updated essay');}
  assert.equal(await page.getByRole('button',{name:'Continue without participating in the research'}).count(),0);assert.equal(withdrawals,0);if(screen==='warmup')await page.getByRole('button',{name:'Start test',exact:true}).click();
@@ -82,12 +82,12 @@ test('mobile answers survive a dropped connection and are submitted only after r
   }
   try{return route.fulfill({body:await fs.readFile(path.resolve(__dirname,'../../frontend',u.pathname.slice(1))),contentType:u.pathname.endsWith('.js')?'text/javascript':u.pathname.endsWith('.css')?'text/css':u.pathname.endsWith('.html')?'text/html':'image/svg+xml'});}catch{return route.fulfill({status:404,body:''});}
  });
- await page.goto('http://moon.test/revision-test.html?test=test');await page.locator('#test-answer').waitFor();
+ await page.goto('http://moon.test/revision-test.html?test=test');await page.getByRole('button',{name:'Continue my saved attempt'}).click();await page.locator('#test-answer').waitFor();
  await context.setOffline(true);await page.locator('#test-answer').fill('Answer during outage');await page.getByRole('button',{name:'Next',exact:true}).click();await page.locator('#writing-answer').fill('Essay during outage');
  await page.getByRole('button',{name:'Submit test',exact:true}).click();await page.getByText(/Not submitted yet/).waitFor();assert.equal(submissions,0);
  const draft=await page.evaluate(()=>JSON.parse(localStorage.getItem('moon-revision-test-draft')));assert.equal(draft.answers.one,'Answer during outage');assert.equal(draft.writing,'Essay during outage');
  await context.setOffline(false);await page.getByText('Progress saved on the server.').waitFor();
- await page.reload();await page.locator('#writing-answer').waitFor();assert.equal(await page.locator('#writing-answer').inputValue(),'Essay during outage');
+ await page.reload();await page.getByRole('button',{name:'Continue my saved attempt'}).click();await page.locator('#writing-answer').waitFor();assert.equal(await page.locator('#writing-answer').inputValue(),'Essay during outage');
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  await page.getByRole('button',{name:'Submit test',exact:true}).click();await page.getByRole('heading',{name:'Submitted',exact:true}).waitFor();assert.equal(submissions,1);
 });
@@ -116,7 +116,17 @@ test('instruction, question and visible options are separate on mobile',async t=
  const state={submitted:false,collect_response_times:false,items:[{id:'one',section:'vocabulary',prompt,choices:['ancestry','heritage','ethnicity','citizenship','identity']}],answers:{},timing:{},writing:'',warmup:[],writing_prompt:'Essay',writing_range:[225,275]};
  await page.addInitScript(()=>localStorage.setItem('moon-revision-test',JSON.stringify({attempt_id:'attempt',token:'private'})));
  await page.route('http://moon.test/**',async route=>{const u=new URL(route.request().url());if(u.pathname==='/config.js')return route.fulfill({contentType:'text/javascript',body:"window.MOON_CAMPUS_API_BASE='http://moon.test/api';"});if(u.pathname.startsWith('/api/'))return route.fulfill({contentType:'application/json',body:JSON.stringify(u.pathname.includes('revision-tests/')?{title:'RT1',groups:['213']}:state)});try{return route.fulfill({body:await fs.readFile(path.resolve(__dirname,'../../frontend',u.pathname.slice(1))),contentType:u.pathname.endsWith('.js')?'text/javascript':u.pathname.endsWith('.css')?'text/css':u.pathname.endsWith('.html')?'text/html':'image/svg+xml'});}catch{return route.fulfill({status:404,body:''});}});
- await page.goto('http://moon.test/revision-test.html?test=test');await page.getByRole('radio',{name:/ancestry/}).waitFor();
+ await page.goto('http://moon.test/revision-test.html?test=test');await page.getByRole('button',{name:'Continue my saved attempt'}).click();await page.getByRole('radio',{name:/ancestry/}).waitFor();
  assert.equal(await page.locator('.revision-task-hint').textContent(),'Choose one best answer.');assert(!(await page.locator('.revision-question-card').textContent()).includes('Choose the expression'));assert.equal(await page.getByRole('radio').count(),5);
  await page.getByRole('radio',{name:/ancestry/}).check();assert.equal(await page.locator('#test-answer').inputValue(),'ancestry');await page.getByRole('button',{name:'Next',exact:true}).click();await page.waitForTimeout(100);await page.locator('#writing-answer').waitFor();await page.getByRole('button',{name:'Back',exact:true}).click();assert(await page.getByRole('radio',{name:/ancestry/}).isChecked());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+});
+
+test('saved attempt waits for identity confirmation and deleted attempt clears browser draft',async t=>{
+ const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());const page=await browser.newPage();let removed=false;
+ const state={student_name:'Synthetic Learner',group:'213',title:'RT1',submitted:false,collect_response_times:false,items:[{id:'one',section:'vocabulary',prompt:'Question.'}],answers:{},timing:{},writing:'',warmup:[],writing_prompt:'Essay'};
+ await page.addInitScript(()=>{localStorage.setItem('moon-revision-test',JSON.stringify({attempt_id:'attempt',token:'private'}));localStorage.setItem('moon-revision-test-draft',JSON.stringify({attempt_id:'attempt',answers:{one:'Local answer'},writing:'Draft',index:0}));});
+ await page.route('http://moon.test/**',async route=>{const u=new URL(route.request().url());if(u.pathname==='/config.js')return route.fulfill({contentType:'text/javascript',body:"window.MOON_CAMPUS_API_BASE='http://moon.test/api';"});if(u.pathname.startsWith('/api/')){if(u.pathname.includes('revision-attempts/')&&removed)return route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({detail:'This attempt is not available on this device'})});return route.fulfill({contentType:'application/json',body:JSON.stringify(u.pathname.includes('revision-tests/')?{title:'RT1',groups:['213'],coursebook:'Evolve 6'}:state)});}try{return route.fulfill({body:await fs.readFile(path.resolve(__dirname,'../../frontend',u.pathname.slice(1))),contentType:u.pathname.endsWith('.js')?'text/javascript':u.pathname.endsWith('.css')?'text/css':u.pathname.endsWith('.html')?'text/html':'image/svg+xml'});}catch{return route.fulfill({status:404,body:''});}});
+ await page.goto('http://moon.test/revision-test.html?test=test');await page.getByText('Synthetic Learner · group 213',{exact:true}).waitFor();assert.equal(await page.locator('#test-answer').count(),0);
+ await page.getByRole('button',{name:'Continue my saved attempt'}).click();await page.locator('#test-answer').waitFor();removed=true;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.getByRole('heading',{name:'Attempt unavailable'}).waitFor();assert.equal(await page.locator('#test-answer').count(),0);
+ assert.equal(await page.evaluate(()=>localStorage.getItem('moon-revision-test')),null);assert.equal(await page.evaluate(()=>localStorage.getItem('moon-revision-test-draft')),null);
 });

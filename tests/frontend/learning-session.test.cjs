@@ -51,10 +51,10 @@ async function open(t,connected=true) {
   }
   return {pageFor,errors,restart:async()=>{const stopped=new Promise(resolve=>api.once('exit',resolve));api.kill();await stopped;await startApi();}};
 }
-async function teacher(page) {await page.locator('summary').first().click();await page.locator('#admin-key').fill('synthetic-browser-admin');await page.getByRole('button',{name:'Sign in as teacher',exact:true}).click();await page.locator('#workspace').waitFor();}
+async function teacher(page) {await page.waitForFunction(()=>document.body.dataset.sessionRestore!=='pending');if(await page.locator('#workspace').isVisible()){if(await page.locator('#account-name').textContent()==='Teacher')return;await page.locator('#sign-out').click();}await page.locator('summary').first().click();await page.locator('#admin-key').fill('synthetic-browser-admin');await page.getByRole('button',{name:'Sign in as teacher',exact:true}).click();await page.locator('#workspace').waitFor();}
 async function section(page,id) {await page.locator('.dashboard-links a[href="#'+id+'"]').click();}
 async function vocabulary(page) {await section(page,'connected-vocabulary-editor');await page.locator('#connected-vocabulary-editor summary').click();}
-async function student(page) {await page.locator('#telegram-sign-in').click();await page.locator('#workspace').waitFor();}
+async function student(page) {await page.waitForFunction(()=>document.body.dataset.sessionRestore!=='pending');if(await page.locator('#workspace').isVisible()){if(await page.locator('#account-name').textContent()!=='Teacher')return;await page.locator('#sign-out').click();}await page.locator('#telegram-sign-in').click();await page.locator('#workspace').waitFor();}
 test('unconfigured published cabinet disables login and never pretends to save',async t=>{
   const {pageFor,errors}=await open(t,false);const page=await pageFor();
   assert.match(await page.locator('#connection-state').textContent(),/not connected yet/);
@@ -363,7 +363,7 @@ test('public Revision Test respects voluntary consent, resumes answers and exclu
   await publicPage.getByLabel('I want to take the test without participating in the research.',{exact:true}).check();
   await publicPage.getByRole('button',{name:'Open test',exact:true}).click();await publicPage.locator('#test-answer').waitFor();
   assert.equal(await publicPage.getByText('Reading preview',{exact:true}).count(),0);
-  await publicPage.locator('#test-answer').fill('ancestor');await publicPage.getByText('Progress saved.',{exact:true}).waitFor();await restart();await publicPage.reload();await publicPage.locator('#test-answer').waitFor();assert.equal(await publicPage.locator('#test-answer').inputValue(),'ancestor');
+  await publicPage.locator('#test-answer').fill('ancestor');await publicPage.getByText('Progress saved.',{exact:true}).waitFor();await restart();await publicPage.reload();await publicPage.getByRole('button',{name:'Continue my saved attempt'}).click();await publicPage.locator('#test-answer').waitFor();assert.equal(await publicPage.locator('#test-answer').inputValue(),'ancestor');
   for(let i=0;i<40;i++){
     if(await publicPage.locator('#writing-answer').count())break;
     const prompt=await publicPage.locator('#test-body h2').textContent();const answer=fixture.answers[prompt];assert(answer,prompt);
@@ -378,4 +378,13 @@ test('public Revision Test respects voluntary consent, resumes answers and exclu
   const count=await teacherPage.evaluate(async fixture=>{const response=await fetch(window.MOON_CAMPUS_API_BASE+'/learning/revisions/tests/'+fixture.id+'/export',{headers:fixture.admin});const files=(await response.json()).files;return atob(files[0].content).includes('Synthetic Learner');},fixture);assert.equal(count,false);
   for(const width of [320,390,1280]){await publicPage.setViewportSize({width,height:900});assert(await publicPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
   assert.deepEqual(errors,[]);
+});
+
+test('teacher session survives refresh without storing the teacher key and logout clears it',async t=>{
+ const {pageFor}=await open(t);const page=await pageFor();let logins=0;page.on('request',request=>{if(request.url().endsWith('/learning/login/admin'))logins++;});
+ await teacher(page);assert.equal(logins,1);
+ const stored=await page.evaluate(()=>Object.values(sessionStorage).join(''));assert(!stored.includes('synthetic-browser-admin'));
+ await page.reload();await page.locator('#workspace').waitFor();assert.equal(await page.locator('#account-name').textContent(),'Teacher');assert.equal(logins,1);
+ await page.locator('#sign-out').click();await page.locator('#sign-in').waitFor();await page.reload();await page.locator('#sign-in').waitFor();assert.equal(await page.locator('#workspace').isVisible(),false);
+ assert.equal(await page.evaluate(()=>Object.keys(sessionStorage).filter(key=>key.startsWith('moon-learning-session:')).length),0);
 });

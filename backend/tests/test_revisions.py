@@ -405,3 +405,18 @@ def test_preview_observations_are_private_snapshot_bound_and_preserved(client):
         assert client.put(endpoint+'/review',headers=ADMIN,json={'writing_score':0,'breakdown':fractional}).status_code==422
         assert client.post(path+'/withdraw-research',headers=auth).status_code==200
         assert client.get(endpoint,headers=ADMIN).json()['report']['priming_observations']=={}
+
+def test_start_requires_identity_explicit_boolean_and_deleted_status_is_revoked(client):
+    identifier,ADMIN=setup(client)
+    for body in [{'group':'213','student_name':'   ','research_consent':True},{'group':'213','student_name':'Synthetic Learner'},{'group':'213','student_name':'Synthetic Learner','research_consent':'yes'}]:
+        assert client.post('/revision-tests/'+identifier+'/start',json=body).status_code==422
+    assert client.get('/learning/revisions/tests/'+identifier+'/attempts',headers=ADMIN).json()==[]
+    started=client.post('/revision-tests/'+identifier+'/start',json={'group':'213','student_name':'Synthetic Learner','research_consent':True}).json()
+    path='/revision-attempts/'+started['attempt_id'];auth={'Authorization':'Bearer '+started['token']}
+    assert started['student_name']=='Synthetic Learner' and started['group']=='213'
+    assert client.get(path+'/status',headers=auth).json()=={'active':True,'submitted':False}
+    assert client.delete('/learning/revisions/attempts/'+started['attempt_id'],headers=ADMIN).status_code==200
+    for suffix in ['', '/status','/oral']:
+        assert client.get(path+suffix,headers=auth).status_code==401
+    assert client.post(path+'/begin',headers=auth).status_code==401
+    assert client.put(path,headers=auth,json={'answers':{},'writing':''}).status_code==401

@@ -63,8 +63,10 @@
     finally {busy = false; updateControls();}
   }
   function button(text, action) {const element = node('button', text, 'secondary'); element.type = 'button'; element.addEventListener('click', () => run(action)); return element;}
+  const sessionKey='moon-learning-session:'+base;
+  function storeSession(result){try{sessionStorage.setItem(sessionKey,JSON.stringify({token:result.access_token,expires_at:Date.now()+result.expires_in*1000}));}catch{}}
   function clearSession() {
-    generation++; token = null; profile = null; $('workspace').hidden = true; $('sign-in').hidden = false;
+    try{sessionStorage.removeItem(sessionKey);}catch{}generation++; token = null; profile = null; $('workspace').hidden = true; $('sign-in').hidden = false;
     $('connected-decks').replaceChildren(); $('connected-study').replaceChildren(); $('group-editors').replaceChildren(); $('connected-group').replaceChildren();
     $('connected-deck-form').reset(); $('connected-group-form').reset(); $('admin-key').value = ''; $('account-name').textContent = 'Learning hub';
     MoonCoursework.clear(); MoonRevisions.clear();
@@ -201,8 +203,8 @@
     }));
   }
   async function signIn(path, body) {
-    const result = await request(path, 'POST', body); token = result.access_token; generation++;
-    try {await refresh();} catch (error) {clearSession(); throw error;}
+    const result = await request(path, 'POST', body); token = result.access_token; storeSession(result); generation++;
+    await refresh();
   }
   for (const course of window.MoonCourses) {const option = node('option', course.name); option.value = course.id; $('new-group-course').append(option);}
   $('connected-group-form').addEventListener('submit', event => {event.preventDefault(); run(async () => {
@@ -223,4 +225,6 @@
   else if (!configured) $('connection-state').textContent = 'The learning server is not connected yet. Sign-in and saving are unavailable; you can explore the demo.';
   $('telegram-hint').textContent = initData() ? 'Ready to sign in with Telegram.' : 'To sign in as a student, open the platform from the bot’s Mini App.';
   updateControls();
+  document.body.dataset.sessionRestore='pending';
+  run(async()=>{try{let saved;try{saved=JSON.parse(sessionStorage.getItem(sessionKey));}catch{}if(saved?.token&&saved.expires_at>Date.now()){token=saved.token;generation++;await refresh();}else if(saved){sessionStorage.removeItem(sessionKey);}}finally{document.body.dataset.sessionRestore='done';}});
 })();

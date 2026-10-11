@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Literal
 import httpx
 from fastapi import APIRouter,Depends,Header,HTTPException
-from pydantic import Field,model_validator
+from pydantic import Field,model_validator,StrictBool
 from sqlalchemy import select
 from .learning import StrictModel,administrator,database,no_store,now
 from .models import RevisionGroup,RevisionTest,RevisionAttempt
@@ -66,9 +66,14 @@ class GroupInput(StrictModel):
     roster:list[str]=Field(default_factory=list,max_length=150)
     emergent:list[str]=Field(default_factory=list,max_length=200)
 class Start(StrictModel):
-    research_consent:bool
+    research_consent:StrictBool
     group:str
     student_name:str=Field(min_length=3,max_length=100)
+    @model_validator(mode='after')
+    def identity(self):
+        self.student_name=' '.join(self.student_name.split())
+        if len(self.student_name)<3:raise ValueError('Enter your name before starting')
+        return self
 class Timing(StrictModel):
     item_started_at:datetime
     first_input_at:datetime | None=None
@@ -346,7 +351,7 @@ def rating_result(row):
 def public_attempt(row):
     if row.submitted_at:return {**rating_result(row),'title':row.snapshot['title'],'student_name':row.student_name,'group':row.group_code,'essay_breakdown':row.report.get('writing_breakdown',{}),'oral_breakdown':(row.oral or {}).get('breakdown',{}),'essay_feedback':row.report.get('teacher_feedback',''),'oral_feedback':(row.oral or {}).get('feedback',''),'submitted':True,'collect_response_times':row.research_consent,'controlled_score':row.report.get('controlled_score'),'writing_pending':row.report.get('writing_score') is None,'written_score':row.report.get('total_score'),'essay_score':row.report.get('writing_score'),'oral_score':(row.oral or {}).get('score'),**speaking_parts((row.oral or {}).get('breakdown',{})),'oral':public_oral(row)}
     spec=row.snapshot
-    return {'submitted':False,'collect_response_times':row.research_consent,'title':spec['title'],'student_name':row.student_name,'group':row.group_code,'items':[{k:v for k,v in item.items() if k in ['id','section','prompt','choices']} for item in spec['items']],'writing_prompt':spec['writing_prompt'],'writing_topics':spec.get('writing_topics',[]),'writing_topic':(row.report or {}).get('writing_topic',''),'integrity_metrics':(row.report or {}).get('integrity_metrics',{}),'research_metrics':(row.report or {}).get('research_metrics',{}) if row.research_consent else {},'writing_range':[225,275],'warmup':spec['priming'] if row.research_consent and row.condition=='experimental' and not row.begun_at else [],'answers':row.answers,'timing':row.timing,'writing':row.writing}
+    return {'submitted':False,'student_name':row.student_name,'group':row.group_code,'collect_response_times':row.research_consent,'title':spec['title'],'student_name':row.student_name,'group':row.group_code,'items':[{k:v for k,v in item.items() if k in ['id','section','prompt','choices']} for item in spec['items']],'writing_prompt':spec['writing_prompt'],'writing_topics':spec.get('writing_topics',[]),'writing_topic':(row.report or {}).get('writing_topic',''),'integrity_metrics':(row.report or {}).get('integrity_metrics',{}),'research_metrics':(row.report or {}).get('research_metrics',{}) if row.research_consent else {},'writing_range':[225,275],'warmup':spec['priming'] if row.research_consent and row.condition=='experimental' and not row.begun_at else [],'answers':row.answers,'timing':row.timing,'writing':row.writing}
 @router.post('/revision-attempts/{identifier}/begin')
 def begin(identifier:str,authorization:str | None=Header(default=None),session=Depends(database)):
     row=access(identifier,authorization,session)
@@ -364,6 +369,10 @@ def teacher_withdraw(identifier:str,session=Depends(database)):
     row.research_consent=False;row.timing={};row.report={**(row.report or {}),'research_metrics':{},'priming_observations':{}}
     if row.submitted_at:grade(row)
     session.commit();return teacher_attempt(row)
+@router.get('/revision-attempts/{identifier}/status')
+def attempt_status(identifier:str,authorization:str | None=Header(default=None),session=Depends(database)):
+    row=access(identifier,authorization,session,lock=False)
+    return {'active':True,'submitted':bool(row.submitted_at)}
 @router.get('/revision-attempts/{identifier}')
 def resume(identifier:str,authorization:str | None=Header(default=None),session=Depends(database)):return public_attempt(access(identifier,authorization,session))
 
