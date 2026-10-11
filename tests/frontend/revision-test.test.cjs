@@ -66,3 +66,30 @@ test('one shared student link routes each group to its test and aligns consent l
   await page.close();
  }
 });
+
+test('mobile answers survive a dropped connection and are submitted only after reconnection',async t=>{
+ const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());
+ const context=await browser.newContext({viewport:{width:320,height:740}}),page=await context.newPage();let submissions=0;
+ const state={submitted:false,collect_response_times:false,items:[{id:'one',section:'emergent',prompt:'A longer mobile question: complete this sentence with the appropriate word.'}],timing:{},answers:{},writing:'',writing_prompt:'Explain your position and give an example.',writing_range:[225,275],warmup:[]};
+ await page.addInitScript(()=>localStorage.setItem('moon-revision-test',JSON.stringify({attempt_id:'attempt',token:'secret',index:0})));
+ await page.route('http://moon.test/**',async route=>{
+  const u=new URL(route.request().url());
+  if(u.pathname==='/config.js')return route.fulfill({contentType:'text/javascript',body:"window.MOON_CAMPUS_API_BASE='http://moon.test/api';"});
+  if(u.pathname.startsWith('/api/')){
+   let result=state;
+   if(u.pathname.endsWith('/revision-tests/test'))result={title:'Synthetic revision',coursebook:'Evolve 5',unit:'7',groups:['215']};
+   else if(route.request().method()==='PUT'){Object.assign(state,route.request().postDataJSON());result={saved:true};}
+   else if(u.pathname.endsWith('/submit')){submissions++;result={submitted:true,collect_response_times:false,controlled_score:80};}
+   return route.fulfill({contentType:'application/json',body:JSON.stringify(result)});
+  }
+  try{return route.fulfill({body:await fs.readFile(path.resolve(__dirname,'../../frontend',u.pathname.slice(1))),contentType:u.pathname.endsWith('.js')?'text/javascript':u.pathname.endsWith('.css')?'text/css':u.pathname.endsWith('.html')?'text/html':'image/svg+xml'});}catch{return route.fulfill({status:404,body:''});}
+ });
+ await page.goto('http://moon.test/revision-test.html?test=test');await page.locator('#test-answer').waitFor();
+ await context.setOffline(true);await page.locator('#test-answer').fill('Answer during outage');await page.getByRole('button',{name:'Next',exact:true}).click();await page.locator('#writing-answer').fill('Essay during outage');
+ await page.getByRole('button',{name:'Submit test',exact:true}).click();await page.getByText(/Not submitted yet/).waitFor();assert.equal(submissions,0);
+ const draft=await page.evaluate(()=>JSON.parse(localStorage.getItem('moon-revision-test-draft')));assert.equal(draft.answers.one,'Answer during outage');assert.equal(draft.writing,'Essay during outage');
+ await context.setOffline(false);await page.getByText('Progress saved on the server.').waitFor();
+ await page.reload();await page.locator('#writing-answer').waitFor();assert.equal(await page.locator('#writing-answer').inputValue(),'Essay during outage');
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+ await page.getByRole('button',{name:'Submit test',exact:true}).click();await page.getByRole('heading',{name:'Submitted',exact:true}).waitFor();assert.equal(submissions,1);
+});

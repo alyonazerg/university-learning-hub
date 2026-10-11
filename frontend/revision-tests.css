@@ -22,3 +22,34 @@
 
 .revision-public .revision-consent-option {display:flex;align-items:flex-start;gap:10px;cursor:pointer;line-height:1.5;}
 .revision-public .revision-consent-option input[type=radio] {flex:0 0 auto;width:16px;height:16px;margin:4px 0 0;padding:0;}
+
+/* The public test loads only system fonts, small styles and its own script. */
+body:has(.revision-public) {display:block;padding:0;}
+body:has(.revision-public) .topbar {padding:16px max(16px,env(safe-area-inset-right));border-bottom:1px solid #dcd3ee;background:#fff;}
+body:has(.revision-public) .brand {font-weight:700;color:#7652ad;}
+.revision-public {width:calc(100% - 24px);margin:16px auto;padding:24px;box-shadow:none;border-radius:16px;}
+.revision-public h1 {font-size:clamp(24px,5vw,30px);overflow-wrap:anywhere;}
+.revision-public p {font-size:16px;}
+.revision-public form>*,.revision-public fieldset {min-width:0;}
+.revision-public button {padding:12px 16px;min-height:48px;white-space:normal;overflow-wrap:anywhere;}
+.revision-public .primary {background:#7652ad;color:white;}
+.revision-public .secondary {background:#fff;color:#674298;border:1px solid #cdb7ec;}
+.revision-public input,.revision-public select,.revision-public textarea {font-size:16px;}
+@media(max-width:480px){.revision-public{padding:18px 14px;}.revision-public h2{font-size:20px;}.revision-public fieldset{padding:12px;}.revision-actions button{flex:1 1 110px;}.revision-research-choice button{width:100%;}}
+
+#connected-revisions>label {display:block;margin:20px 0 8px;font-size:14px;color:#62677c;}
+#connected-revisions>select {width:100%;min-height:48px;}
+#connected-revisions .revision-main-actions {margin:14px 0 10px;}
+#connected-revisions .revision-test-status {font-size:14px;font-weight:600;margin:12px 0 0;color:#674298;}
+#connected-revisions .revision-link-hint {font-size:14px;color:#62677c;margin-bottom:12px;}
+#connected-revisions>details {border-top:1px solid #e4dcf1;padding-top:16px;margin-top:16px;}
+#connected-revisions .revision-utilities>label {display:block;margin:14px 0 8px;}
+#connected-revisions .revision-utilities>select {width:100%;min-height:48px;margin-bottom:12px;}
+#connected-revisions .revision-utilities>p {margin:12px 0;font-size:14px;}
+#connected-revisions .revision-filters {display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
+#connected-revisions .revision-filters label {font-size:13px;}
+@media(max-width:600px){#connected-revisions .revision-main-actions button{flex:1 1 100%;}#connected-revisions .revision-filters{grid-template-columns:1fr;}}
+
+#connected-revisions .revision-filters>div {min-width:0;}
+#connected-revisions .revision-filters label {display:block;margin-bottom:6px;}
+#connected-revisions .revision-filters select,#connected-revisions .revision-filters input {width:100%;}

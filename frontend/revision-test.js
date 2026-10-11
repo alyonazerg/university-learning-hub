@@ -1,13 +1,25 @@
 (() => {
   const $=id=>document.getElementById(id),n=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
   const id=new URLSearchParams(location.search).get('test'),base=(window.MOON_CAMPUS_API_BASE||'').replace(/\/$/,''),key='moon-revision-'+id+(new URLSearchParams(location.search).get('group')?'-'+new URLSearchParams(location.search).get('group'):'');
-  let credential=null,state=null,index=0,busy=false,queue=Promise.resolve(),timer=null;
+  let credential=null,state=null,index=0,busy=false,queue=Promise.resolve(),timer=null,lastSaved=null,deviceSaved=false;
   try{credential=JSON.parse(localStorage.getItem(key));}catch{}
-  async function api(path,method='GET',body){const response=await fetch(base+path,{method,cache:'no-store',headers:{...(credential?{Authorization:'Bearer '+credential.token}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});const data=await response.json();if(!response.ok)throw Error(typeof data.detail==='string'?data.detail:'Check your name, group and answers.');return data;}
+  async function api(path,method='GET',body){const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),15000);let response;try{response=await fetch(base+path,{method,signal:controller.signal,cache:'no-store',headers:{...(credential?{Authorization:'Bearer '+credential.token}:{}),...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})});}finally{clearTimeout(timeout);}const data=await response.json();if(!response.ok)throw Error(typeof data.detail==='string'?data.detail:'Check your name, group and answers.');return data;}
   const attempt=()=>'/revision-attempts/'+credential.attempt_id;
   const data=()=>({answers:state.answers,timing:state.collect_response_times?state.timing:{},writing:state.writing});
-  function save(){if(state.submitted)return Promise.resolve();const snapshot=JSON.parse(JSON.stringify(data()));queue=queue.catch(()=>{}).then(()=>api(attempt(),'PUT',snapshot)).then(()=>{$('test-status').textContent='Progress saved.';}).catch(error=>{$('test-status').textContent='Not saved: '+error.message;throw error;});return queue;}
-  function autosave(){clearTimeout(timer);timer=setTimeout(()=>save().catch(()=>{}),800);}
+  const draftKey=key+'-draft';
+  function rememberDraft(){if(!credential||!state||state.submitted)return;try{localStorage.setItem(draftKey,JSON.stringify({attempt_id:credential.attempt_id,index,...data()}));deviceSaved=true;}catch{deviceSaved=false;$('test-status').textContent='Device storage is unavailable. Keep this tab open until submission.';}}
+  function restoreDraft(){try{const draft=JSON.parse(localStorage.getItem(draftKey));if(draft?.attempt_id===credential.attempt_id){state.answers=draft.answers;state.writing=draft.writing;state.timing=state.collect_response_times?draft.timing:{};index=Math.max(0,Math.min(state.items.length,draft.index||0));}}catch{}}
+  function save({required=false}={}){
+    if(state.submitted)return Promise.resolve();rememberDraft();
+    queue=queue.catch(()=>{}).then(async()=>{
+      const snapshot=data(),signature=JSON.stringify(snapshot);if(signature===lastSaved)return;
+      try{if(!navigator.onLine)throw Error('No internet connection.');await api(attempt(),'PUT',snapshot);lastSaved=signature;$('test-status').textContent='Progress saved on the server.';}
+      catch(error){$('test-status').textContent=deviceSaved?'Saved on this device. Waiting for connection — keep this tab open.':'Connection lost and device storage unavailable. Keep this tab open until you reconnect.';if(required)throw Error('Not submitted yet. '+(deviceSaved?'Your draft is kept on this device. ':'Keep this tab open. ')+'Reconnect and press Submit test again.');}
+    });return queue;
+  }
+  function autosave(){rememberDraft();clearTimeout(timer);timer=setTimeout(()=>save().catch(()=>{}),3000);}
+  window.addEventListener('online',()=>{if(credential&&state&&!state.submitted&&!state.warmup?.length)save().catch(()=>{});});
+  window.addEventListener('pagehide',rememberDraft);
   async function run(action){if(busy)return;busy=true;try{await action();}catch(error){$('test-status').textContent=error.message;}finally{busy=false;}}
   function field(form,label,type='text'){const caption=n('label',label),input=n(type==='textarea'?'textarea':'input');input.id='field-'+Math.random().toString(36).slice(2);caption.htmlFor=input.id;if(type!=='textarea')input.type=type;input.required=true;form.append(caption,input);return input;}
   function researchChoice(area,afterWithdrawal){
@@ -19,29 +31,29 @@
       if(!state.submitted&&!state.warmup?.length)await save();
       else await queue.catch(()=>{});
       await api(attempt()+'/withdraw-research','POST');
-      state.collect_response_times=false;state.timing={};state.warmup=[];
+      state.collect_response_times=false;state.timing={};state.warmup=[];rememberDraft();
       box.replaceChildren(n('p','Research participation withdrawn. You can continue the test; your answers and grade are kept.'));
       if(afterWithdrawal)await afterWithdrawal();
     });
   }
-  function receipt(){clearTimeout(timer);$('test-body').replaceChildren(n('h2','Submitted'),n('p','Your answers have been saved. Your teacher will review the written response.'),n('p','Controlled tasks: '+state.controlled_score+' / 80'));researchChoice($('test-body'));if(state.oral?.individual_question)oralPanel();}
+  function receipt(){clearTimeout(timer);localStorage.removeItem(draftKey);$('test-body').replaceChildren(n('h2','Submitted'),n('p','Your answers have been saved. Your teacher will review the written response.'),n('p','Controlled tasks: '+state.controlled_score+' / 80'));researchChoice($('test-body'));if(state.oral?.individual_question)oralPanel();}
   let oralPoll=null,oralClock=null;
   function oralPanel(){const area=$('test-body'),box=n('div');box.className='revision-row';area.append(box);const reveal=n('button','Reveal individual speaking question');reveal.className='primary';box.append(n('h2','Speaking'),n('p','When your teacher calls you, reveal your question and answer immediately. No preparation. Aim for 60–90 seconds.'),reveal);reveal.onclick=()=>{reveal.disabled=true;const info=state.oral||{};box.append(n('h3',info.individual_question||'Your teacher will provide the individual question.'));const ready=n('button','Individual answer finished · ready for dialogue');ready.className='secondary';box.append(ready);const status=n('div');box.append(status);
       function show(info){status.replaceChildren();if(info.status==='waiting'){status.append(n('p','Waiting for the next classmate who finishes.'));return;}if(info.status!=='paired')return;clearInterval(oralPoll);status.append(n('p','Partner: '+info.partner_name),n('p',info.dialogue_prompt),n('p','Your role: Student '+info.role+'.'));const clock=n('p');status.append(clock);clearInterval(oralClock);const tick=()=>{const remaining=Math.max(0,60-Math.floor((Date.now()-Date.parse(info.paired_at))/1000));clock.textContent=remaining?'Preparation: '+remaining+' seconds remaining':'Preparation finished · begin your dialogue.';};tick();oralClock=setInterval(tick,1000);}
-      ready.onclick=()=>run(async()=>{const info=await api(attempt()+'/oral-ready','POST');ready.disabled=true;show(info);if(info.status==='waiting')oralPoll=setInterval(()=>api(attempt()+'/oral').then(show).catch(()=>{}),3000);});
-      if(state.oral?.status){ready.disabled=true;show(state.oral);if(state.oral.status==='waiting')oralPoll=setInterval(()=>api(attempt()+'/oral').then(show).catch(()=>{}),3000);}
+      ready.onclick=()=>run(async()=>{const info=await api(attempt()+'/oral-ready','POST');ready.disabled=true;show(info);if(info.status==='waiting')oralPoll=setInterval(()=>{if(!document.hidden&&navigator.onLine)api(attempt()+'/oral').then(show).catch(()=>{});},5000);});
+      if(state.oral?.status){ready.disabled=true;show(state.oral);if(state.oral.status==='waiting')oralPoll=setInterval(()=>{if(!document.hidden&&navigator.onLine)api(attempt()+'/oral').then(show).catch(()=>{});},5000);}
     };
   }
-  async function begin(){state=await api(attempt()+'/begin','POST');renderQuestion();}
+  async function begin(){state=await api(attempt()+'/begin','POST');restoreDraft();renderQuestion();}
   function warmup(){const area=$('test-body');area.replaceChildren(n('h2','Reading preview'));for(const line of state.warmup)area.append(n('p',line));const start=n('button','Start test');start.className='primary';start.addEventListener('click',()=>run(begin));area.append(start);researchChoice(area,begin);}
   function renderQuestion(){credential.index=index;localStorage.setItem(key,JSON.stringify(credential));const area=$('test-body');area.replaceChildren();const item=state.items[index];const writing=!item;area.append(n('p',writing?'Writing':`Question ${index+1} of ${state.items.length}`));
-    if(item){area.append(n('h2',item.prompt));let t=state.timing[item.id];if(!t){t={item_started_at:new Date().toISOString(),first_input_at:null,reaction_time_ms:null};if(state.collect_response_times)state.timing[item.id]=t;}autosave();const anchor=performance.now(),elapsed=Math.max(0,Date.now()-new Date(t.item_started_at).getTime());
+    if(item){area.append(n('h2',item.prompt));let t=state.timing[item.id];if(!t){t={item_started_at:new Date().toISOString(),first_input_at:null,reaction_time_ms:null};if(state.collect_response_times)state.timing[item.id]=t;}rememberDraft();const anchor=performance.now(),elapsed=Math.max(0,Date.now()-new Date(t.item_started_at).getTime());
       let input;if(item.choices?.length){input=n('select');const empty=n('option','Choose an answer');empty.value='';input.append(empty);for(const choice of item.choices){const option=n('option',choice);option.value=choice;input.append(option);}}else{input=n('input');input.type='text';input.autocomplete='off';input.maxLength=1000;}
       input.id='test-answer';const label=n('label','Your answer');label.htmlFor=input.id;input.value=state.answers[item.id]||'';area.append(label,input);
       input.addEventListener('input',()=>{if(state.collect_response_times&&!t.first_input_at){t.first_input_at=new Date().toISOString();t.reaction_time_ms=Math.round(elapsed+performance.now()-anchor);}state.answers[item.id]=input.value;autosave();});
     }else{area.append(n('h2',state.writing_prompt),n('p','About 250 words (recommended range: '+state.writing_range.join('–')+')'));const input=field(area,'Your written response','textarea');input.id='writing-answer';area.querySelector('label').htmlFor=input.id;input.rows=8;input.maxLength=12000;input.value=state.writing||'';input.addEventListener('input',()=>{state.writing=input.value;autosave();});}
-    const actions=n('div');actions.className='revision-actions';if(index>0){const back=n('button','Back');back.className='secondary';back.addEventListener('click',()=>run(async()=>{clearTimeout(timer);await save();index--;renderQuestion();}));actions.append(back);}
-    const next=n('button',writing?'Submit test':'Next');next.className='primary';next.addEventListener('click',()=>run(async()=>{if(item&&!state.answers[item.id]?.trim())throw Error('Enter your answer first.');if(writing&&!state.writing.trim())throw Error('Add your written response.');clearTimeout(timer);await save();if(writing){state=await api(attempt()+'/submit','POST',data());receipt();}else{index++;renderQuestion();}}));actions.append(next);area.append(actions);researchChoice(area);
+    const actions=n('div');actions.className='revision-actions';if(index>0){const back=n('button','Back');back.className='secondary';back.addEventListener('click',()=>run(async()=>{clearTimeout(timer);rememberDraft();save().catch(()=>{});index--;renderQuestion();}));actions.append(back);}
+    const next=n('button',writing?'Submit test':'Next');next.className='primary';next.addEventListener('click',()=>run(async()=>{if(item&&!state.answers[item.id]?.trim())throw Error('Enter your answer first.');if(writing&&!state.writing.trim())throw Error('Add your written response.');clearTimeout(timer);rememberDraft();if(writing){await save({required:true});state=await api(attempt()+'/submit','POST',data());receipt();}else{save().catch(()=>{});index++;renderQuestion();}}));actions.append(next);area.append(actions);researchChoice(area);rememberDraft();
   }
   async function testPicker(){
     const tests=await api('/revision-tests'),area=$('test-body');$('test-title').textContent='Revision Tests';area.replaceChildren();
