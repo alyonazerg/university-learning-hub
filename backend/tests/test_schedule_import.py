@@ -41,3 +41,27 @@ def test_import_preview_atomic_apply_and_repeat_preserves_edits(client,authentic
     assert client.post('/learning/schedule-import/apply',headers=teacher,json=bad).status_code==409
     duplicate=payload();duplicate['groups'][0]['lessons']*=2
     assert client.post('/learning/schedule-import/preview',headers=teacher,json=duplicate).status_code==409
+
+
+def test_import_upgrades_only_unedited_placeholders_and_preserves_numbering(client):
+    teacher=admin(client)
+    body=payload()
+    assert client.post('/learning/schedule-import/apply',headers=teacher,json=body).status_code==200
+    with SessionLocal() as session:
+        edited=session.scalar(select(LessonPlan).where(LessonPlan.topic=='Speaking practice'))
+        edited.objectives='Teacher-written objectives';session.commit()
+    replacement=payload()
+    lesson=replacement['groups'][0]['lessons'][0]
+    lesson.update(topic='Lesson 8 · Test 1',kind='test',objectives='Noun; Articles.',position=8)
+    preview=client.post('/learning/schedule-import/preview',headers=teacher,json=replacement)
+    assert preview.status_code==200 and preview.json()['update']==1
+    with SessionLocal() as session:
+        assert session.scalar(select(LessonPlan).where(LessonPlan.topic=='Grammar lesson')).kind=='lesson'
+    assert client.post('/learning/schedule-import/apply',headers=teacher,json=replacement).json()['update']==1
+    with SessionLocal() as session:
+        row=session.scalar(select(LessonPlan).where(LessonPlan.kind=='test'))
+        assert row.position==8 and row.objectives=='Noun; Articles.'
+    repeat=client.post('/learning/schedule-import/apply',headers=teacher,json=replacement).json()
+    assert repeat['add']==0 and repeat['update']==0 and repeat['keep']==3
+    with SessionLocal() as session:
+        assert session.scalar(select(LessonPlan).where(LessonPlan.objectives=='Teacher-written objectives')) is not None

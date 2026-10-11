@@ -260,6 +260,7 @@ test('teacher creates a real single-student Telegram invitation in the group cab
 test('reviewed autumn semester imports eight groups, honors week exceptions and preserves existing lessons',async t=>{
   const {pageFor,errors}=await open(t);const page=await pageFor();await teacher(page);await section(page,'connected-schedule');
   await page.getByText('Import reviewed autumn 2026 schedule',{exact:true}).click();
+  await page.locator('#semester-from').fill('2026-10-12');await page.locator('#semester-from').dispatchEvent('change');
   const calculated=await page.evaluate(()=>window.MoonSemesterSchedule.build('2026-10-12','2026-12-29',window.MoonSemesterSchedule.weeks('2026-10-12','2026-12-29')));
   assert.equal(calculated.groups.length,8);assert.equal(calculated.groups.reduce((n,g)=>n+g.lessons.length,0),148);
   const grammar=calculated.groups.find(g=>g.name==='151');assert(grammar.lessons.some(l=>l.starts_at==='2026-10-16T11:20:00.000Z'&&l.duration_minutes===100));
@@ -274,8 +275,14 @@ test('reviewed autumn semester imports eight groups, honors week exceptions and 
   await page.getByRole('button',{name:'Confirm import',exact:true}).click();await page.getByText('Schedule imported: 148 lessons added, 0 kept.',{exact:true}).waitFor();
   assert.equal(await page.locator('#group-editors article').count(),10);
   await page.locator('#planning-group-filter').selectOption({label:'151'});assert.match(await page.locator('#connected-schedule').textContent(),/16 Oct 2026, 14:20/);
-  await page.getByText('Import reviewed autumn 2026 schedule',{exact:true}).click();await page.getByRole('button',{name:'Preview groups and lessons',exact:true}).click();
+  await page.getByText('Import reviewed autumn 2026 schedule',{exact:true}).click();await page.locator('#semester-from').fill('2026-10-12');await page.locator('#semester-from').dispatchEvent('change');await page.getByRole('button',{name:'Preview groups and lessons',exact:true}).click();
   await page.getByText('0 lessons to add · 148 existing lessons kept.',{exact:true}).waitFor();
+  await page.locator('#semester-from').fill('2026-09-12');await page.locator('#semester-from').dispatchEvent('change');
+  await page.getByRole('button',{name:'Preview groups and lessons',exact:true}).click();await page.getByText('58 lessons to add · 148 existing lessons kept.',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Confirm import',exact:true}).click();await page.getByText('Schedule imported: 58 lessons added, 148 kept.',{exact:true}).waitFor();
+  await page.locator('#planning-group-filter').selectOption({label:'151'});await section(page,'connected-planning');
+  assert.equal(await page.locator('#connected-planning article').count(),18);
+  assert.match(await page.locator('#connected-planning').textContent(),/Lesson 18 · Final credit/);
   for(const width of [320,390,1280]){await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
   assert.deepEqual(errors,[]);
 });

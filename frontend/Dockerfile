@@ -9,3 +9,5 @@ RUN --mount=type=secret,id=proxy_ca \
 FROM nginx:alpine
 COPY --chmod=644 index.html styles.css config.js registration.js admin.html admin.css admin.js homework.html homework.css homework.js courses.js text-review.js campus-emotes.js photo-attachments.js learning-model.js vocabulary.html vocabulary.css vocabulary.js learning.html learning-session.js coursework-session.js planning-model.js planning-session.js semester-schedule.js cabinet.css /usr/share/nginx/html/
 COPY --from=ocr-assets /build/ocr /usr/share/nginx/html/ocr
+
+COPY --chmod=644 calendars /usr/share/nginx/html/calendars

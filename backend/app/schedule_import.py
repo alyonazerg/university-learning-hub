@@ -16,6 +16,9 @@ router = APIRouter(prefix='/learning/schedule-import', dependencies=[Depends(adm
 class ImportedLesson(StrictModel):
     topic: str = Field(min_length=1, max_length=200)
     starts_at: datetime
+    kind: Literal['lesson', 'test'] = 'lesson'
+    objectives: str = Field(default='', max_length=5000)
+    position: int | None = Field(default=None, ge=1, le=250)
     duration_minutes: int = Field(ge=1, le=480)
 
     @field_validator('starts_at')
@@ -46,20 +49,26 @@ def prepare(payload, session, save):
         existing = list(session.scalars(select(LessonPlan).where(LessonPlan.group_id == group.id))) if group else []
         by_time = {row.starts_at: row for row in existing if row.starts_at}
         new = []
+        changed = []
         skipped = 0
         for lesson in sorted(item.lessons, key=lambda lesson: lesson.starts_at):
             old = by_time.get(lesson.starts_at)
             if old:
-                if old.duration_minutes != lesson.duration_minutes or old.kind != 'lesson':
+                if old.duration_minutes != lesson.duration_minutes or (old.kind != lesson.kind and old.kind != 'lesson'):
                     raise HTTPException(409, 'Lessons overlap in this group')
+                if (old.topic in ['Grammar lesson', 'Speaking practice'] and old.kind == 'lesson' and
+                        not old.completed and not old.attendance_lesson_id and not old.objectives and
+                        not old.materials and not old.vocabulary and not old.constructions and not old.room):
+                    if old.topic != lesson.topic or old.kind != lesson.kind or old.objectives != lesson.objectives:
+                        changed.append((old, lesson))
                 skipped += 1
             else:
-                new.append(LessonPlan(**lesson.model_dump(), kind='lesson', position=1))
+                new.append(LessonPlan(**(lesson.model_dump() | {'position': lesson.position or 1})))
         validate_schedule(existing + new)
         # Validate duplicate input rows, including those already present on the server.
         validate_schedule(item.lessons)
         summary.append({'name': item.name, 'course_id': item.course_id, 'new_group': group is None,
-                        'add': len(new), 'keep': skipped, 'total': len(item.lessons)})
+                        'add': len(new), 'update': len(changed), 'keep': skipped-len(changed), 'total': len(item.lessons)})
         if save:
             if group is None:
                 group = Group(name=item.name, course_id=item.course_id)
@@ -68,9 +77,16 @@ def prepare(payload, session, save):
             start = max([row.position for row in existing] or [0])
             for index, row in enumerate(new, start + 1):
                 row.group_id = group.id
-                row.position = index
+                supplied = next((entry.position for entry in item.lessons if entry.starts_at == row.starts_at and entry.topic == row.topic), None)
+                row.position = supplied or index
             session.add_all(new)
-    return {'groups': summary, 'add': sum(group['add'] for group in summary), 'keep': sum(group['keep'] for group in summary)}
+            for row, lesson in changed:
+                row.topic = lesson.topic
+                row.kind = lesson.kind
+                row.objectives = lesson.objectives
+                if lesson.position:
+                    row.position = lesson.position
+    return {'groups': summary, 'add': sum(group['add'] for group in summary), 'keep': sum(group['keep'] for group in summary), 'update': sum(group['update'] for group in summary)}
 
 
 @router.post('/preview')
