@@ -20,12 +20,25 @@ class PlanInput(StrictModel):
     starts_at: datetime | None = None
     duration_minutes: int = Field(default=90, ge=1, le=480)
     room: str = Field(default='', max_length=200)
-    kind: Literal['lesson', 'test', 'credit', 'exam', 'imt', 'extra'] = 'lesson'
+    kind: Literal['lesson', 'test', 'credit', 'exam', 'revision', 'imt', 'extra'] = 'lesson'
+    test_url: str = Field(default='', max_length=2048)
     objectives: str = Field(default='', max_length=5000)
     materials: str = Field(default='', max_length=5000)
     vocabulary: list[str] = Field(default_factory=list, max_length=100)
     constructions: list[str] = Field(default_factory=list, max_length=100)
     completed: bool = False
+
+    @field_validator('test_url')
+    @classmethod
+    def hosted_test(cls,value):
+        from urllib.parse import urlsplit
+        value=value.strip()
+        if not value: return value
+        if any(ord(char)<32 for char in value) or '\\' in value: raise ValueError('Use a valid HTTPS URL or site-relative path')
+        parsed=urlsplit(value)
+        if value.startswith('/') and not value.startswith('//'): return value
+        if parsed.scheme!='https' or not parsed.hostname or parsed.username or parsed.password: raise ValueError('Use an HTTPS test URL, or /assessments/test-name/')
+        return value
 
     @model_validator(mode='after')
     def assessment_duration(self):
@@ -50,7 +63,7 @@ class BatchInput(StrictModel):
 
 def view(plan):
     return {key: getattr(plan, key) for key in ['id', 'group_id', 'position', 'topic', 'duration_minutes',
-            'room', 'kind', 'objectives', 'materials', 'vocabulary', 'constructions', 'completed', 'attendance_lesson_id']} | {'starts_at': iso(plan.starts_at)}
+            'room', 'kind', 'test_url', 'objectives', 'materials', 'vocabulary', 'constructions', 'completed', 'attendance_lesson_id']} | {'starts_at': iso(plan.starts_at)}
 
 
 def validate_schedule(plans):

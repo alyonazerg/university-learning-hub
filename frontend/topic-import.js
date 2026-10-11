@@ -3,8 +3,8 @@
   const n=(tag,text)=>{const element=document.createElement(tag);if(text!==undefined)element.textContent=text;return element;};
   function render(area,{gid,groups,request,run,done}) {
     const panel=n('details');panel.className='topic-import';panel.append(n('summary','Import lesson topics · CSV / XLS / XLSX'));
-    panel.append(n('p','First row: column names. Required: position, topic. Optional: kind, date, time, duration_minutes, objectives, materials. Up to 120 rows, 2 MB. Excel: first visible worksheet. CSV: UTF-8, comma or semicolon separated.'));
-    panel.append(n('p','position matches the existing lesson number: matched lessons are updated; new numbers are added. Blank optional cells preserve existing values and dates. kind: lesson, test, credit, exam, imt or extra. Assessment Tests last 90 minutes. Dates: YYYY-MM-DD; times: HH:MM, Moscow time.'));
+    panel.append(n('p','First row: column names. Required: position, topic. Optional: kind, date, time, duration_minutes, objectives, materials, test_url. Up to 120 rows, 2 MB. Excel: first visible worksheet. CSV: UTF-8, comma or semicolon separated.'));
+    panel.append(n('p','position matches the existing lesson number: matched lessons are updated; new numbers are added. Blank optional cells preserve existing values and dates. kind: lesson, test, credit, exam, revision, imt or extra. Assessment Tests last 90 minutes. revision means Revision Test; test_url connects a hosted test. Dates: YYYY-MM-DD; times: HH:MM, Moscow time.'));
     const links=n('div');links.className='planning-actions';
     for(const [text,path]of [['Download CSV template','templates/lesson-topics-template.csv'],['Download Excel template','templates/lesson-topics-template.xlsx'],['Download suggested grammar plan','templates/grammar-semester-topics.csv']]){const a=n('a',text);a.href=path;a.download='';a.className='secondary';links.append(a);}panel.append(links);
     const form=n('form'),label=n('label','Topic file');label.className='input-label';label.htmlFor='topic-import-file';const file=n('input');file.id=label.htmlFor;file.type='file';file.accept='.csv,.xls,.xlsx';file.required=true;form.append(label,file);
@@ -19,7 +19,7 @@
       let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);
       const body={group_ids:ids,filename,content:btoa(binary)},result=await request('/topic-import/preview','POST',body);
       for(const group of result.groups){output.append(n('h3',group.group+' · '+group.update+' lessons to update · '+group.add+' new topics'));
-        const list=n('ol');for(const row of group.topics){const li=n('li',row.position+'. '+row.topic+' · '+row.duration_minutes+' min'+(row.starts_at?' · '+new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Moscow',dateStyle:'medium',timeStyle:'short'}).format(new Date(row.starts_at)):' · Date not set'));list.append(li);}output.append(list);}
+        const list=n('ol');for(const row of group.topics){const li=n('li',row.position+'. '+row.topic+' · '+row.duration_minutes+' min'+(row.starts_at?' · '+new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Moscow',dateStyle:'medium',timeStyle:'short'}).format(new Date(row.starts_at)):' · Date not set')+(row.test_url?' · '+row.test_url:''));list.append(li);}output.append(list);}
       pending=body;apply.hidden=false;
     }
     form.addEventListener('submit',event=>{event.preventDefault();run(async()=>{const selected=file.files[0];if(!selected)throw new Error('Choose a topic file.');if(selected.size>2000000)throw new Error('File must be under 2 MB.');await inspect(selected.name,new Uint8Array(await selected.arrayBuffer()));});});

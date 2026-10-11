@@ -67,6 +67,8 @@ jobs:
           else cp frontend/favicon.svg "$RUNNER_TEMP/moon-campus-pages/preview/"; fi
           if [ "$DEPLOY_BRANCH" = main ]; then cp -a frontend/templates "$RUNNER_TEMP/moon-campus-pages/";
           else cp -a frontend/templates "$RUNNER_TEMP/moon-campus-pages/preview/"; fi
+          if [ "$DEPLOY_BRANCH" = main ]; then cp -a frontend/assessments "$RUNNER_TEMP/moon-campus-pages/";
+          else cp -a frontend/assessments "$RUNNER_TEMP/moon-campus-pages/preview/"; fi
           touch "$RUNNER_TEMP/moon-campus-pages/.nojekyll"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

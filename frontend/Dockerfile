@@ -18,3 +18,4 @@ COPY --chmod=644 topic-import.js /usr/share/nginx/html/topic-import.js
 COPY --chmod=644 templates /usr/share/nginx/html/templates
 
 COPY --chmod=644 midcheck.html midcheck-config.js midcheck-app.js midcheck-timing.js midcheck-launch.js /usr/share/nginx/html/
+COPY --chmod=644 assessments /usr/share/nginx/html/assessments

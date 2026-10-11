@@ -46,3 +46,18 @@ def test_plan_to_attendance_is_idempotent_and_preserves_the_journal(client, auth
     assert client.put('/learning/plans/'+pid,headers=elevated,json={**body,'materials':'New handout'}).status_code==200
     undated=client.post('/learning/plans',headers=elevated,json={'lessons':[plan(profile['group_id'],starts_at=None)]}).json()[0]['id']
     assert client.post('/learning/plans/'+undated+'/attendance',headers=elevated).status_code==422
+
+
+def test_hosted_revision_and_assessment_links(client,authentication):
+    from test_learning import admin,student
+    teacher=admin(client);learner,profile,_=student(client,authentication)
+    gid=profile['group_id']
+    body={'group_id':gid,'position':1,'topic':'Revision Test 1','kind':'revision','duration_minutes':45,'test_url':'/assessments/revision-1/'}
+    response=client.post('/learning/plans',headers=teacher,json={'lessons':[body]})
+    assert response.status_code==201,response.text
+    row=response.json()[0];assert row['kind']=='revision' and row['test_url']==body['test_url'] and row['duration_minutes']==45
+    assert client.get('/learning/plans',headers=learner).json()[0]['test_url']==body['test_url']
+    for url in ['javascript:alert(1)','//example.com/test','https://user:password@example.com/','/\\example.com/']:
+        assert client.put('/learning/plans/'+row['id'],headers=teacher,json={**body,'test_url':url}).status_code==422
+    response=client.put('/learning/plans/'+row['id'],headers=teacher,json={**body,'kind':'test','test_url':'https://mooncampus.ru/assessments/assessment-2/'})
+    assert response.status_code==200 and response.json()['duration_minutes']==90

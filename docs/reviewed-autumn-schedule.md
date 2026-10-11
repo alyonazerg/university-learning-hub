@@ -33,3 +33,10 @@ Download Google Calendar (.ics) exports the currently reviewed week calendar wit
 Teaching plan → Import lesson topics accepts UTF-8 CSV (comma/semicolon), XLS and XLSX, up to 2 MB and 120 rows. Uses the first visible worksheet. Required headers: position, topic; optional: kind, date, time, duration_minutes, objectives, materials. Dates use YYYY-MM-DD and Moscow HH:MM times; Excel date/time cells are supported. Kinds: lesson/test/credit/exam/imt/extra. Assessment Tests are normalized to 90 minutes.
 
 Existing positions are updated, new positions added; duplicate positions and conflicts reject the whole import. Blank optional cells preserve values, dates and completion status. Preview performs no writes. Confirmation revalidates and commits all selected groups atomically. Linked attendance dates/topics remain protected. The suggested 18-lesson grammar file can be applied to one group or 150/151/154 together, without replacing dates. The first seven topics (including Midcheck before Assessment Test 1) follow the teacher's retrospective sequence and upcoming IMT-1 quiz presentations (ordinary lesson); future pronoun/numeral and adjective/adverb allocation is a proposal.
+
+
+## Hosted Assessment and Revision Tests
+
+Every lesson can have an optional test_url, validated as HTTPS or a same-site path such as /assessments/assessment-2/. Students see an Open Assessment Test / Open Revision Test link for their own group's plan; other lesson kinds use Open test. Type revision is available for second-year Revision Tests; its duration is editable. Assessment Tests remain 90 minutes. Links can be imported in CSV/XLS/XLSX via the optional test_url column.
+
+Named HTML test directories under frontend/assessments are copied into the Beget frontend image and Pages preview. Backend-dependent tests configure their own API connection. This is a launch-link integration; future grading backends require their own integration to synchronize scores. Alembic 006 adds an empty test_url field to existing plans.

@@ -181,6 +181,7 @@ class LessonPlan(Base):
     duration_minutes: Mapped[int] = mapped_column(default=90)
     room: Mapped[str] = mapped_column(String(200), default='')
     kind: Mapped[str] = mapped_column(String(16), default='lesson')
+    test_url: Mapped[str] = mapped_column(String(2048), default='')
     objectives: Mapped[str] = mapped_column(Text, default='')
     materials: Mapped[str] = mapped_column(Text, default='')
     vocabulary: Mapped[list] = mapped_column(JSON, default=list)

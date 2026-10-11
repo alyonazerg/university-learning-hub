@@ -69,3 +69,14 @@ def test_legacy_xls_import(client):
     assert response.status_code==200,response.text
     with SessionLocal() as session:
         row=session.scalar(select(LessonPlan));assert row.topic=='Assessment Test 2' and row.starts_at==datetime(2026,11,27,7,40)
+
+
+def test_topic_file_can_attach_a_hosted_revision_test(client):
+    headers,ids=setup_groups(client)
+    body=payload(ids[:1],'position,topic,kind,test_url\n1,Revision Test 1,revision,/assessments/revision-1/\n')
+    preview=client.post('/learning/topic-import/preview',headers=headers,json=body)
+    assert preview.status_code==200 and preview.json()['groups'][0]['topics'][0]['test_url']=='/assessments/revision-1/'
+    response=client.post('/learning/topic-import/apply',headers=headers,json=body)
+    assert response.status_code==200
+    with SessionLocal() as session:
+        row=session.scalar(select(LessonPlan));assert row.kind=='revision' and row.test_url=='/assessments/revision-1/'

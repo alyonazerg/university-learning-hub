@@ -332,3 +332,14 @@ test('Midcheck reuses Grammar Lab RPC with an alias and teacher preview never su
   await page.getByText('Teacher preview complete',{exact:true}).waitFor();assert.equal(submissions.length,1);
   assert.deepEqual(errors,[]);
 });
+
+test('teacher attaches a hosted second-year Revision Test and students can open its saved link',async t=>{
+  const {pageFor,errors}=await open(t);const page=await pageFor();await teacher(page);await section(page,'connected-planning');
+  await page.getByText('Add topic',{exact:true}).click();await page.locator('#plan-topic-new').fill('Revision Test 1');await page.locator('#plan-kind-new').selectOption('revision');
+  await page.locator('#plan-date-new').fill('2026-10-13T12:00');await page.locator('#plan-duration-new').fill('45');await page.locator('#plan-test-url-new').fill('/assessments/revision-1/');
+  await page.getByRole('button',{name:'Save topic',exact:true}).click();await page.getByText('Topic saved.',{exact:true}).waitFor();
+  const link=page.getByRole('link',{name:'Open Revision Test',exact:true});assert.equal(await link.getAttribute('href'),'/assessments/revision-1/');assert.equal(await link.getAttribute('target'),'_blank');
+  await page.reload();await teacher(page);await section(page,'connected-planning');assert(await link.isVisible());
+  const learner=await pageFor(11);await student(learner);await section(learner,'connected-planning');assert.equal(await learner.getByRole('link',{name:'Open Revision Test',exact:true}).getAttribute('href'),'/assessments/revision-1/');
+  assert.deepEqual(errors,[]);
+});

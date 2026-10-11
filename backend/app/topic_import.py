@@ -14,7 +14,7 @@ from .models import Group, LessonPlan
 from .planning import PlanInput, validate_schedule
 
 router = APIRouter(prefix='/learning/topic-import', dependencies=[Depends(administrator), Depends(no_store)])
-COLUMNS = {'position','topic','kind','date','time','duration_minutes','objectives','materials'}
+COLUMNS = {'position','topic','kind','date','time','duration_minutes','objectives','materials','test_url'}
 
 
 class TopicImport(StrictModel):
@@ -42,14 +42,14 @@ def records(payload):
             book=load_workbook(io.BytesIO(raw),read_only=True,data_only=True)
             sheet=next((sheet for sheet in book if sheet.sheet_state=='visible'),None)
             if sheet is None: raise ValueError('No visible worksheet')
-            if sheet.max_row>121 or sheet.max_column>8: raise ValueError('Use up to 120 topic rows and the documented columns')
-            rows=list(sheet.iter_rows(max_row=122,max_col=9,values_only=True));book.close()
+            if sheet.max_row>121 or sheet.max_column>9: raise ValueError('Use up to 120 topic rows and the documented columns')
+            rows=list(sheet.iter_rows(max_row=122,max_col=10,values_only=True));book.close()
         elif extension=='.xls':
             import xlrd
             book=xlrd.open_workbook(file_contents=raw)
             sheet=next((sheet for sheet in book.sheets() if sheet.visibility==0),None)
             if sheet is None: raise ValueError('No visible worksheet')
-            if sheet.nrows>121 or sheet.ncols>8: raise ValueError('Use up to 120 topic rows and the documented columns')
+            if sheet.nrows>121 or sheet.ncols>9: raise ValueError('Use up to 120 topic rows and the documented columns')
             rows=[]
             for index in range(sheet.nrows):
                 row=[]
@@ -62,7 +62,7 @@ def records(payload):
         while rows[0] and rows[0][-1] in ('',None): rows[0].pop()
         headers=[str(value).strip().lower() for value in rows[0]]
         if len(set(headers))!=len(headers) or not {'position','topic'}<=set(headers) or set(headers)-COLUMNS:
-            raise ValueError('Required columns: position, topic. Optional: kind, date, time, duration_minutes, objectives, materials')
+            raise ValueError('Required columns: position, topic. Optional: kind, date, time, duration_minutes, objectives, materials, test_url')
         data=[]
         for row in rows[1:]:
             if any(value not in ('',None) for value in row[len(headers):]): raise ValueError('Data outside named columns')
@@ -100,7 +100,7 @@ def prepare(payload,session,save):
                 if values.get('starts_at'):
                     values['starts_at']=values['starts_at'].replace(tzinfo=timezone.utc)
                 values['topic']=str(record.get('topic') or '').strip()
-                for key in ['kind','objectives','materials','duration_minutes']:
+                for key in ['kind','objectives','materials','duration_minutes','test_url']:
                     if record.get(key) not in ('',None): values[key]=record[key]
                 if values.get('kind')=='test': values['duration_minutes']=90
                 if record.get('date') not in ('',None):
@@ -122,7 +122,7 @@ def prepare(payload,session,save):
         updated={old.id for old,_ in changes if old}
         candidates=[row for row in existing if row.id not in updated]+[parsed for _,parsed in changes]
         validate_schedule(candidates)
-        summary.append({'group':group.name,'add':sum(old is None for old,_ in changes),'update':sum(old is not None for old,_ in changes),'topics':[{'position':row.position,'topic':row.topic,'kind':row.kind,'starts_at':row.starts_at,'duration_minutes':row.duration_minutes} for _,row in changes]})
+        summary.append({'group':group.name,'add':sum(old is None for old,_ in changes),'update':sum(old is not None for old,_ in changes),'topics':[{'position':row.position,'topic':row.topic,'kind':row.kind,'starts_at':row.starts_at,'duration_minutes':row.duration_minutes,'test_url':row.test_url} for _,row in changes]})
         if save:
             for old,parsed in changes:
                 if old:

@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const kinds = {lesson:'Lesson',test:'Assessment Test',credit:'Credit',exam:'Exam',imt:'IMT',extra:'Extra task'};
+  const kinds = {lesson:'Lesson',test:'Assessment Test',credit:'Credit',exam:'Exam',revision:'Revision Test',imt:'IMT',extra:'Extra task'};
   const n = (tag, text, cls) => {const element=document.createElement(tag); if(text!==undefined)element.textContent=text;if(cls)element.className=cls;return element;};
   const format = value => new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Moscow',dateStyle:'medium',timeStyle:'short'}).format(new Date(value));
   let selectedGroup = '';
@@ -57,6 +57,7 @@
       const article=n('article',undefined,'word-list-card');article.dataset.planId=row.id;
       if(row.completed){article.classList.add('plan-taught');article.append(n('span','✓ Taught','taught-badge'));}
       article.append(n('h3',row.position+'. '+row.topic),n('p',kinds[row.kind]+' · '+(row.starts_at?format(row.starts_at):'Date not set')+' · '+row.duration_minutes+' min'+(row.completed?' · Taught':'')));
+      if(row.test_url){const link=n('a',row.kind==='revision'?'Open Revision Test':row.kind==='test'?'Open Assessment Test':'Open test','secondary');link.href=row.test_url;link.target='_blank';link.rel='noopener noreferrer';const links=n('div',undefined,'planning-actions');links.append(link);article.append(links);}
       if(row.objectives)article.append(n('p','Objectives: '+row.objectives,'coursework-text'));
       if(row.materials)article.append(n('p','Materials: '+row.materials,'coursework-text'));
       if(row.vocabulary.length)article.append(n('p','Vocabulary: '+row.vocabulary.join('; ')));
@@ -96,6 +97,8 @@
     if(row?.attendance_lesson_id){date.readOnly=true;topic.readOnly=true;form.append(n('p','The date and topic are linked to the attendance register.','muted'));}
     const duration=input(form,'Duration · minutes','plan-duration-'+suffix,'number',row?.kind==='test'?90:(row?.duration_minutes||90));duration.min=1;duration.max=480;
     const assessmentDuration=()=>{duration.readOnly=kind.value==='test';if(duration.readOnly)duration.value='90';};kind.addEventListener('change',assessmentDuration);assessmentDuration();
+    const testUrl=input(form,'Test link · HTTPS URL or /assessments/test-name/','plan-test-url-'+suffix,'text',row?.test_url||'',false);testUrl.maxLength=2048;testUrl.placeholder='https://mooncampus.ru/assessments/test-2/';
+    form.append(n('p','Connect an Assessment Test, Revision Test or another quiz hosted on Beget or any HTTPS site. The test opens in a new tab.','muted'));
     const room=input(form,'Room / location','plan-room-'+suffix,'text',row?.room||'',false);
     const objectives=input(form,'Objectives and content','plan-objectives-'+suffix,'textarea',row?.objectives||'',false);
     const materials=input(form,'Materials / links','plan-materials-'+suffix,'textarea',row?.materials||'',false);
@@ -103,7 +106,7 @@
     const constructions=input(form,'Target structures · one per line','plan-constructions-'+suffix,'textarea',row?.constructions.join('\n')||'',false);
     submit(form,row?'Save topic changes':'Save topic');
     form.addEventListener('submit',event=>{event.preventDefault();run(async()=>{
-      const body={group_id:gid,position:Number(position.value),topic:topic.value.trim(),kind:kind.value,starts_at:date.value?new Date(date.value+':00+03:00').toISOString():null,duration_minutes:Number(duration.value),room:room.value.trim(),objectives:objectives.value.trim(),materials:materials.value.trim(),vocabulary:lines(vocabulary.value),constructions:lines(constructions.value),completed:row?.completed||false};
+      const body={group_id:gid,position:Number(position.value),topic:topic.value.trim(),kind:kind.value,starts_at:date.value?new Date(date.value+':00+03:00').toISOString():null,duration_minutes:Number(duration.value),room:room.value.trim(),test_url:testUrl.value.trim(),objectives:objectives.value.trim(),materials:materials.value.trim(),vocabulary:lines(vocabulary.value),constructions:lines(constructions.value),completed:row?.completed||false};
       await request(row?'/plans/'+row.id:'/plans',row?'PUT':'POST',row?body:{lessons:[body]});await done('Topic saved.');
     });});return form;
   }
