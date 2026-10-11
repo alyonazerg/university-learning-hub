@@ -145,3 +145,11 @@ def test_whole_mark_migration_preserves_evidence_and_pending(monkeypatch):
         assert row.report['writing_breakdown']=={'content':3.5}
         assert row.oral['breakdown']=={'individual_vocabulary':4.5}
         assert session.get(RevisionAttempt,ids[1]).report=={}
+
+def test_migration_identifiers_fit_postgres_version_column():
+    import ast
+    for path in (Path(__file__).parents[1]/'alembic/versions').glob('*.py'):
+        for statement in ast.parse(path.read_text()).body:
+            if isinstance(statement,ast.Assign) and any(isinstance(target,ast.Name) and target.id in ['revision','down_revision'] for target in statement.targets):
+                value=ast.literal_eval(statement.value)
+                if isinstance(value,str):assert len(value)<=32,(path.name,value)

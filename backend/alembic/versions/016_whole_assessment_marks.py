@@ -2,7 +2,7 @@
 from alembic import op
 import sqlalchemy as sa
 revision='016_whole_marks'
-down_revision='015_familiar_options_full_grammar'
+down_revision='015_familiar_grammar'
 branch_labels=None
 depends_on=None
 

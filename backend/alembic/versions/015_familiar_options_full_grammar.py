@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 from alembic import op
 import sqlalchemy as sa
-revision='015_familiar_options_full_grammar'
+revision='015_familiar_grammar'
 down_revision='014_recognition_vocabulary'
 branch_labels=None
 depends_on=None
