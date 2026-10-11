@@ -339,12 +339,27 @@ def test_teacher_pairs_and_shared_reading_timer(client):
     assert first['reading_seconds']==30 and 'reading_started_at' not in first
     second=client.post(b[1]+'/oral-open',headers=b[2]).json()
     first=client.get(a[1]+'/oral',headers=a[2]).json()
-    assert first['dialogue_prompt']==second['dialogue_prompt']
+    assert 'preserve traditions' in first['dialogue_prompt'] and 'adapt traditions' not in first['dialogue_prompt']
+    assert 'adapt traditions' in second['dialogue_prompt'] and 'preserve traditions' not in second['dialogue_prompt']
     assert (first['role'],second['role'])==('A','B')
     assert first['reading_started_at']==second['reading_started_at']
     assert second['preparation_seconds']==60
     assert client.post(b[1]+'/oral-open',headers=b[2]).json()['reading_started_at']==second['reading_started_at']
     assert client.post(endpoint,headers=ADMIN,json={'partner_attempt_id':b[0]}).status_code==409
+    individual={key:4 for key in ['individual_vocabulary','individual_grammar','individual_coherence','individual_content']}
+    for person in [a,b]:assert client.put('/learning/revisions/attempts/'+person[0]+'/oral-review',headers=ADMIN,json={'score':16,'breakdown':individual}).status_code==200
+    def mark(value):return {'score':0,'breakdown':{key:value for key in ['dialogue_vocabulary','dialogue_grammar','dialogue_coherence','dialogue_strategies']}}
+    review='/learning/revisions/attempts/'+a[0]+'/pair-review'
+    assert client.put(review,headers=a[2],json={'students':{a[0]:mark(3),b[0]:mark(5)}}).status_code in [401,403]
+    assert client.put(review,headers=ADMIN,json={'students':{a[0]:mark(3),c[0]:mark(5)}}).status_code==409
+    saved=client.put(review,headers=ADMIN,json={'students':{a[0]:mark(3),b[0]:mark(5)}})
+    assert saved.status_code==200,saved.text
+    grades={person['id']:person['oral'] for person in saved.json()['students']}
+    assert grades[a[0]]['dialogue_score']==12 and grades[a[0]]['score']==14
+    assert grades[b[0]]['dialogue_score']==20 and grades[b[0]]['score']==18
+    assert all(person['individual_score']==16 for person in grades.values())
+    assert client.put(review,headers=ADMIN,json={'students':{a[0]:mark(3.5),b[0]:mark(5)}}).status_code==422
+
     assert client.delete('/learning/revisions/attempts/'+a[0],headers=ADMIN).status_code==200
     assert 'partner_name' not in client.get(b[1]+'/oral',headers=b[2]).json()
 

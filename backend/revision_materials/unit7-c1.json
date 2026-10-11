@@ -235,16 +235,16 @@
     {
       "id": "c1",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "A speaker describes how lonely she felt after moving abroad. Several listeners recognise the same feelings from their own lives and are emotionally moved by the story. Her story ___.",
       "answers": [
-        "struck a chord with"
+        "struck a chord with them"
       ],
       "choices": [
-        "struck a chord on",
-        "struck a chord at",
-        "struck a chord with",
-        "struck a chord for",
-        "struck a chord to"
+        "paid tribute to them",
+        "kept their traditions alive",
+        "struck a chord with them",
+        "marked a special occasion",
+        "forged a new path for them"
       ],
       "target_word": "chord",
       "target_variants": [],

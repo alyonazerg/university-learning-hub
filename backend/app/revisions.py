@@ -215,11 +215,21 @@ def access(identifier,authorization,session,lock=True):
     if row is None or not authorization or not authorization.startswith('Bearer ') or not hmac.compare_digest(row.token_hash,digest(authorization[7:])):raise HTTPException(401,'This attempt is not available on this device')
     return row
 
+def role_dialogue(prompt,role):
+    parts=re.split(r'(?i)(?<!\w)Student\s*([AB])\s*:\s*',prompt)
+    if len(parts)==1:return prompt
+    common=parts[0].strip()
+    own=next((parts[index+1].strip() for index in range(1,len(parts)-1,2) if parts[index].upper()==role),'')
+    return common+('\n\nYour task · Student '+role+':\n'+own if own else '\n\nYour teacher will provide your role.')
+
 def public_oral(row):
     questions=row.snapshot.get('oral_individual',[])
     question=questions[int(uuid.UUID(row.id))%len(questions)] if questions else ''
     allowed=(row.oral or {}).get('dialogue_allowed',(row.oral or {}).get('status')=='paired')
-    return {'individual_question':question,'dialogue_allowed':allowed,**{key:value for key,value in (row.oral or {}).items() if allowed and key in ['status','partner_name','dialogue_prompt','paired_at','reading_seconds','reading_started_at','opened_at','preparation_seconds','role']}}
+    values={key:value for key,value in (row.oral or {}).items() if allowed and key in ['status','partner_name','dialogue_prompt','paired_at','reading_seconds','reading_started_at','opened_at','preparation_seconds','role']}
+    if 'dialogue_prompt' in values:values['dialogue_prompt']=role_dialogue(values['dialogue_prompt'],values.get('role',''))
+    return {'individual_question':question,'dialogue_allowed':allowed,**values}
+
 class OralReview(StrictModel):
     observations:dict[str,Observation]=Field(default_factory=dict,max_length=3)
     score:float=Field(ge=0,le=20)
@@ -311,6 +321,9 @@ def oral_status(identifier:str,authorization:str | None=Header(default=None),ses
 def oral_review(identifier:str,body:OralReview,session=Depends(database)):
     row=session.get(RevisionAttempt,identifier)
     if row is None or not row.submitted_at:raise HTTPException(404,'Submitted attempt not found')
+    apply_oral_review(row,body);session.commit();return teacher_attempt(row)
+
+def apply_oral_review(row,body):
     oral=dict(row.oral or {})
     split=any(key.startswith('individual_') or key.startswith('dialogue_') for key in body.breakdown)
     if split:
@@ -319,8 +332,28 @@ def oral_review(identifier:str,body:OralReview,session=Depends(database)):
         parts=speaking_parts(marks)
         oral.update(breakdown=marks,**parts,score=int((parts['individual_score']+parts['dialogue_score'])/2+0.5) if all(value is not None for value in parts.values()) else None)
     else:oral.update(score=body.score,breakdown=body.breakdown,individual_score=None,dialogue_score=None)
+    for part in ['individual','dialogue']:
+        if any(key.startswith(part+'_') for key in body.breakdown):oral[part+'_feedback']=body.feedback
     oral.update(feedback=body.feedback,reviewed=oral.get('score') is not None)
-    row.oral=oral;record_observations(row,body.observations);session.commit();return teacher_attempt(row)
+    row.oral=oral;record_observations(row,body.observations)
+
+class PairReview(StrictModel):
+    students:dict[str,OralReview]=Field(min_length=2,max_length=2)
+    @model_validator(mode='after')
+    def dialogues_only(self):
+        keys={'dialogue_vocabulary','dialogue_grammar','dialogue_coherence','dialogue_strategies'}
+        if any(set(body.breakdown)!=keys or set(body.observations)-{'dialogue'} for body in self.students.values()):raise ValueError('Assess all four dialogue criteria separately for each partner')
+        return self
+
+@router.put('/learning/revisions/attempts/{identifier}/pair-review',dependencies=[Depends(administrator)])
+def pair_review(identifier:str,body:PairReview,session=Depends(database)):
+    row=session.get(RevisionAttempt,identifier)
+    if row is None or not row.submitted_at:raise HTTPException(404,'Submitted attempt not found')
+    session.scalar(select(RevisionTest).where(RevisionTest.id==row.test_id).with_for_update());session.refresh(row)
+    partner=session.get(RevisionAttempt,(row.oral or {}).get('partner_id')) if (row.oral or {}).get('partner_id') else None
+    if partner is None or not partner.submitted_at or partner.test_id!=row.test_id or partner.group_code!=row.group_code or (partner.oral or {}).get('partner_id')!=row.id or set(body.students)!={row.id,partner.id}:raise HTTPException(409,'Select the two students assigned to this dialogue pair')
+    for person in [row,partner]:apply_oral_review(person,body.students[person.id])
+    session.commit();return {'students':[teacher_attempt(row),teacher_attempt(partner)]}
 
 def speaking_parts(marks):
     parts={}

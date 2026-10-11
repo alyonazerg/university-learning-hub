@@ -153,3 +153,24 @@ def test_migration_identifiers_fit_postgres_version_column():
             if isinstance(statement,ast.Assign) and any(isinstance(target,ast.Name) and target.id in ['revision','down_revision'] for target in statement.targets):
                 value=ast.literal_eval(statement.value)
                 if isinstance(value,str):assert len(value)<=32,(path.name,value)
+
+def test_chord_meaning_migration_preserves_edits_and_begun_attempts(monkeypatch):
+    from datetime import datetime
+    folder=Path(__file__).parents[1]
+    spec=importlib.util.spec_from_file_location('chord',folder/'alembic/versions/017_chord_meaning.py')
+    migration=importlib.util.module_from_spec(spec);spec.loader.exec_module(migration)
+    current=json.loads((folder/'revision_materials/unit7-c1.json').read_text())
+    previous={**current,'items':[migration.OLD if i['id']=='c1' else i for i in current['items']]}
+    edited=json.loads(json.dumps(previous));next(i for i in edited['items'] if i['id']=='c1')['prompt']='Teacher-edited idiom question.'
+    with SessionLocal() as session:
+        session.add_all([RevisionTest(id='chord',definition=previous,published=True),RevisionTest(id='edited',definition=edited,published=True)]);session.commit();ids=[]
+        for begun in [False,True]:
+            row=RevisionAttempt(test_id='chord',snapshot=previous,research_consent=False,consent_version='synthetic',token_hash='synthetic',student_id='synthetic',student_name='Synthetic Learner',group_code='213',condition='control',begun_at=datetime.now() if begun else None)
+            session.add(row);session.commit();ids.append(row.id)
+    with engine.begin() as connection:
+        monkeypatch.setattr(migration.op,'get_bind',lambda:connection);migration.upgrade();migration.upgrade()
+    with SessionLocal() as session:
+        assert session.get(RevisionTest,'chord').definition==current
+        assert session.get(RevisionTest,'edited').definition==edited
+        assert session.get(RevisionAttempt,ids[0]).snapshot==current
+        assert session.get(RevisionAttempt,ids[1]).snapshot==previous

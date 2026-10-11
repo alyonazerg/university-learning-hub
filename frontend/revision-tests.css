@@ -169,3 +169,10 @@ body:has(.revision-public) .brand {font-weight:700;color:#7652ad;}
 .revision-dashboard-pane > button {margin:12px 0 16px;}
 #connected-revisions .revision-review-panel > form {max-width:680px;}
 @media(max-width:680px){.revision-speaking-grades {grid-template-columns:1fr;gap:14px;}.revision-speaking-grade {padding:12px;}.revision-answer-table {font-size:12px;}.revision-answer-table th,.revision-answer-table td {padding:7px;}}
+
+.revision-pair-controls {display:grid;grid-template-columns:120px minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:12px;}
+.revision-pair-controls label {grid-row:1;}
+.revision-pair-controls select {grid-row:2;min-width:0;width:100%;}
+#connected-revisions .revision-review-panel > form.revision-pair-review {max-width:none;}
+.revision-pair-review > button {justify-self:start;}
+@media(max-width:680px){.revision-pair-controls {grid-template-columns:1fr;gap:8px;}.revision-pair-controls label,.revision-pair-controls select {grid-row:auto;}}
