@@ -38,7 +38,7 @@
     timetable.append(n('p',(groupName?groupName+' · ':'')+'Lesson times use Moscow time.','muted'));
     const dated=rows.filter(row=>row.starts_at).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
     if(!dated.length)timetable.append(n('p','No scheduled lessons yet.'));
-    for(const row of dated){const article=n('article',undefined,'schedule-card');article.append(n('strong',format(row.starts_at)),n('p',row.topic),n('span',row.duration_minutes+' min'+(row.room?' · '+row.room:''),'muted'));timetable.append(article);}
+    for(const row of dated){const article=n('article',undefined,'schedule-card');if(row.completed){article.classList.add('plan-taught');article.append(n('span','✓ Taught','taught-badge'));}article.append(n('strong',format(row.starts_at)),n('p',row.topic),n('span',row.duration_minutes+' min'+(row.room?' · '+row.room:''),'muted'));timetable.append(article);}
     if(profile.role==='admin')renderWeekly(timetable,gid,rows,request,run,done);
     planning.append(n('p',(groupName?groupName+' · ':'')+'Prepare topics without dates, then assign them to lessons later.','muted'));
     if(profile.role==='admin'){
@@ -55,6 +55,7 @@
     if(!rows.length)planning.append(n('p','No topics yet.'));
     for(const row of rows.slice().sort((a,b)=>a.position-b.position||(a.starts_at||'').localeCompare(b.starts_at||''))){
       const article=n('article',undefined,'word-list-card');article.dataset.planId=row.id;
+      if(row.completed){article.classList.add('plan-taught');article.append(n('span','✓ Taught','taught-badge'));}
       article.append(n('h3',row.position+'. '+row.topic),n('p',kinds[row.kind]+' · '+(row.starts_at?format(row.starts_at):'Date not set')+' · '+row.duration_minutes+' min'+(row.completed?' · Taught':'')));
       if(row.objectives)article.append(n('p','Objectives: '+row.objectives,'coursework-text'));
       if(row.materials)article.append(n('p','Materials: '+row.materials,'coursework-text'));
@@ -67,6 +68,7 @@
         if(row.starts_at)actions.append(button(row.attendance_lesson_id?'Open attendance':'Create attendance register',async()=>{const result=await request('/plans/'+row.id+'/attendance','POST');await done('Attendance register ready.');window.MoonCabinet?.show('connected-attendance');document.querySelector('[data-lesson-id="'+result.lesson_id+'"]')?.scrollIntoView({behavior:'smooth',block:'start'});},run));
         article.append(actions);
       }
+      if(/\bmidcheck\b/i.test(row.topic))window.MoonMidcheck?.render(article,{gid,request,run});
       planning.append(article);
     }
   }

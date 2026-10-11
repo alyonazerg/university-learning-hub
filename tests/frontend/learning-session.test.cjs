@@ -185,6 +185,10 @@ test('coursework, certificate access, photos and alias attendance survive a real
   await adminPage.getByText('Lesson saved.', {exact:true}).waitFor();
   const lesson = adminPage.locator('#connected-attendance article');
   await lesson.getByRole('button', {name:'Mark everyone present', exact:true}).click();
+  await adminPage.getByText('Everyone marked present. Attendance saved.',{exact:true}).waitFor();
+  await adminPage.locator('#refresh-account').click();
+  assert.equal(await lesson.getByLabel('Silver Fern',{exact:true}).inputValue(),'present');
+  assert.equal(await lesson.getByLabel('Silver Willow',{exact:true}).inputValue(),'present');
   await lesson.getByLabel('Silver Willow', {exact:true}).selectOption('late');
   await lesson.getByRole('button', {name:'Save attendance', exact:true}).click();
   await adminPage.getByText('Attendance saved.', {exact:true}).waitFor();
@@ -294,9 +298,37 @@ test('reviewed autumn semester imports eight groups, honors week exceptions and 
   assert.equal(await assessment.locator('input[id^=plan-duration-]').inputValue(),'90');
   await assessment.getByRole('button',{name:'Save topic changes',exact:true}).click();await page.getByText('Topic saved.',{exact:true}).waitFor();
   assert.match(await assessment.textContent(),/20 Oct 2026, 12:40/);
+  await assessment.getByRole('button',{name:'Mark as taught',exact:true}).click();await page.getByText('Teaching plan updated.',{exact:true}).waitFor();
+  assert(await assessment.locator('.taught-badge').isVisible());assert.match(await assessment.getAttribute('class'),/plan-taught/);
+  await page.locator('#refresh-account').click();assert(await assessment.locator('.taught-badge').isVisible());
   for(const width of [320,390,1280]){await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
     const gap=await assessment.locator('.planning-actions').evaluate(el=>{const [first,second]=[...el.children].map(x=>x.getBoundingClientRect());return Math.max(second.left-first.right,second.top-first.bottom);});assert(gap>=11);
   }
   for(const width of [320,390,1280]){await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
+  assert.deepEqual(errors,[]);
+});
+
+test('Midcheck reuses Grammar Lab RPC with an alias and teacher preview never submits',async t=>{
+  const {pageFor,errors}=await open(t,false);const page=await pageFor();let submissions=[];
+  const question={assessment_id:'assessment',assessment_title:'Topic 1 Midcheck',question_id:'question',question_type:'single_choice',prompt:'Choose the noun',options:['moon','quickly']};
+  await page.route('**/rest/v1/rpc/*',async route=>{
+    const endpoint=route.request().url().split('/').pop();let result;
+    if(endpoint==='get_active_assessment')result=[question];
+    else if(endpoint==='get_assessment_timer')result={time_limit_minutes:35,time_adjustment_seconds:0};
+    else if(endpoint==='submit_grammar_attempt'){submissions.push(route.request().postDataJSON());result={attempt_id:'attempt',review_token:'review',score:1,max_score:1,percentage:100};}
+    else if(endpoint==='get_attempt_review')result=[{question_id:'question',is_correct:true,student_answer:'moon',correct_answer:'moon',explanation:'A noun.',textbook_reference:'Topic 1'}];
+    else if(endpoint==='save_attempt_question_times')result=null;
+    else throw Error(endpoint);
+    await route.fulfill({contentType:'application/json',body:JSON.stringify(result),headers:{'access-control-allow-origin':'*','access-control-allow-headers':'apikey, authorization, content-type','access-control-allow-methods':'POST, OPTIONS'}});
+  });
+  const origin=new URL(page.url()).origin;
+  await page.goto(origin+'/midcheck.html#alias=Silver%20Fern&group=150&preview=0');try{await page.locator('#start').waitFor({timeout:10000});}catch(error){throw Error(JSON.stringify(errors)+' '+await page.locator('#loading').textContent());}
+  assert.equal(await page.locator('#name').inputValue(),'Silver Fern');assert(await page.locator('#name').getAttribute('readonly')!==null);
+  await page.getByRole('button',{name:'Start diagnostic',exact:true}).click();await page.getByLabel('moon',{exact:true}).check();await page.getByRole('button',{name:'Submit diagnostic',exact:true}).click();
+  await page.locator('#result').waitFor();assert.equal(submissions.length,1);assert.equal(submissions[0].p_full_name,'Silver Fern');assert.equal(submissions[0].p_group_code,'150');
+  assert.match(await page.locator('#result').textContent(),/1 \/ 1/);
+  await page.goto(origin+'/midcheck.html#alias=Teacher%20Preview&group=150&preview=1');await page.reload();await page.locator('#start').waitFor();
+  await page.getByRole('button',{name:'Start diagnostic',exact:true}).click();await page.getByLabel('moon',{exact:true}).check();await page.getByRole('button',{name:'Submit diagnostic',exact:true}).click();
+  await page.getByText('Teacher preview complete',{exact:true}).waitFor();assert.equal(submissions.length,1);
   assert.deepEqual(errors,[]);
 });

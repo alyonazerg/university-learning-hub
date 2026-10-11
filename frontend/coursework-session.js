@@ -175,7 +175,7 @@
       if (profile.role === 'admin') {
         const form = node('form'), inputs = [];
         for (const mark of lesson.marks) {const input = select(form, mark.pseudonym, 'attendance-' + lesson.id + '-' + mark.student_id, Object.entries(statuses)); input.value = mark.status; inputs.push({input, student_id: mark.student_id});}
-        const all = node('button', 'Mark everyone present', 'secondary'); all.type = 'button'; all.addEventListener('click', () => inputs.forEach(({input}) => {input.value = 'present';})); form.append(all);
+        const all = node('button', 'Mark everyone present', 'secondary'); all.type = 'button'; all.disabled=!inputs.length;all.dataset.unavailable=String(!inputs.length);all.addEventListener('click',()=>run(async()=>{await request('/attendance/'+lesson.id,'PUT',{marks:inputs.map(({student_id})=>({student_id,status:'present'}))});await done('Everyone marked present. Attendance saved.');}));form.append(all);
         if (inputs.length) submit(form, 'Save attendance'); else form.append(node('p', 'No active students in this group yet.'));
         form.addEventListener('submit', event => {event.preventDefault(); run(async () => {
           await request('/attendance/' + lesson.id, 'PUT', {marks: inputs.map(({input, student_id}) => ({student_id, status: input.value}))}); await done('Attendance saved.');

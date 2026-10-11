@@ -89,3 +89,10 @@
 
 #workspace .topic-import-selection {display:flex;gap:10px;align-items:center;}
 #workspace .topic-import-selection input {width:20px;min-height:20px;flex:0 0 20px;accent-color:var(--purple);}
+
+#workspace .word-list-card.plan-taught {border-color:#95c9a5;background:#f2faf4;}
+.taught-badge {display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:8px;background:#dff1e4;color:#236238;font-weight:700;}
+.midcheck-frame {width:100%;height:850px;border:1px solid var(--line);border-radius:12px;margin-top:12px;background:white;}
+
+.schedule-card.plan-taught {background:#f2faf4;border-color:#95c9a5;}
+.schedule-card .taught-badge {grid-column:1 / -1;justify-self:start;}
