@@ -67,7 +67,7 @@
     generation++; token = null; profile = null; $('workspace').hidden = true; $('sign-in').hidden = false;
     $('connected-decks').replaceChildren(); $('connected-study').replaceChildren(); $('group-editors').replaceChildren(); $('connected-group').replaceChildren();
     $('connected-deck-form').reset(); $('connected-group-form').reset(); $('admin-key').value = ''; $('account-name').textContent = 'Learning hub';
-    MoonCoursework.clear();
+    MoonCoursework.clear(); MoonRevisions.clear();
     MoonPlanning.clear(); activeSection = ''; $('connection-info').hidden = false;
   }
   const cabinetSections = {
@@ -76,18 +76,19 @@
     'connected-planning': ['connected-planning'],
     'connected-vocabulary-editor': ['connected-decks', 'connected-study', 'connected-vocabulary-editor'],
     'connected-coursework': ['connected-coursework'],
-    'connected-attendance': ['connected-attendance']
+    'connected-attendance': ['connected-attendance'],
+    'connected-revisions': ['connected-revisions']
   };
   let activeSection = '';
   function showSection(id, focus = false) {
-    if (!cabinetSections[id] || (id === 'connected-groups' && profile?.role !== 'admin')) id = 'connected-schedule';
+    if (!cabinetSections[id] || (['connected-groups','connected-revisions'].includes(id) && profile?.role !== 'admin')) id = 'connected-schedule';
     activeSection = id;
     const visible = cabinetSections[id];
     for (const section of Object.values(cabinetSections).flat()) $(section).classList.toggle('cabinet-inactive', !visible.includes(section));
     document.querySelectorAll('.dashboard-links a').forEach(link => {
       const selected = link.hash === '#' + id;
       if (selected) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
-      link.hidden = link.hash === '#connected-groups' && profile?.role !== 'admin';
+      link.hidden = ['#connected-groups','#connected-revisions'].includes(link.hash) && profile?.role !== 'admin';
     });
     if (focus) {const heading = $(visible[0]).querySelector('h2'); if (heading) {heading.tabIndex = -1; heading.focus({preventScroll:true});} $(visible[0]).scrollIntoView({block:'start'});}
   }
@@ -99,7 +100,7 @@
   async function refresh() {
     const version = generation;
     const me = await request('/me');
-    const [decks, extra, coursework, plans] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me), request('/plans')]);
+    const [decks, extra, coursework, plans, revisions] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me), request('/plans'), MoonRevisions.load(request, me)]);
     if (version !== generation || !token) return;
     profile = me; $('sign-in').hidden = true; $('workspace').hidden = false;
     $('account-name').textContent = me.role === 'admin' ? 'Teacher' : me.pseudonym;
@@ -112,6 +113,7 @@
     $('connected-study').hidden = me.role !== 'student';
     if (me.role === 'student') renderStudy(extra);
     MoonCoursework.render(coursework, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});
+    MoonRevisions.render(revisions, {profile: me, request, run, refresh});
     MoonPlanning.render(plans, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});
     $('connection-info').hidden = true;
     showSection(activeSection || location.hash.slice(1) || (me.role === 'admin' && !extra.length ? 'connected-groups' : 'connected-schedule'));

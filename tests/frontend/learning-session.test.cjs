@@ -343,3 +343,39 @@ test('teacher attaches a hosted second-year Revision Test and students can open 
   const learner=await pageFor(11);await student(learner);await section(learner,'connected-planning');assert.equal(await learner.getByRole('link',{name:'Open Revision Test',exact:true}).getAttribute('href'),'/assessments/revision-1/');
   assert.deepEqual(errors,[]);
 });
+
+test('public Revision Test respects voluntary consent, resumes answers and excludes withdrawals from research exports',async t=>{
+  const {pageFor,errors,restart}=await open(t);const teacherPage=await pageFor();await teacher(teacherPage);await section(teacherPage,'connected-revisions');
+  await teacherPage.locator('#connected-revisions h2').waitFor();
+  const fixture=await teacherPage.evaluate(async()=>{
+    const base=window.MOON_CAMPUS_API_BASE;
+    const login=await (await fetch(base+'/learning/login/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:'synthetic-browser-admin'})})).json();
+    const auth={Authorization:'Bearer '+login.access_token,'Content-Type':'application/json'};
+    const tests=await (await fetch(base+'/learning/revisions/tests',{headers:auth})).json();
+    const spec=tests.find(t=>t.definition.level==='C1');
+    const response=await fetch(base+'/learning/revisions/tests/'+spec.id+'/publish',{method:'POST',headers:auth});if(!response.ok)throw Error(await response.text());
+    return {id:spec.id,answers:Object.fromEntries(spec.definition.items.filter(i=>!i.groups.length||i.groups.includes('213')).map(i=>[i.prompt,i.answers[0]])),admin:auth};
+  });
+  const publicPage=await pageFor();await publicPage.goto(new URL('revision-test.html?test='+fixture.id,teacherPage.url()).href);
+  await publicPage.getByLabel('Your name',{exact:true}).fill('Synthetic Learner');await publicPage.getByLabel('Group',{exact:true}).selectOption('213');
+  assert.equal(await publicPage.locator('input[name=research-consent]:checked').count(),0);
+  await publicPage.getByRole('button',{name:'Open test',exact:true}).click();assert.equal(await publicPage.locator('#test-answer').count(),0);
+  await publicPage.getByLabel('I want to take the test without participating in the research.',{exact:true}).check();
+  await publicPage.getByRole('button',{name:'Open test',exact:true}).click();await publicPage.locator('#test-answer').waitFor();
+  assert.equal(await publicPage.getByText('Reading preview',{exact:true}).count(),0);
+  await publicPage.locator('#test-answer').fill('ancestor');await publicPage.getByText('Progress saved.',{exact:true}).waitFor();await restart();await publicPage.reload();await publicPage.locator('#test-answer').waitFor();assert.equal(await publicPage.locator('#test-answer').inputValue(),'ancestor');
+  for(let i=0;i<40;i++){
+    if(await publicPage.locator('#writing-answer').count())break;
+    const prompt=await publicPage.locator('#test-body h2').textContent();const answer=fixture.answers[prompt];assert(answer,prompt);
+    const control=publicPage.locator('#test-answer');if(await control.evaluate(e=>e.tagName==='SELECT'))await control.selectOption(answer);else await control.fill(answer);
+    await publicPage.getByRole('button',{name:'Next',exact:true}).click();await publicPage.waitForFunction(old=>document.querySelector('#test-body h2')?.textContent!==old,prompt);
+  }
+  await publicPage.locator('#writing-answer').fill('Our heritage matters. Traditions help families share memories, but people should be free to forge their own path.');await publicPage.getByRole('button',{name:'Submit test',exact:true}).click();await publicPage.getByRole('heading',{name:'Submitted',exact:true}).waitFor();
+  await publicPage.getByRole('button',{name:'Reveal individual speaking question',exact:true}).click();await publicPage.getByRole('button',{name:'Individual answer finished · ready for dialogue',exact:true}).click();await publicPage.getByText('Waiting for the next classmate who finishes.',{exact:true}).waitFor();
+  const attemptId=await publicPage.evaluate(id=>JSON.parse(localStorage.getItem('moon-revision-'+id)).attempt_id,fixture.id);
+  await teacherPage.evaluate(async ({fixture,attemptId})=>{const response=await fetch(window.MOON_CAMPUS_API_BASE+'/learning/revisions/attempts/'+attemptId+'/oral-with-teacher',{method:'POST',headers:fixture.admin});if(!response.ok)throw Error(await response.text());},{fixture,attemptId});
+  await publicPage.getByText('Partner: Teacher',{exact:true}).waitFor();await publicPage.getByText('Your role: Student A.',{exact:true}).waitFor();
+  const count=await teacherPage.evaluate(async fixture=>{const response=await fetch(window.MOON_CAMPUS_API_BASE+'/learning/revisions/tests/'+fixture.id+'/export',{headers:fixture.admin});const files=(await response.json()).files;return atob(files[0].content).includes('Synthetic Learner');},fixture);assert.equal(count,false);
+  for(const width of [320,390,1280]){await publicPage.setViewportSize({width,height:900});assert(await publicPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
+  assert.deepEqual(errors,[]);
+});

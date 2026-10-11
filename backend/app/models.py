@@ -188,3 +188,42 @@ class LessonPlan(Base):
     constructions: Mapped[list] = mapped_column(JSON, default=list)
     completed: Mapped[bool] = mapped_column(Boolean, default=False)
     attendance_lesson_id: Mapped[str | None] = mapped_column(ForeignKey('attendance_lessons.id'), nullable=True)
+
+class RevisionGroup(Base):
+    __tablename__='revision_groups'
+    code: Mapped[str] = mapped_column(String(3),primary_key=True)
+    condition: Mapped[str | None] = mapped_column(String(16),nullable=True)
+    roster: Mapped[list] = mapped_column(JSON,default=list)
+    emergent: Mapped[list] = mapped_column(JSON,default=list)
+    expected_count: Mapped[int] = mapped_column(default=0)
+    inactive_count: Mapped[int] = mapped_column(default=0)
+    allocation_seed: Mapped[str] = mapped_column(String(40),default='')
+
+class RevisionTest(Base):
+    __tablename__='revision_tests'
+    id: Mapped[str] = mapped_column(String(36),primary_key=True,default=lambda:str(uuid.uuid4()))
+    definition: Mapped[dict] = mapped_column(JSON)
+    published: Mapped[bool] = mapped_column(Boolean,default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
+
+class RevisionAttempt(Base):
+    __tablename__='revision_attempts'
+    id: Mapped[str] = mapped_column(String(36),primary_key=True,default=lambda:str(uuid.uuid4()))
+    test_id: Mapped[str] = mapped_column(ForeignKey('revision_tests.id'),index=True)
+    oral: Mapped[dict] = mapped_column(JSON,default=dict,nullable=False)
+    research_consent: Mapped[bool] = mapped_column(Boolean,nullable=False)
+    consent_version: Mapped[str] = mapped_column(String(40),nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64))
+    student_id: Mapped[str] = mapped_column(String(36))
+    student_name: Mapped[str] = mapped_column(String(100))
+    group_code: Mapped[str] = mapped_column(String(3))
+    condition: Mapped[str] = mapped_column(String(16))
+    snapshot: Mapped[dict] = mapped_column(JSON)
+    answers: Mapped[dict] = mapped_column(JSON,default=dict)
+    timing: Mapped[dict] = mapped_column(JSON,default=dict)
+    writing: Mapped[str] = mapped_column(Text,default='')
+    report: Mapped[dict] = mapped_column(JSON,default=dict)
+    started_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
+    begun_at: Mapped[datetime | None] = mapped_column(DateTime,nullable=True)
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime,nullable=True)
+    teacher_status: Mapped[str] = mapped_column(String(16),default='pending')

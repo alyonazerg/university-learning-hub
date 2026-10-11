@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     telegram_bot_token: str | None = None
     admin_token: str | None = None
     cors_origins: list[str] = ['http://localhost:8080', 'https://mooncampus.ru']
+    revision_ai_api_key: str | None = None
+    revision_ai_model: str = 'gpt-4.1-mini'
+    revision_ai_base_url: str = 'https://api.openai.com/v1'
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 
 settings = Settings()

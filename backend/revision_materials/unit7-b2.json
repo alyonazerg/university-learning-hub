@@ -1,0 +1,642 @@
+{
+  "title": "Evolve 5 · Unit 7 · Revision Test",
+  "level": "B2",
+  "unit": "7",
+  "groups": [
+    "215",
+    "216",
+    "217"
+  ],
+  "vocabulary_notes": "Group 215 - Vocabulary Revision\nUseful expressions\n1. be a good influence on\n2. be of use\n3. be beneficial\n4. make a contribution\n5. make a difference\n6. devote my life to\n7. be worthwhile\n8. be an honor\n9. get satisfaction out of\n10. take pleasure in\n11. value something\n12. reassure somebody\n\nWork, choice & fulfilment\n1. fulfilment\n2. career crisis\n3. paradox of choice\n4. calling\n5. inclination\n6. conundrum\n7. shadowing\n8. entrepreneurial\n\nConsumer behaviour\n1. impulsive\n2. susceptible\n3. on a whim\n4. scarcity\n5. nudge\n6. frictionless\n7. sweeten the deal\n8. zone out\n9. exploit\n10. unobtrusive\n\nInfluence & relationships\n1. brandish your influence\n2. power move\n\n3. craft a relationship\n4. aspiration\n5. yardstick\n6. solid rationale\n7. defensive pessimism\n8. emotional distancing\n9. ripple effects\n10. win-win solution\n11. social norms\n12. market norms\n13. be self-sufficient\n14. attain personal goals\n15. put your own interests first",
+  "grammar_notes": "Infinitives and gerunds; conditionals; if + will for willingness; articles. Another/other only for 215 and 217.",
+  "priming": [
+    "Finding fulfilment at work can feel like discovering a calling.",
+    "An entrepreneurial person may enjoy shadowing a business owner before launching a company.",
+    "An impulsive purchase is often encouraged by scarcity, while an unobtrusive nudge can influence a choice.",
+    "Our aspirations need a sensible yardstick, especially when a decision becomes a conundrum."
+  ],
+  "writing_prompt": "Write an essay of about 250 words: Meaningful work matters more than a high salary. To what extent do you agree? Consider both perspectives, support your argument with an example, and give a reasoned conclusion. Use your own words. Do not copy the reading preview or task sentences.",
+  "items": [
+    {
+      "id": "v1",
+      "section": "vocabulary",
+      "prompt": "The deep satisfaction of doing meaningful work is called ___.",
+      "answers": [
+        "fulfilment"
+      ],
+      "choices": [],
+      "target_word": "fulfilment",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v2",
+      "section": "vocabulary",
+      "prompt": "A profession you feel strongly drawn to is your ___.",
+      "answers": [
+        "calling"
+      ],
+      "choices": [],
+      "target_word": "calling",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v3",
+      "section": "vocabulary",
+      "prompt": "A natural tendency or preference is an ___.",
+      "answers": [
+        "inclination"
+      ],
+      "choices": [],
+      "target_word": "inclination",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v4",
+      "section": "vocabulary",
+      "prompt": "A difficult problem or puzzle is a ___.",
+      "answers": [
+        "conundrum"
+      ],
+      "choices": [],
+      "target_word": "conundrum",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v5",
+      "section": "vocabulary",
+      "prompt": "Following an experienced worker to learn their job is called ___.",
+      "answers": [
+        "shadowing"
+      ],
+      "choices": [],
+      "target_word": "shadowing",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v6",
+      "section": "vocabulary",
+      "prompt": "Skills associated with starting and running a business are ___ skills.",
+      "answers": [
+        "entrepreneurial"
+      ],
+      "choices": [],
+      "target_word": "entrepreneurial",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v7",
+      "section": "vocabulary",
+      "prompt": "Someone who buys things without thinking is an ___ shopper.",
+      "answers": [
+        "impulsive"
+      ],
+      "choices": [],
+      "target_word": "impulsive",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v8",
+      "section": "vocabulary",
+      "prompt": "A shortage of something is called ___.",
+      "answers": [
+        "scarcity"
+      ],
+      "choices": [],
+      "target_word": "scarcity",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v9",
+      "section": "vocabulary",
+      "prompt": "A small encouragement towards a decision is a ___.",
+      "answers": [
+        "nudge"
+      ],
+      "choices": [],
+      "target_word": "nudge",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v10",
+      "section": "vocabulary",
+      "prompt": "Something that does not attract unwanted attention is ___.",
+      "answers": [
+        "unobtrusive"
+      ],
+      "choices": [],
+      "target_word": "unobtrusive",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v11",
+      "section": "vocabulary",
+      "prompt": "A standard used to judge success is a ___.",
+      "answers": [
+        "yardstick"
+      ],
+      "choices": [],
+      "target_word": "yardstick",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v12",
+      "section": "vocabulary",
+      "prompt": "A strong ambition for the future is an ___.",
+      "answers": [
+        "aspiration"
+      ],
+      "choices": [],
+      "target_word": "aspiration",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c1",
+      "section": "collocation",
+      "prompt": "She is a good ___ on her younger brother.",
+      "answers": [
+        "influence"
+      ],
+      "choices": [],
+      "target_word": "influence",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c2",
+      "section": "collocation",
+      "prompt": "Even a small donation can make a ___.",
+      "answers": [
+        "difference"
+      ],
+      "choices": [],
+      "target_word": "difference",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c3",
+      "section": "collocation",
+      "prompt": "I take ___ in helping others.",
+      "answers": [
+        "pleasure"
+      ],
+      "choices": [],
+      "target_word": "pleasure",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c4",
+      "section": "collocation",
+      "prompt": "I bought it on a ___, without planning to.",
+      "answers": [
+        "whim"
+      ],
+      "choices": [],
+      "target_word": "whim",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c5",
+      "section": "collocation",
+      "prompt": "They offered a discount to sweeten the ___.",
+      "answers": [
+        "deal"
+      ],
+      "choices": [],
+      "target_word": "deal",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c6",
+      "section": "collocation",
+      "prompt": "One policy change can have ___ effects across society.",
+      "answers": [
+        "ripple"
+      ],
+      "choices": [],
+      "target_word": "ripple",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g1",
+      "section": "grammar",
+      "prompt": "She avoided ___ (buy) unnecessary things.",
+      "answers": [
+        "buying"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g2",
+      "section": "grammar",
+      "prompt": "They decided ___ (leave) early.",
+      "answers": [
+        "to leave"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g3",
+      "section": "grammar",
+      "prompt": "He is interested in ___ (work) abroad.",
+      "answers": [
+        "working"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g4",
+      "section": "grammar",
+      "prompt": "It is difficult ___ (choose) a career.",
+      "answers": [
+        "to choose"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g5",
+      "section": "grammar",
+      "prompt": "If I ___ (have) more time now, I would volunteer.",
+      "answers": [
+        "had"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g6",
+      "section": "grammar",
+      "prompt": "If she had checked the reviews, she ___ (not / buy) it.",
+      "answers": [
+        "would not have bought",
+        "wouldn’t have bought",
+        "wouldn't have bought"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g7",
+      "section": "grammar",
+      "prompt": "If you ___ (wait; willingness) here, I will ask the manager to help.",
+      "answers": [
+        "will wait"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g8",
+      "section": "grammar",
+      "prompt": "She bought ___ umbrella.",
+      "answers": [
+        "an"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g9",
+      "section": "grammar",
+      "prompt": "This is ___ first time I have visited London.",
+      "answers": [
+        "the"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g10",
+      "section": "grammar",
+      "prompt": "I need one more example. Could you give me ___ example?",
+      "answers": [
+        "another"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": [
+        "215",
+        "217"
+      ]
+    },
+    {
+      "id": "e215-1",
+      "section": "emergent",
+      "prompt": "A person employed to clean and maintain a building is a ___.",
+      "answers": [
+        "janitor"
+      ],
+      "choices": [],
+      "target_word": "janitor",
+      "target_variants": [],
+      "groups": [
+        "215"
+      ]
+    },
+    {
+      "id": "e215-2",
+      "section": "emergent",
+      "prompt": "Someone of similar age or status is a ___.",
+      "answers": [
+        "peer"
+      ],
+      "choices": [],
+      "target_word": "peer",
+      "target_variants": [],
+      "groups": [
+        "215"
+      ]
+    },
+    {
+      "id": "e215-3",
+      "section": "emergent",
+      "prompt": "Time spent working beyond regular hours is ___.",
+      "answers": [
+        "overtime"
+      ],
+      "choices": [],
+      "target_word": "overtime",
+      "target_variants": [],
+      "groups": [
+        "215"
+      ]
+    },
+    {
+      "id": "e215-4",
+      "section": "emergent",
+      "prompt": "Introducing a new employee to a company is ___.",
+      "answers": [
+        "onboarding"
+      ],
+      "choices": [],
+      "target_word": "onboarding",
+      "target_variants": [],
+      "groups": [
+        "215"
+      ]
+    },
+    {
+      "id": "e215-5",
+      "section": "emergent",
+      "prompt": "An extra benefit of a job is a ___.",
+      "answers": [
+        "perk"
+      ],
+      "choices": [],
+      "target_word": "perk",
+      "target_variants": [],
+      "groups": [
+        "215"
+      ]
+    },
+    {
+      "id": "e215-6",
+      "section": "emergent",
+      "prompt": "A loan used to buy a home is a ___.",
+      "answers": [
+        "mortgage"
+      ],
+      "choices": [],
+      "target_word": "mortgage",
+      "target_variants": [],
+      "groups": [
+        "215"
+      ]
+    },
+    {
+      "id": "e216-1",
+      "section": "emergent",
+      "prompt": "A person who prepares coffee professionally is a ___.",
+      "answers": [
+        "barista"
+      ],
+      "choices": [],
+      "target_word": "barista",
+      "target_variants": [],
+      "groups": [
+        "216"
+      ]
+    },
+    {
+      "id": "e216-2",
+      "section": "emergent",
+      "prompt": "Money returned after a purchase is a ___.",
+      "answers": [
+        "refund"
+      ],
+      "choices": [],
+      "target_word": "refund",
+      "target_variants": [],
+      "groups": [
+        "216"
+      ]
+    },
+    {
+      "id": "e216-3",
+      "section": "emergent",
+      "prompt": "The linguistic links that connect sentences contribute to ___.",
+      "answers": [
+        "cohesion"
+      ],
+      "choices": [],
+      "target_word": "cohesion",
+      "target_variants": [],
+      "groups": [
+        "216"
+      ]
+    },
+    {
+      "id": "e216-4",
+      "section": "emergent",
+      "prompt": "The overall logical organisation of a text contributes to ___.",
+      "answers": [
+        "coherence"
+      ],
+      "choices": [],
+      "target_word": "coherence",
+      "target_variants": [],
+      "groups": [
+        "216"
+      ]
+    },
+    {
+      "id": "e216-5",
+      "section": "emergent",
+      "prompt": "A small item used to hold keys together is a ___.",
+      "answers": [
+        "keychain"
+      ],
+      "choices": [],
+      "target_word": "keychain",
+      "target_variants": [],
+      "groups": [
+        "216"
+      ]
+    },
+    {
+      "id": "e216-6",
+      "section": "emergent",
+      "prompt": "Something authentic rather than fake is ___.",
+      "answers": [
+        "genuine"
+      ],
+      "choices": [],
+      "target_word": "genuine",
+      "target_variants": [],
+      "groups": [
+        "216"
+      ]
+    },
+    {
+      "id": "e217-1",
+      "section": "emergent",
+      "prompt": "The ability to keep going through prolonged difficulty is ___.",
+      "answers": [
+        "endurance"
+      ],
+      "choices": [],
+      "target_word": "endurance",
+      "target_variants": [],
+      "groups": [
+        "217"
+      ]
+    },
+    {
+      "id": "e217-2",
+      "section": "emergent",
+      "prompt": "The ability to act despite fear is ___.",
+      "answers": [
+        "courage"
+      ],
+      "choices": [],
+      "target_word": "courage",
+      "target_variants": [],
+      "groups": [
+        "217"
+      ]
+    },
+    {
+      "id": "e217-3",
+      "section": "emergent",
+      "prompt": "A sensational headline designed to attract clicks is ___.",
+      "answers": [
+        "clickbait"
+      ],
+      "choices": [],
+      "target_word": "clickbait",
+      "target_variants": [],
+      "groups": [
+        "217"
+      ]
+    },
+    {
+      "id": "e217-4",
+      "section": "emergent",
+      "prompt": "Content designed to provoke anger and engagement is ___.",
+      "answers": [
+        "ragebait"
+      ],
+      "choices": [],
+      "target_word": "ragebait",
+      "target_variants": [],
+      "groups": [
+        "217"
+      ]
+    },
+    {
+      "id": "e217-5",
+      "section": "emergent",
+      "prompt": "A group of cattle is a ___.",
+      "answers": [
+        "herd"
+      ],
+      "choices": [],
+      "target_word": "herd",
+      "target_variants": [],
+      "groups": [
+        "217"
+      ]
+    },
+    {
+      "id": "e217-6",
+      "section": "emergent",
+      "prompt": "To set a higher standard is to raise the ___.",
+      "answers": [
+        "bar"
+      ],
+      "choices": [],
+      "target_word": "bar",
+      "target_variants": [],
+      "groups": [
+        "217"
+      ]
+    },
+    {
+      "id": "g10-216",
+      "section": "grammar",
+      "prompt": "He works as ___ engineer.",
+      "answers": [
+        "an"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": [
+        "216"
+      ]
+    }
+  ],
+  "oral_individual": [
+    "What makes an experience worthwhile? Give an example and explain your priorities.",
+    "What makes a job fulfilling beyond its salary?",
+    "Why can having too many choices make decisions harder?",
+    "Can spending money on other people make us happier than spending it on ourselves? Explain.",
+    "How do shops encourage people to buy things they did not plan to buy?",
+    "When is cooperation more effective than competition in a negotiation?"
+  ],
+  "oral_dialogue": [
+    "Two graduates are choosing between a secure, well-paid job and meaningful work with lower pay. Compare the priorities, discuss risks, and agree on advice. Student A prioritises financial security; Student B prioritises fulfilment.",
+    "Plan a worthwhile day out for your class with a limited budget. Student A prefers an experience; Student B prefers something practical that lasts. Agree on one plan and justify the compromise.",
+    "An employee wants a pay rise, but the manager has a limited budget. Negotiate a fair solution including at least one non-financial benefit. Student A is the employee; Student B is the manager.",
+    "Your university wants to reduce impulsive shopping among students. One of you proposes restrictions on advertising; the other proposes consumer education. Discuss benefits and drawbacks and agree on two measures."
+  ]
+}

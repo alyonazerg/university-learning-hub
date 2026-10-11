@@ -165,3 +165,6 @@ app.include_router(topic_import_router)
 
 from .midcheck import router as midcheck_router
 app.include_router(midcheck_router)
+
+from .revisions import router as revisions_router
+app.include_router(revisions_router)

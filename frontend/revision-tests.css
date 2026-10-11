@@ -1,0 +1,16 @@
+.revision-public {max-width:850px;margin:0 auto;padding:24px 18px;}
+.revision-public form,.revision-public .members-panel {display:grid;gap:14px;}
+.revision-public input,.revision-public select,.revision-public textarea {width:100%;max-width:100%;padding:12px;border:1px solid #dcd3ee;border-radius:10px;font:inherit;}
+.revision-public textarea {resize:vertical;}
+.revision-actions {display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;}
+.revision-public h2 {font-size:24px;line-height:1.4;overflow-wrap:anywhere;}
+.revision-public #test-status:not(:empty) {padding:12px;background:#eee7f9;border-radius:10px;}
+.revision-definition {font-family:ui-monospace,monospace!important;}
+#workspace .revision-row {padding:16px;border:1px solid var(--line);border-radius:12px;margin-top:16px;overflow-wrap:anywhere;}
+#workspace .revision-filters {display:flex;flex-wrap:wrap;gap:10px;margin:12px 0;}
+
+.revision-public input[type=radio] {width:auto;margin-right:8px;}
+.revision-public fieldset {display:grid;gap:12px;padding:16px;border:1px solid #dcd3ee;border-radius:12px;}
+#connected-revisions form {display:grid;gap:12px;margin-top:16px;}
+#connected-revisions pre {white-space:pre-wrap;overflow-wrap:anywhere;}
+#connected-revisions input,#connected-revisions textarea,#connected-revisions select {max-width:100%;box-sizing:border-box;}

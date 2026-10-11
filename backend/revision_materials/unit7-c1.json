@@ -1,0 +1,544 @@
+{
+  "title": "Evolve 6 · Unit 7 · Revision Test",
+  "level": "C1",
+  "unit": "7",
+  "groups": [
+    "213",
+    "214"
+  ],
+  "vocabulary_notes": "Group 213 - Vocabulary Revision\nCore vocabulary\n1. ancestor\n2. genetic\n3. heritage\n4. ancestry\n5. inherit\n6. ethnic\n7. genealogy\n8. ethnicity\n9. adoptive\n\nResearch & genetics\n1. reference population\n2. margin of error\n3. bright-line distinction\n4. to reinvigorate\n5. to essentialize\n6. broadly\n7. trace percentage\n8. genetic marker\n9. ethnically ambiguous\n10. confidence slider\n\nTraditions & occasions\n1. mark an occasion\n2. observe an occasion\n3. signify / symbolize good luck\n4. honor / pay tribute to elders\n5. keep traditions alive\n6. a practice\n7. a rite\n8. a ritual\n9. a custom\n10. the festivities\n11. significance\n12. heritage\n\n13. tradition\n\nAdditional vocabulary\n1. a good tuck-in\n2. to overindulge\n3. a feast\n4. largess\n5. choreographed\n6. friction\n7. lauded\n8. a relic\n9. to bond\n10. a beacon\n\nUseful expressions\n1. strike a chord\n2. shape their future\n3. undergo major transitions\n4. make assumptions about\n5. forge your own path\n6. regardless of how you started out",
+  "grammar_notes": "Fronting of negative/limiting adverbials; fronting of place and movement adverbials; inversion with noun subjects and ordinary order with pronoun subjects.",
+  "priming": [
+    "An ancestor may leave a relic that connects us to our heritage.",
+    "Genealogy helps us explore ancestry without reducing identity to ethnicity.",
+    "A feast can reinvigorate a tradition, and its significance may become a beacon for younger generations.",
+    "Adoptive families also build shared traditions, even when disagreements cause friction."
+  ],
+  "writing_prompt": "Write an essay of about 250 words: Our roots influence us, but they do not define us. To what extent do you agree? Discuss the roles of upbringing, inherited background and personal choice. Consider a contrasting perspective and reach a reasoned conclusion. You may use general or invented examples; personal family disclosure is not required. Do not copy task sentences or the reading preview.",
+  "items": [
+    {
+      "id": "v1",
+      "section": "vocabulary",
+      "prompt": "A person in your family who lived several generations before you is an ___.",
+      "answers": [
+        "ancestor"
+      ],
+      "choices": [],
+      "target_word": "ancestor",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v2",
+      "section": "vocabulary",
+      "prompt": "Your family origins and line of descent are your ___.",
+      "answers": [
+        "ancestry"
+      ],
+      "choices": [],
+      "target_word": "ancestry",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v3",
+      "section": "vocabulary",
+      "prompt": "The study of family history and descent is ___.",
+      "answers": [
+        "genealogy"
+      ],
+      "choices": [],
+      "target_word": "genealogy",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v4",
+      "section": "vocabulary",
+      "prompt": "A shared cultural or ethnic identity is called ___.",
+      "answers": [
+        "ethnicity"
+      ],
+      "choices": [],
+      "target_word": "ethnicity",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v5",
+      "section": "vocabulary",
+      "prompt": "Traditions and cultural achievements passed down through generations form our ___.",
+      "answers": [
+        "heritage"
+      ],
+      "choices": [],
+      "target_word": "heritage",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v6",
+      "section": "vocabulary",
+      "prompt": "Parents who legally take a child into their family are ___ parents.",
+      "answers": [
+        "adoptive"
+      ],
+      "choices": [],
+      "target_word": "adoptive",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v7",
+      "section": "vocabulary",
+      "prompt": "To give something new energy is to ___ it.",
+      "answers": [
+        "reinvigorate"
+      ],
+      "choices": [],
+      "target_word": "reinvigorate",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v8",
+      "section": "vocabulary",
+      "prompt": "An object surviving from the distant past is a ___.",
+      "answers": [
+        "relic"
+      ],
+      "choices": [],
+      "target_word": "relic",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v9",
+      "section": "vocabulary",
+      "prompt": "Disagreement that creates tension between people is ___.",
+      "answers": [
+        "friction"
+      ],
+      "choices": [],
+      "target_word": "friction",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v10",
+      "section": "vocabulary",
+      "prompt": "A guiding light or source of hope is a ___.",
+      "answers": [
+        "beacon"
+      ],
+      "choices": [],
+      "target_word": "beacon",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v11",
+      "section": "vocabulary",
+      "prompt": "A large celebratory meal is a ___.",
+      "answers": [
+        "feast"
+      ],
+      "choices": [],
+      "target_word": "feast",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "v12",
+      "section": "vocabulary",
+      "prompt": "The importance or meaning of something is its ___.",
+      "answers": [
+        "significance"
+      ],
+      "choices": [],
+      "target_word": "significance",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c1",
+      "section": "collocation",
+      "prompt": "Her story struck a ___ with the audience.",
+      "answers": [
+        "chord"
+      ],
+      "choices": [],
+      "target_word": "chord",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c2",
+      "section": "collocation",
+      "prompt": "The ceremony pays ___ to our elders.",
+      "answers": [
+        "tribute"
+      ],
+      "choices": [],
+      "target_word": "tribute",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c3",
+      "section": "collocation",
+      "prompt": "Families work to keep their traditions ___.",
+      "answers": [
+        "alive"
+      ],
+      "choices": [],
+      "target_word": "alive",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c4",
+      "section": "collocation",
+      "prompt": "Do not make ___ about someone based on appearance.",
+      "answers": [
+        "assumptions"
+      ],
+      "choices": [],
+      "target_word": "assumptions",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c5",
+      "section": "collocation",
+      "prompt": "Young people should be free to forge their own ___.",
+      "answers": [
+        "path"
+      ],
+      "choices": [],
+      "target_word": "path",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "c6",
+      "section": "collocation",
+      "prompt": "The survey reported a small margin of ___.",
+      "answers": [
+        "error"
+      ],
+      "choices": [],
+      "target_word": "error",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g1",
+      "section": "grammar",
+      "prompt": "Complete the auxiliary: Never ___ I seen such a detailed family tree.",
+      "answers": [
+        "have"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g2",
+      "section": "grammar",
+      "prompt": "Complete the auxiliary: Only after the ceremony ___ we realise its significance.",
+      "answers": [
+        "did"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g3",
+      "section": "grammar",
+      "prompt": "Complete the auxiliary: Not until the documents arrived ___ she discover her ancestry.",
+      "answers": [
+        "did"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g4",
+      "section": "grammar",
+      "prompt": "Complete the auxiliary: Rarely ___ he speak about his childhood nowadays.",
+      "answers": [
+        "does"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g5",
+      "section": "grammar",
+      "prompt": "Complete the auxiliary: Under no circumstances ___ you allowed to share these records.",
+      "answers": [
+        "are"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g6",
+      "section": "grammar",
+      "prompt": "Complete the auxiliary: Little ___ they know at the time how much would change.",
+      "answers": [
+        "did"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g7",
+      "section": "grammar",
+      "prompt": "Complete the verb: At the end of the road ___ (stand) an old church.",
+      "answers": [
+        "stands"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g8",
+      "section": "grammar",
+      "prompt": "Complete the past-tense verb: Into the hall ___ (walk) the guest of honour.",
+      "answers": [
+        "walked"
+      ],
+      "choices": [],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g9",
+      "section": "grammar",
+      "prompt": "Use full subject–verb inversion with the noun subject: Down the hill ___.",
+      "answers": [
+        "ran the children"
+      ],
+      "choices": [
+        "the children ran",
+        "ran the children"
+      ],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "g10",
+      "section": "grammar",
+      "prompt": "Choose the correct word order: Here ___.",
+      "answers": [
+        "she comes"
+      ],
+      "choices": [
+        "she comes",
+        "comes she"
+      ],
+      "target_word": "",
+      "target_variants": [],
+      "groups": []
+    },
+    {
+      "id": "e213-1",
+      "section": "emergent",
+      "prompt": "Someone who believes certain objects bring bad luck is ___.",
+      "answers": [
+        "superstitious"
+      ],
+      "choices": [],
+      "target_word": "superstitious",
+      "target_variants": [],
+      "groups": [
+        "213"
+      ]
+    },
+    {
+      "id": "e213-2",
+      "section": "emergent",
+      "prompt": "The spice often grated into warm drinks is ___.",
+      "answers": [
+        "nutmeg"
+      ],
+      "choices": [],
+      "target_word": "nutmeg",
+      "target_variants": [],
+      "groups": [
+        "213"
+      ]
+    },
+    {
+      "id": "e213-3",
+      "section": "emergent",
+      "prompt": "The Christian festival commemorating the visit of the Magi is ___.",
+      "answers": [
+        "Epiphany"
+      ],
+      "choices": [],
+      "target_word": "Epiphany",
+      "target_variants": [],
+      "groups": [
+        "213"
+      ]
+    },
+    {
+      "id": "e213-4",
+      "section": "emergent",
+      "prompt": "The Christian ceremony that often involves water is ___.",
+      "answers": [
+        "baptism"
+      ],
+      "choices": [],
+      "target_word": "baptism",
+      "target_variants": [],
+      "groups": [
+        "213"
+      ]
+    },
+    {
+      "id": "e213-5",
+      "section": "emergent",
+      "prompt": "A natural tendency to develop a trait is a ___.",
+      "answers": [
+        "predisposition"
+      ],
+      "choices": [],
+      "target_word": "predisposition",
+      "target_variants": [],
+      "groups": [
+        "213"
+      ]
+    },
+    {
+      "id": "e213-6",
+      "section": "emergent",
+      "prompt": "A child may throw a ___ when frustrated.",
+      "answers": [
+        "tantrum"
+      ],
+      "choices": [],
+      "target_word": "tantrum",
+      "target_variants": [],
+      "groups": [
+        "213"
+      ]
+    },
+    {
+      "id": "e214-1",
+      "section": "emergent",
+      "prompt": "An event in which many shooting stars appear is a ___.",
+      "answers": [
+        "meteor shower"
+      ],
+      "choices": [],
+      "target_word": "meteor shower",
+      "target_variants": [],
+      "groups": [
+        "214"
+      ]
+    },
+    {
+      "id": "e214-2",
+      "section": "emergent",
+      "prompt": "To look like someone is to ___ them.",
+      "answers": [
+        "resemble"
+      ],
+      "choices": [],
+      "target_word": "resemble",
+      "target_variants": [],
+      "groups": [
+        "214"
+      ]
+    },
+    {
+      "id": "e214-3",
+      "section": "emergent",
+      "prompt": "Adults who temporarily care for a child without adopting them are ___.",
+      "answers": [
+        "foster parents"
+      ],
+      "choices": [],
+      "target_word": "foster parents",
+      "target_variants": [],
+      "groups": [
+        "214"
+      ]
+    },
+    {
+      "id": "e214-4",
+      "section": "emergent",
+      "prompt": "A natural tendency to develop a trait is a ___.",
+      "answers": [
+        "predisposition"
+      ],
+      "choices": [],
+      "target_word": "predisposition",
+      "target_variants": [],
+      "groups": [
+        "214"
+      ]
+    },
+    {
+      "id": "e214-5",
+      "section": "emergent",
+      "prompt": "To judge someone as less capable than they are is to ___ them.",
+      "answers": [
+        "underestimate"
+      ],
+      "choices": [],
+      "target_word": "underestimate",
+      "target_variants": [],
+      "groups": [
+        "214"
+      ]
+    },
+    {
+      "id": "e214-6",
+      "section": "emergent",
+      "prompt": "A hairstyle with a strip of hair down the middle and shaved sides is a ___.",
+      "answers": [
+        "mohawk"
+      ],
+      "choices": [],
+      "target_word": "mohawk",
+      "target_variants": [],
+      "groups": [
+        "214"
+      ]
+    }
+  ],
+  "oral_individual": [
+    "Would you want to take a DNA ancestry test? Explain the possible benefits and concerns.",
+    "Which shapes identity more strongly: upbringing or genes? Support your view.",
+    "When can a family tradition provide connection, and when can it create pressure?",
+    "What makes a place significant to a person or a community? You may use an invented example.",
+    "Should endangered languages be actively preserved? Explain your reasoning.",
+    "Do family ties create stronger obligations than friendships? Explain and qualify your view."
+  ],
+  "oral_dialogue": [
+    "A community is planning a cultural celebration for younger residents. Student A wants to preserve familiar rituals; Student B wants a more inclusive modern format. Agree on two activities and explain how they respect the heritage.",
+    "A university is considering offering DNA ancestry tests to students. Student A argues for the educational benefits; Student B raises privacy and interpretation concerns. Agree on safeguards and decide whether the project should go ahead.",
+    "A town has a small cultural budget. Student A wants to support an endangered local language; Student B wants to support a widely attended annual celebration. Negotiate an allocation and justify it.",
+    "A family disagrees about attendance at its annual celebration. Student A values shared obligations; Student B values individual boundaries. Agree on a compromise that preserves relationships without requiring anyone to disclose private experiences."
+  ]
+}
