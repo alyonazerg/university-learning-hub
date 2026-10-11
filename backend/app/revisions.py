@@ -32,6 +32,7 @@ class Definition(StrictModel):
     title:str=Field(min_length=1,max_length=150)
     level:Literal['B2','C1']
     unit:str=Field(min_length=1,max_length=80)
+    semester_stage:Literal['','RT1','RT2','RT3','Final RT']=''
     groups:list[str]=Field(min_length=1,max_length=5)
     vocabulary_notes:str=Field(default='',max_length=12000)
     grammar_notes:str=Field(default='',max_length=12000)
@@ -82,8 +83,19 @@ class Draft(StrictModel):
     writing:str=Field(default='',max_length=12000)
     writing_topic:str=Field(default='',max_length=3000)
     research_metrics:ResearchMetrics=Field(default_factory=ResearchMetrics)
+def validate_breakdown(values,keys,maximum):
+    if values and (set(values)!=set(keys) or any(not 0<=value<=maximum for value in values.values())):
+        raise ValueError('Provide every criterion within its permitted range')
+    return values
+
 class Review(StrictModel):
     writing_score:float=Field(ge=0,le=20)
+    breakdown:dict[str,float]=Field(default_factory=dict)
+    @model_validator(mode='after')
+    def criteria(self):
+        validate_breakdown(self.breakdown,['content','organisation','grammar','vocabulary'],5)
+        if self.breakdown:self.writing_score=round(sum(self.breakdown.values()),2)
+        return self
     feedback:str=Field(default='',max_length=6000)
     usage:dict[str,Literal['correct','partially_correct','incorrect','unreviewed']]=Field(default_factory=dict,max_length=100)
 
@@ -167,6 +179,12 @@ def public_oral(row):
     return {'individual_question':question,**{key:value for key,value in (row.oral or {}).items() if key in ['status','partner_name','dialogue_prompt','paired_at','preparation_seconds','role']}}
 class OralReview(StrictModel):
     score:float=Field(ge=0,le=20)
+    breakdown:dict[str,float]=Field(default_factory=dict)
+    @model_validator(mode='after')
+    def criteria(self):
+        validate_breakdown(self.breakdown,['task','fluency','vocabulary','grammar','pronunciation'],4)
+        if self.breakdown:self.score=round(sum(self.breakdown.values()),2)
+        return self
     feedback:str=Field(default='',max_length=6000)
 @router.post('/revision-attempts/{identifier}/oral-ready')
 def oral_ready(identifier:str,authorization:str | None=Header(default=None),session=Depends(database)):
@@ -205,7 +223,7 @@ def oral_status(identifier:str,authorization:str | None=Header(default=None),ses
 def oral_review(identifier:str,body:OralReview,session=Depends(database)):
     row=session.get(RevisionAttempt,identifier)
     if row is None or not row.submitted_at:raise HTTPException(404,'Submitted attempt not found')
-    row.oral={**(row.oral or {}),'score':body.score,'feedback':body.feedback,'reviewed':True};session.commit();return teacher_attempt(row)
+    row.oral={**(row.oral or {}),'score':body.score,'breakdown':body.breakdown,'feedback':body.feedback,'reviewed':True};session.commit();return teacher_attempt(row)
 
 def rating_result(row):
     report=row.report or {}; oral=row.oral or {}
@@ -214,7 +232,7 @@ def rating_result(row):
     return {'rating_max':3,'rating_score':round(min(3,max(0,earned/120*3)),2) if complete else None,'rating_pending':not complete}
 
 def public_attempt(row):
-    if row.submitted_at:return {**rating_result(row),'title':row.snapshot['title'],'student_name':row.student_name,'group':row.group_code,'essay_feedback':row.report.get('teacher_feedback',''),'oral_feedback':(row.oral or {}).get('feedback',''),'submitted':True,'collect_response_times':row.research_consent,'controlled_score':row.report.get('controlled_score'),'writing_pending':row.report.get('writing_score') is None,'written_score':row.report.get('total_score'),'essay_score':row.report.get('writing_score'),'oral_score':(row.oral or {}).get('score'),'oral':public_oral(row)}
+    if row.submitted_at:return {**rating_result(row),'title':row.snapshot['title'],'student_name':row.student_name,'group':row.group_code,'essay_breakdown':row.report.get('writing_breakdown',{}),'oral_breakdown':(row.oral or {}).get('breakdown',{}),'essay_feedback':row.report.get('teacher_feedback',''),'oral_feedback':(row.oral or {}).get('feedback',''),'submitted':True,'collect_response_times':row.research_consent,'controlled_score':row.report.get('controlled_score'),'writing_pending':row.report.get('writing_score') is None,'written_score':row.report.get('total_score'),'essay_score':row.report.get('writing_score'),'oral_score':(row.oral or {}).get('score'),'oral':public_oral(row)}
     spec=row.snapshot
     return {'submitted':False,'collect_response_times':row.research_consent,'title':spec['title'],'student_name':row.student_name,'group':row.group_code,'items':[{k:v for k,v in item.items() if k in ['id','section','prompt','choices']} for item in spec['items']],'writing_prompt':spec['writing_prompt'],'writing_topics':spec.get('writing_topics',[]),'writing_topic':(row.report or {}).get('writing_topic',''),'research_metrics':(row.report or {}).get('research_metrics',{}) if row.research_consent else {},'writing_range':[225,275],'warmup':spec['priming'] if row.research_consent and row.condition=='experimental' and not row.begun_at else [],'answers':row.answers,'timing':row.timing,'writing':row.writing}
 @router.post('/revision-attempts/{identifier}/begin')
@@ -273,7 +291,7 @@ def grade(row):
     report.update({'writing_topic':previous.get('writing_topic',''),'items':items,'usage':usage,'writing_score':writing,'writing_score_provisional':previous.get('writing_score_provisional'),'ai_feedback':previous.get('ai_feedback',''),'ai_status':previous.get('ai_status','not_configured'),'teacher_feedback':previous.get('teacher_feedback',''),'total_score':round(report['controlled_score']+writing,2) if writing is not None else None,'mean_reaction_time_ms':round(statistics.mean(rt),2) if rt else None,'median_reaction_time_ms':round(statistics.median(rt),2) if rt else None,'free_response_word_count':len(re.findall(r"\b[\w’'-]+\b",row.writing))})
     metrics=previous.get('research_metrics',{}) if row.research_consent else {}
     tokens=re.findall(r"\b[\w’'-]+\b",row.writing.casefold())
-    report.update(research_metrics=metrics,test_duration_ms=round(max(0,(row.submitted_at-(row.begun_at or row.started_at)).total_seconds()*1000)) if row.research_consent and row.submitted_at else None,unique_word_count=len(set(tokens)),type_token_ratio=round(len(set(tokens))/len(tokens),4) if tokens else 0,question_revisits=sum(max(0,x.get('visits',1)-1) for x in items),completed_item_count=sum(bool(x.get('answer_completed_at')) for x in items),material_version=hashlib.sha256(json.dumps({'items':[{k:v for k,v in i.items() if k!='answers'} for i in spec['items']],'priming':spec.get('priming',[]),'topics':spec.get('writing_topics',[])},sort_keys=True,ensure_ascii=False).encode()).hexdigest()[:16],ai_breakdown=previous.get('ai_breakdown',{}))
+    report.update(research_metrics=metrics,test_duration_ms=round(max(0,(row.submitted_at-(row.begun_at or row.started_at)).total_seconds()*1000)) if row.research_consent and row.submitted_at else None,unique_word_count=len(set(tokens)),type_token_ratio=round(len(set(tokens))/len(tokens),4) if tokens else 0,question_revisits=sum(max(0,x.get('visits',1)-1) for x in items),completed_item_count=sum(bool(x.get('answer_completed_at')) for x in items),material_version=hashlib.sha256(json.dumps({'items':[{k:v for k,v in i.items() if k!='answers'} for i in spec['items']],'priming':spec.get('priming',[]),'topics':spec.get('writing_topics',[])},sort_keys=True,ensure_ascii=False).encode()).hexdigest()[:16],writing_breakdown=previous.get('writing_breakdown',{}),ai_breakdown=previous.get('ai_breakdown',{}))
     row.report=report
 
 def ai_review(row):
@@ -313,7 +331,7 @@ def teacher_attempt_lookup(identifier:str,session=Depends(database)):
 def review(identifier:str,body:Review,session=Depends(database)):
     row=session.get(RevisionAttempt,identifier)
     if row is None or not row.submitted_at:raise HTTPException(404,'Submitted attempt not found')
-    report=dict(row.report);report.update(writing_score=body.writing_score,teacher_feedback=body.feedback,total_score=round(report['controlled_score']+body.writing_score,2))
+    report=dict(row.report);report.update(writing_breakdown=body.breakdown,writing_score=body.writing_score,teacher_feedback=body.feedback,total_score=round(report['controlled_score']+body.writing_score,2))
     report['usage']=[{**item,'usage_quality':body.usage.get(item['target_word'],item['usage_quality']) if item['used_in_free_response'] else 'unreviewed'} for item in report['usage']]
     row.report=report;row.teacher_status='reviewed';session.commit();return teacher_attempt(row)
 @router.post('/learning/revisions/attempts/{identifier}/ai-review',dependencies=[Depends(administrator)])
@@ -335,8 +353,8 @@ def export(identifier:str,format:Literal['csv','xlsx']='csv',research_only:bool=
     rows=attempts(identifier,session);main=[];items=[];usage=[]
     for row in rows:
         if research_only and not row['research_consent']:continue
-        r=row['report'];base={k:row[k] for k in ['student_id','student_name','group','condition','research_consent','consent_version','level','coursebook','unit','test_id']};base.update({k:row[k] for k in ['rating_score','rating_max','rating_pending']});base['oral_score']=row.get('oral',{}).get('score');base['oral_feedback']=row.get('oral',{}).get('feedback','');base['oral_partner_attempt_id']=row.get('oral',{}).get('partner_id');base['oral_prompt']=row.get('oral',{}).get('dialogue_prompt');base['started_at']=str(row['started_at']);base['submitted_at']=str(row['submitted_at'] or '');base['submission_id']=row['id'];base['date']=str(row['submitted_at'] or row['started_at']);base['teacher_status']=row['teacher_status']
-        main.append({**base,**r.get('research_metrics',{}),**{k:r.get(k) for k in ['test_duration_ms','question_revisits','completed_item_count','unique_word_count','type_token_ratio','material_version','research_metrics','vocabulary_score','grammar_score','emergent_vocab_score','writing_score','writing_score_provisional','total_score','accuracy_score','mean_reaction_time_ms','median_reaction_time_ms','free_response_word_count','writing_topic','ai_feedback','teacher_feedback']},'target_words_used_count':sum(x['used_in_free_response'] for x in r.get('usage',[])),'target_words_used_correctly_count':sum(x['used_in_free_response'] and x['usage_quality']=='correct' for x in r.get('usage',[])),'free_response':row['writing']})
+        r=row['report'];base={k:row[k] for k in ['student_id','student_name','group','condition','research_consent','consent_version','level','coursebook','unit','test_id']};base.update({k:row[k] for k in ['rating_score','rating_max','rating_pending']});base['oral_score']=row.get('oral',{}).get('score');base['oral_breakdown']=row.get('oral',{}).get('breakdown',{});base['oral_feedback']=row.get('oral',{}).get('feedback','');base['oral_partner_attempt_id']=row.get('oral',{}).get('partner_id');base['oral_prompt']=row.get('oral',{}).get('dialogue_prompt');base['started_at']=str(row['started_at']);base['submitted_at']=str(row['submitted_at'] or '');base['submission_id']=row['id'];base['date']=str(row['submitted_at'] or row['started_at']);base['teacher_status']=row['teacher_status']
+        main.append({**base,**r.get('research_metrics',{}),**{k:r.get(k) for k in ['test_duration_ms','question_revisits','completed_item_count','unique_word_count','type_token_ratio','material_version','research_metrics','vocabulary_score','grammar_score','emergent_vocab_score','writing_score','writing_score_provisional','total_score','accuracy_score','mean_reaction_time_ms','median_reaction_time_ms','free_response_word_count','writing_topic','writing_breakdown','ai_feedback','teacher_feedback']},'target_words_used_count':sum(x['used_in_free_response'] for x in r.get('usage',[])),'target_words_used_correctly_count':sum(x['used_in_free_response'] and x['usage_quality']=='correct' for x in r.get('usage',[])),'free_response':row['writing']})
         items.extend({**base,**item} for item in r.get('items',[]));usage.extend({**base,**item} for item in r.get('usage',[]))
     tables={'submissions':main,'item_rt':items,'free_vocabulary':usage};files=[]
     def safe(value):

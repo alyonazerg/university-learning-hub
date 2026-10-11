@@ -203,3 +203,20 @@ def test_private_result_updates_and_rating_waits_for_both_reviews(client):
     assert 'answers' not in result and 'items' not in result
     client.put('/learning/revisions/attempts/'+started['attempt_id']+'/oral-review',headers=ADMIN,json={'score':20,'feedback':'Updated.'})
     assert client.get(path,headers=auth).json()['rating_score']==2.9
+
+def test_criterion_marks_are_validated_and_summed(client):
+    identifier,ADMIN=setup(client)
+    started=client.post('/revision-tests/'+identifier+'/start',json={'group':'214','student_name':'Synthetic Learner','research_consent':False}).json()
+    path='/revision-attempts/'+started['attempt_id'];auth={'Authorization':'Bearer '+started['token']}
+    client.post(path+'/begin',headers=auth)
+    client.post(path+'/submit',headers=auth,json={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'An essay.'})
+    review='/learning/revisions/attempts/'+started['attempt_id']
+    essay={'content':4,'organisation':3,'grammar':5,'vocabulary':4}
+    response=client.put(review+'/review',headers=ADMIN,json={'writing_score':0,'breakdown':essay})
+    assert response.status_code==200 and response.json()['report']['writing_score']==16
+    oral={'task':3,'fluency':2,'vocabulary':4,'grammar':3,'pronunciation':4}
+    response=client.put(review+'/oral-review',headers=ADMIN,json={'score':0,'breakdown':oral})
+    assert response.status_code==200 and response.json()['oral']['score']==16
+    public=client.get(path,headers=auth).json()
+    assert public['essay_breakdown']==essay and public['oral_breakdown']==oral
+    assert client.put(review+'/review',headers=ADMIN,json={'writing_score':20,'breakdown':{'content':6}}).status_code==422

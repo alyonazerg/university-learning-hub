@@ -33,3 +33,9 @@ The whole revision test contributes at most **3 rating points**. The retained an
 Students can copy a private result link after submission and refresh it later to see current essay and speaking marks and teacher feedback. The capability token is in the URL fragment, not the request URL, and is sent only in the API Authorization header. Anyone holding that link can read the result: students should keep it private. The fragment is removed from the address bar after loading and the credential is retained locally for refresh.
 
 The student learning hub has **My results**. Its list is stored on the current browser, independently of the student's platform account; it is not cross-device account synchronisation. On a different device, students can paste their complete private link into My results or open it directly. Losing both browser storage and the private link requires teacher support; the public entry link never lists personal results.
+
+## Criterion grading and semester plan
+
+Essay grading uses Content, Organisation, Grammar, Vocabulary (each 0–5). Speaking uses Task fulfilment/interaction, Fluency/coherence, Vocabulary, Grammar, Pronunciation (each 0–4). The server validates complete breakdowns and derives the total; old total-only marks remain readable without invented criterion scores. Criteria are included in private student results and exports.
+
+RT1 covers Unit 7, RT2 Unit 8 (first assessment), RT3 Unit 9, Final RT Units 7–9 (second assessment), each worth up to 3 rating points. Choosing a semester stage in the draft editor fills the unit and title. No future questions or fixed dates are fabricated. Migration 012 labels the untouched default Unit 7 tests RT1; custom titles and existing attempts are preserved.
