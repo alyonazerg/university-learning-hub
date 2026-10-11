@@ -110,7 +110,7 @@ class Review(StrictModel):
     @model_validator(mode='after')
     def criteria(self):
         validate_breakdown(self.breakdown,['content','organisation','grammar','vocabulary'],5)
-        if self.breakdown:self.writing_score=round(sum(self.breakdown.values()),2)
+        self.writing_score=int((sum(self.breakdown.values()) if self.breakdown else self.writing_score)+0.5)
         return self
     feedback:str=Field(default='',max_length=6000)
     usage:dict[str,Literal['correct','partially_correct','incorrect','unreviewed']]=Field(default_factory=dict,max_length=100)
@@ -200,9 +200,13 @@ class OralReview(StrictModel):
     @model_validator(mode='after')
     def criteria(self):
         new_keys=['individual_vocabulary','individual_grammar','individual_coherence','individual_content','dialogue_vocabulary','dialogue_grammar','dialogue_coherence','dialogue_strategies']
-        split=bool(self.breakdown and any(key.startswith('individual_') for key in self.breakdown))
-        validate_breakdown(self.breakdown,new_keys if split else ['task','fluency','vocabulary','grammar','pronunciation'],5 if split else 4)
-        if self.breakdown:self.score=round(sum(self.breakdown.values())/(2 if split else 1),2)
+        split=bool(self.breakdown and any(key.startswith(('individual_','dialogue_')) for key in self.breakdown))
+        if split:
+            present=set(self.breakdown)
+            if present not in [set(new_keys),set(new_keys[:4]),set(new_keys[4:])]:raise ValueError('Provide all four criteria for each assessed speaking part')
+            validate_breakdown(self.breakdown,list(present),5)
+        else:validate_breakdown(self.breakdown,['task','fluency','vocabulary','grammar','pronunciation'],5 if split else 4)
+        self.score=int((sum(self.breakdown.values())/(2 if split else 1) if self.breakdown else self.score)+0.5)
         return self
     feedback:str=Field(default='',max_length=6000)
 @router.post('/revision-attempts/{identifier}/oral-ready')
@@ -280,7 +284,36 @@ def oral_status(identifier:str,authorization:str | None=Header(default=None),ses
 def oral_review(identifier:str,body:OralReview,session=Depends(database)):
     row=session.get(RevisionAttempt,identifier)
     if row is None or not row.submitted_at:raise HTTPException(404,'Submitted attempt not found')
-    row.oral={**(row.oral or {}),'score':body.score,'breakdown':body.breakdown,'feedback':body.feedback,'reviewed':True};session.commit();return teacher_attempt(row)
+    oral=dict(row.oral or {})
+    split=any(key.startswith('individual_') or key.startswith('dialogue_') for key in body.breakdown)
+    if split:
+        marks={**oral.get('breakdown',{}),**body.breakdown}
+        marks={key:value for key,value in marks.items() if key.startswith(('individual_','dialogue_'))}
+        parts=speaking_parts(marks)
+        oral.update(breakdown=marks,**parts,score=int((parts['individual_score']+parts['dialogue_score'])/2+0.5) if all(value is not None for value in parts.values()) else None)
+    else:oral.update(score=body.score,breakdown=body.breakdown,individual_score=None,dialogue_score=None)
+    oral.update(feedback=body.feedback,reviewed=oral.get('score') is not None)
+    row.oral=oral;session.commit();return teacher_attempt(row)
+
+def speaking_parts(marks):
+    parts={}
+    for prefix,keys in [('individual',['vocabulary','grammar','coherence','content']),('dialogue',['vocabulary','grammar','coherence','strategies'])]:
+        names=[prefix+'_'+key for key in keys]
+        parts[prefix+'_score']=int(sum(marks[key] for key in names)+0.5) if all(key in marks for key in names) else None
+    return parts
+
+@router.delete('/learning/revisions/attempts/{identifier}',dependencies=[Depends(administrator)])
+def delete_attempt(identifier:str,session=Depends(database)):
+    row=session.get(RevisionAttempt,identifier)
+    if row is None:raise HTTPException(404,'Attempt not found')
+    session.scalar(select(RevisionTest).where(RevisionTest.id==row.test_id).with_for_update())
+    session.refresh(row)
+    partner=session.get(RevisionAttempt,(row.oral or {}).get('partner_id')) if (row.oral or {}).get('partner_id') else None
+    if partner and (partner.oral or {}).get('partner_id')==row.id:
+        keys={'status','partner_id','partner_name','role','dialogue_prompt','paired_at','opened_at','reading_started_at','reading_seconds','preparation_seconds','dialogue_allowed','individual_completed_at','ready_at'}
+        partner.oral={key:value for key,value in (partner.oral or {}).items() if key not in keys}
+    session.delete(row);session.commit();return {'deleted':True}
+
 
 def rating_result(row):
     report=row.report or {}; oral=row.oral or {}
@@ -289,7 +322,7 @@ def rating_result(row):
     return {'rating_max':3,'rating_score':round(min(3,max(0,earned/120*3)),2) if complete else None,'rating_pending':not complete}
 
 def public_attempt(row):
-    if row.submitted_at:return {**rating_result(row),'title':row.snapshot['title'],'student_name':row.student_name,'group':row.group_code,'essay_breakdown':row.report.get('writing_breakdown',{}),'oral_breakdown':(row.oral or {}).get('breakdown',{}),'essay_feedback':row.report.get('teacher_feedback',''),'oral_feedback':(row.oral or {}).get('feedback',''),'submitted':True,'collect_response_times':row.research_consent,'controlled_score':row.report.get('controlled_score'),'writing_pending':row.report.get('writing_score') is None,'written_score':row.report.get('total_score'),'essay_score':row.report.get('writing_score'),'oral_score':(row.oral or {}).get('score'),'oral':public_oral(row)}
+    if row.submitted_at:return {**rating_result(row),'title':row.snapshot['title'],'student_name':row.student_name,'group':row.group_code,'essay_breakdown':row.report.get('writing_breakdown',{}),'oral_breakdown':(row.oral or {}).get('breakdown',{}),'essay_feedback':row.report.get('teacher_feedback',''),'oral_feedback':(row.oral or {}).get('feedback',''),'submitted':True,'collect_response_times':row.research_consent,'controlled_score':row.report.get('controlled_score'),'writing_pending':row.report.get('writing_score') is None,'written_score':row.report.get('total_score'),'essay_score':row.report.get('writing_score'),'oral_score':(row.oral or {}).get('score'),**speaking_parts((row.oral or {}).get('breakdown',{})),'oral':public_oral(row)}
     spec=row.snapshot
     return {'submitted':False,'collect_response_times':row.research_consent,'title':spec['title'],'student_name':row.student_name,'group':row.group_code,'items':[{k:v for k,v in item.items() if k in ['id','section','prompt','choices']} for item in spec['items']],'writing_prompt':spec['writing_prompt'],'writing_topics':spec.get('writing_topics',[]),'writing_topic':(row.report or {}).get('writing_topic',''),'integrity_metrics':(row.report or {}).get('integrity_metrics',{}),'research_metrics':(row.report or {}).get('research_metrics',{}) if row.research_consent else {},'writing_range':[225,275],'warmup':spec['priming'] if row.research_consent and row.condition=='experimental' and not row.begun_at else [],'answers':row.answers,'timing':row.timing,'writing':row.writing}
 @router.post('/revision-attempts/{identifier}/begin')
@@ -380,6 +413,7 @@ def ai_review(row):
             breakdown={key:float(breakdown[key]) for key in ['content','organisation','grammar','vocabulary']}
             if any(not 0<=value<=5 for value in breakdown.values()):raise ValueError()
             score=sum(breakdown.values())
+        score=int(score+0.5)
         vocabulary_usage=[];seen=set()
         variants={item.get('target_word'):[item.get('target_word',''),*item.get('target_variants',[])] for item in row.snapshot.get('items',[])}
         for item in result.get('vocabulary_usage',[]):
@@ -404,7 +438,7 @@ def submit(identifier:str,body:Draft,authorization:str | None=Header(default=Non
     row.submitted_at=now();grade(row);session.commit();return public_attempt(row)
 
 def teacher_attempt(row):
-    return {**rating_result(row),'id':row.id,'test_id':row.test_id,'student_id':row.student_id,'student_name':row.student_name,'group':row.group_code,'condition':row.condition,'research_consent':row.research_consent,'consent_version':row.consent_version,'level':row.snapshot['level'],'coursebook':GROUPS[row.group_code][1],'unit':row.snapshot['unit'],'started_at':row.begun_at or row.started_at,'submitted_at':row.submitted_at,'teacher_status':row.teacher_status,'writing':row.writing,'oral':row.oral,'ai_available':bool(settings.revision_ai_api_key),'report':row.report}
+    return {**rating_result(row),'id':row.id,'test_id':row.test_id,'student_id':row.student_id,'student_name':row.student_name,'group':row.group_code,'condition':row.condition,'research_consent':row.research_consent,'consent_version':row.consent_version,'level':row.snapshot['level'],'coursebook':GROUPS[row.group_code][1],'unit':row.snapshot['unit'],'started_at':row.begun_at or row.started_at,'submitted_at':row.submitted_at,'teacher_status':row.teacher_status,'writing':row.writing,'oral':{**(row.oral or {}),**speaking_parts((row.oral or {}).get('breakdown',{}))},'ai_available':bool(settings.revision_ai_api_key),'report':row.report}
 @router.get('/learning/revisions/analytics',dependencies=[Depends(administrator)])
 def analytics(test_id:str | None=None,session=Depends(database)):
     query=select(RevisionAttempt)
@@ -466,7 +500,7 @@ def export(identifier:str,format:Literal['csv','xlsx']='csv',research_only:bool=
     rows=attempts(identifier,session);main=[];items=[];usage=[]
     for row in rows:
         if research_only and not row['research_consent']:continue
-        r=row['report'];base={k:row[k] for k in ['student_id','student_name','group','condition','research_consent','consent_version','level','coursebook','unit','test_id']};base.update({k:row[k] for k in ['rating_score','rating_max','rating_pending']});base['oral_score']=row.get('oral',{}).get('score');base['oral_breakdown']=row.get('oral',{}).get('breakdown',{});base['oral_feedback']=row.get('oral',{}).get('feedback','');base['oral_partner_attempt_id']=row.get('oral',{}).get('partner_id');base['oral_prompt']=row.get('oral',{}).get('dialogue_prompt');base['started_at']=str(row['started_at']);base['submitted_at']=str(row['submitted_at'] or '');base['submission_id']=row['id'];base['date']=str(row['submitted_at'] or row['started_at']);base['teacher_status']=row['teacher_status']
+        r=row['report'];base={k:row[k] for k in ['student_id','student_name','group','condition','research_consent','consent_version','level','coursebook','unit','test_id']};base.update({k:row[k] for k in ['rating_score','rating_max','rating_pending']});base['oral_score']=row.get('oral',{}).get('score');base.update(speaking_parts(row.get('oral',{}).get('breakdown',{})));base['oral_breakdown']=row.get('oral',{}).get('breakdown',{});base['oral_feedback']=row.get('oral',{}).get('feedback','');base['oral_partner_attempt_id']=row.get('oral',{}).get('partner_id');base['oral_prompt']=row.get('oral',{}).get('dialogue_prompt');base['started_at']=str(row['started_at']);base['submitted_at']=str(row['submitted_at'] or '');base['submission_id']=row['id'];base['date']=str(row['submitted_at'] or row['started_at']);base['teacher_status']=row['teacher_status']
         main.append({**base,**r.get('research_metrics',{}),**{k:r.get(k) for k in ['test_duration_ms','question_revisits','completed_item_count','unique_word_count','type_token_ratio','material_version','research_metrics','vocabulary_score','grammar_score','emergent_vocab_score','writing_score','writing_score_provisional','total_score','accuracy_score','mean_reaction_time_ms','median_reaction_time_ms','free_response_word_count','writing_topic','writing_breakdown','integrity_metrics','ai_grammar_usage','ai_grammar_units_correct','ai_vocabulary_usage','ai_target_words_correct','ai_feedback','teacher_feedback']},'target_words_used_count':sum(x['used_in_free_response'] for x in r.get('usage',[])),'target_words_used_correctly_count':sum(x['used_in_free_response'] and x['usage_quality']=='correct' for x in r.get('usage',[])),'free_response':row['writing']})
         items.extend({**base,**item} for item in r.get('items',[]));usage.extend({**base,**item} for item in r.get('usage',[]))
     tables={'submissions':main,'item_rt':items,'free_vocabulary':usage};files=[]

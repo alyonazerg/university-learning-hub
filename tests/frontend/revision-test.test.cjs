@@ -102,11 +102,11 @@ test('private return link loads current feedback without reopening a test',async
   try{return route.fulfill({body:await fs.readFile(path.resolve(__dirname,'../../frontend',u.pathname.slice(1))),contentType:u.pathname.endsWith('.js')?'text/javascript':u.pathname.endsWith('.css')?'text/css':u.pathname.endsWith('.html')?'text/html':'image/svg+xml'});}catch{return route.fulfill({status:404,body:''});}
  });
  await page.goto('http://moon.test/revision-test.html?view=result&attempt=private-attempt#token=private-token');
- await page.getByText('Good argument.',{exact:true}).waitFor();assert.equal(new URL(page.url()).hash,'');
+ assert.equal(await page.getByText('Good argument.',{exact:true}).isVisible(),false);await page.getByText('Result details',{exact:true}).click();await page.getByText('Good argument.',{exact:true}).waitFor();assert.equal(new URL(page.url()).hash,'');
  assert.equal(await page.locator('.revision-result-rating strong').textContent(),'2.65 / 3');
  assert.equal(await page.getByRole('button',{name:'Reveal my individual question'}).count(),0);
  await page.getByRole('button',{name:'Refresh result'}).click();await page.waitForTimeout(100);assert(calls>=2);
- await page.reload();await page.getByText('Clear speech.',{exact:true}).waitFor();assert.deepEqual(errors,[]);
+ await page.reload();await page.getByText('Result details',{exact:true}).click();await page.getByText('Clear speech.',{exact:true}).waitFor();assert.deepEqual(errors,[]);
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
 });
 

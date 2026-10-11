@@ -345,3 +345,30 @@ def test_teacher_pairs_and_shared_reading_timer(client):
     assert second['preparation_seconds']==60
     assert client.post(b[1]+'/oral-open',headers=b[2]).json()['reading_started_at']==second['reading_started_at']
     assert client.post(endpoint,headers=ADMIN,json={'partner_attempt_id':b[0]}).status_code==409
+    assert client.delete('/learning/revisions/attempts/'+a[0],headers=ADMIN).status_code==200
+    assert 'partner_name' not in client.get(b[1]+'/oral',headers=b[2]).json()
+
+def test_whole_marks_partial_speaking_and_deletion(client):
+    identifier,ADMIN=setup(client)
+    row=client.post('/revision-tests/'+identifier+'/start',json={'group':'214','student_name':'Synthetic Learner','research_consent':False}).json()
+    path='/revision-attempts/'+row['attempt_id'];auth={'Authorization':'Bearer '+row['token']}
+    client.post(path+'/begin',headers=auth)
+    client.post(path+'/submit',headers=auth,json={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'An essay.'})
+    endpoint='/learning/revisions/attempts/'+row['attempt_id']
+    essay=client.put(endpoint+'/review',headers=ADMIN,json={'writing_score':12.5}).json()
+    assert essay['report']['writing_score']==13 and essay['report']['total_score']==93
+    individual={key:4 for key in ['individual_vocabulary','individual_grammar','individual_coherence','individual_content']}
+    dialogue={key:3 for key in ['dialogue_vocabulary','dialogue_grammar','dialogue_coherence','dialogue_strategies']};dialogue['dialogue_vocabulary']=4
+    first=client.put(endpoint+'/oral-review',headers=ADMIN,json={'score':16,'breakdown':individual})
+    assert first.status_code==200,first.text
+    assert first.json()['oral']['individual_score']==16 and first.json()['oral']['score'] is None
+    assert first.json()['rating_pending'] is True
+    second=client.put(endpoint+'/oral-review',headers=ADMIN,json={'score':13,'breakdown':dialogue})
+    assert second.status_code==200,second.text
+    assert second.json()['oral']['dialogue_score']==13 and second.json()['oral']['score']==15
+    public=client.get(path,headers=auth).json()
+    assert (public['individual_score'],public['dialogue_score'],public['oral_score'])==(16,13,15)
+    assert client.delete(endpoint,headers=auth).status_code in [401,403]
+    assert client.delete(endpoint,headers=ADMIN).json()=={'deleted':True}
+    assert client.get(path,headers=auth).status_code==401
+    assert client.get('/learning/revisions/tests/'+identifier+'/attempts',headers=ADMIN).json()==[]

@@ -124,3 +124,24 @@ def test_familiar_options_migration_preserves_edits(level,monkeypatch):
     if level=='c1':
         for item in current['items']:
             if item['section']=='grammar':assert not item['choices'] and all(len(answer.split())>=2 for answer in item['answers'])
+
+def test_whole_mark_migration_preserves_evidence_and_pending(monkeypatch):
+    folder=Path(__file__).parents[1]
+    spec=importlib.util.spec_from_file_location('whole_marks',folder/'alembic/versions/016_whole_assessment_marks.py')
+    migration=importlib.util.module_from_spec(spec);spec.loader.exec_module(migration)
+    with SessionLocal() as session:
+        session.add(RevisionTest(id='whole-test',definition={},published=False));session.commit()
+        ids=[]
+        for marked in [True,False]:
+            attempt=RevisionAttempt(test_id='whole-test',snapshot={},research_consent=False,consent_version='synthetic',token_hash='synthetic',student_id='synthetic',student_name='Synthetic Learner',group_code='213',condition='control',report={'writing_score':12.5,'writing_score_provisional':13.5,'controlled_score':40.25,'writing_breakdown':{'content':3.5}} if marked else {},oral={'score':16.5,'breakdown':{'individual_vocabulary':4.5}} if marked else {})
+            session.add(attempt);session.commit();ids.append(attempt.id)
+    with engine.begin() as connection:
+        monkeypatch.setattr(migration.op,'get_bind',lambda:connection)
+        migration.upgrade();migration.upgrade()
+    with SessionLocal() as session:
+        row=session.get(RevisionAttempt,ids[0])
+        assert row.report['writing_score']==13 and row.report['total_score']==53.25
+        assert row.report['writing_score_provisional']==14 and row.oral['score']==17
+        assert row.report['writing_breakdown']=={'content':3.5}
+        assert row.oral['breakdown']=={'individual_vocabulary':4.5}
+        assert session.get(RevisionAttempt,ids[1]).report=={}
