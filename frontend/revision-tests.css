@@ -14,3 +14,5 @@
 #connected-revisions form {display:grid;gap:12px;margin-top:16px;}
 #connected-revisions pre {white-space:pre-wrap;overflow-wrap:anywhere;}
 #connected-revisions input,#connected-revisions textarea,#connected-revisions select {max-width:100%;box-sizing:border-box;}
+
+.revision-public .revision-row p {white-space:pre-line;}
