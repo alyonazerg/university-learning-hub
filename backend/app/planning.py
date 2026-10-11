@@ -20,7 +20,7 @@ class PlanInput(StrictModel):
     starts_at: datetime | None = None
     duration_minutes: int = Field(default=90, ge=1, le=480)
     room: str = Field(default='', max_length=200)
-    kind: Literal['lesson', 'test', 'imt', 'extra'] = 'lesson'
+    kind: Literal['lesson', 'test', 'credit', 'exam', 'imt', 'extra'] = 'lesson'
     objectives: str = Field(default='', max_length=5000)
     materials: str = Field(default='', max_length=5000)
     vocabulary: list[str] = Field(default_factory=list, max_length=100)

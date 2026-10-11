@@ -36,9 +36,9 @@
       if(group===name&&week.type===type&&value>='2026-09-16'&&value<='2026-12-29')days.push(value);
     }
     const number=days.sort().indexOf(date)+3;
-    const checkpoints={8:['Assessment Test 1','Parts of Speech; Noun; Articles.'],13:['Assessment Test 2','Pronoun (including relative clauses); Numeral.'],17:['Assessment Test 3','Adjective; Adverb; comprehensive review.'],18:['Final credit','Pass/fail credit on the eighteenth and final class.']};
+    const checkpoints={8:['Assessment Test 1','Parts of Speech; Noun; Articles.'],13:['Assessment Test 2','Pronoun (including relative clauses); Numeral.'],17:['Assessment Test 3','Adjective; Adverb; comprehensive review.'],18:['Credit','Pass/fail credit on the eighteenth and final class.']};
     const checkpoint=checkpoints[number];
-    return {topic:'Lesson '+number+' · '+(checkpoint?checkpoint[0]:'Grammar'),kind:checkpoint?'test':'lesson',objectives:checkpoint?checkpoint[1]:(number<8?'Parts of Speech; Noun; Articles.':number<13?'Pronoun (including relative clauses); Numeral.':'Adjective; Adverb; comprehensive review.'),position:number};
+    return {topic:'Lesson '+number+' · '+(checkpoint?checkpoint[0]:'Grammar'),kind:number===18?'credit':checkpoint?'test':'lesson',objectives:checkpoint?checkpoint[1]:(number<8?'Parts of Speech; Noun; Articles.':number<13?'Pronoun (including relative clauses); Numeral.':'Adjective; Adverb; comprehensive review.'),position:number};
   }
   function build(from,until,calendar) {
     const groups=new Map();
@@ -47,7 +47,7 @@
       const date=new Date(new Date(week.date+'T12:00:00Z').getTime()+day*dayMs).toISOString().slice(0,10);
       if(date<from||date>until||(course(name)==='grammar'&&date<'2026-09-16'))continue;
       if(!groups.has(name))groups.set(name,{name,course_id:course(name),lessons:[]});
-      groups.get(name).lessons.push({topic:course(name)==='grammar'?'Grammar lesson':'Speaking practice',starts_at:new Date(date+'T'+time+':00+03:00').toISOString(),duration_minutes:course(name)==='grammar'&&grammarDetails(name,date).kind==='test'?90:duration,...(course(name)==='grammar'?grammarDetails(name,date):{})});
+      groups.get(name).lessons.push({topic:course(name)==='grammar'?'Grammar lesson':'Speaking practice',starts_at:new Date(date+'T'+time+':00+03:00').toISOString(),duration_minutes:course(name)==='grammar'&&grammarDetails(name,date).kind!=='lesson'?90:duration,...(course(name)==='grammar'?grammarDetails(name,date):{})});
     }
     if(from<='2026-09-12'&&until>='2026-09-12')for(const name of ['150','151','154']) {
       if(!groups.has(name))groups.set(name,{name,course_id:'grammar',lessons:[]});
@@ -70,7 +70,7 @@
       for(const date of planned) {
         const starts=new Date(date+'T'+time+':00+03:00').toISOString(),lesson=actual.find(l=>l.starts_at===starts);
         if(!lesson)exclusions.push(stamp(starts));
-        else if(lesson.kind==='test')overrides.push(...event(uid,{...lesson,topic:lesson.topic+' · Group '+name},['RECURRENCE-ID:'+stamp(starts)]));
+        else if(['test','credit','exam'].includes(lesson.kind))overrides.push(...event(uid,{...lesson,topic:lesson.topic+' · Group '+name},['RECURRENCE-ID:'+stamp(starts)]));
       }
       lines.push(...event(uid,base,['RRULE:FREQ=WEEKLY;INTERVAL=2;UNTIL='+until.replace(/-/g,'')+'T205959Z',...(exclusions.length?['EXDATE:'+exclusions.join(',')]:[])]),...overrides);
     }

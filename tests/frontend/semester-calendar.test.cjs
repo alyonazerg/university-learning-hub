@@ -5,7 +5,8 @@ test('semester contains eighteen grammar classes, checkpoints replace teaching, 
   assert.equal(body.groups.length,8);
   for(const group of body.groups.filter(g=>g.course_id==='grammar')){
     assert.equal(group.lessons.length,18);assert.deepEqual(group.lessons.map(l=>l.position).sort((a,b)=>a-b),Array.from({length:18},(_,i)=>i+1));
-    assert.deepEqual(group.lessons.filter(l=>l.kind==='test').map(l=>l.position),[8,13,17,18]);
+    assert.deepEqual(group.lessons.filter(l=>l.kind==='test').map(l=>l.position),[8,13,17]);
+    assert.equal(group.lessons.find(l=>l.position===18).kind,'credit');
     assert.equal(group.lessons.filter(l=>l.starts_at.startsWith('2026-09-12')).length,2);
   }
   const ics=model.ical(from,until,weeks).replace(/\r\n /g,'');

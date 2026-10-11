@@ -282,7 +282,7 @@ test('reviewed autumn semester imports eight groups, honors week exceptions and 
   await page.getByRole('button',{name:'Confirm import',exact:true}).click();await page.getByText('Schedule imported: 58 lessons added, 148 kept.',{exact:true}).waitFor();
   await page.locator('#planning-group-filter').selectOption({label:'151'});await section(page,'connected-planning');
   assert.equal(await page.locator('#connected-planning article').count(),18);
-  assert.match(await page.locator('#connected-planning').textContent(),/Lesson 18 · Final credit/);
+  assert.match(await page.locator('#connected-planning').textContent(),/Lesson 18 · Credit/);
   await page.getByText('Import lesson topics · CSV / XLS / XLSX',{exact:true}).click();await page.locator('#topic-import-all').check();
   await page.getByRole('button',{name:'Preview suggested grammar plan',exact:true}).click();await page.getByRole('button',{name:'Confirm topic import',exact:true}).waitFor();
   assert.equal(await page.locator('.topic-import h3').count(),3);

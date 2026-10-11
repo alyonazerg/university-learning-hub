@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const kinds = {lesson:'Lesson',test:'Assessment Test',imt:'IMT',extra:'Extra task'};
+  const kinds = {lesson:'Lesson',test:'Assessment Test',credit:'Credit',exam:'Exam',imt:'IMT',extra:'Extra task'};
   const n = (tag, text, cls) => {const element=document.createElement(tag); if(text!==undefined)element.textContent=text;if(cls)element.className=cls;return element;};
   const format = value => new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Moscow',dateStyle:'medium',timeStyle:'short'}).format(new Date(value));
   let selectedGroup = '';

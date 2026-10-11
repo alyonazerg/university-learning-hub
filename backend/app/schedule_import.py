@@ -16,7 +16,7 @@ router = APIRouter(prefix='/learning/schedule-import', dependencies=[Depends(adm
 class ImportedLesson(StrictModel):
     topic: str = Field(min_length=1, max_length=200)
     starts_at: datetime
-    kind: Literal['lesson', 'test'] = 'lesson'
+    kind: Literal['lesson', 'test', 'credit', 'exam'] = 'lesson'
     objectives: str = Field(default='', max_length=5000)
     position: int | None = Field(default=None, ge=1, le=250)
     duration_minutes: int = Field(ge=1, le=480)

@@ -3,9 +3,9 @@ position,topic,kind,duration_minutes,objectives
 2,Noun. Article,lesson,90,Countability; singular and plural; introduction to articles.
 3,Article,lesson,90,Definite and indefinite articles; zero article.
 4,Genitive,lesson,90,Possessive forms; genitive constructions.
-5,Consolidation Test,lesson,90,Diagnostic test before Assessment Test 1; identify learning gaps.
+5,Midcheck,lesson,90,Diagnostic test before Assessment Test 1; identify learning gaps.
 6,Revision and targeted practice,lesson,90,Teacher exercises; error correction; work on learning gaps.
-7,IMT-1 Quiz and revision,imt,90,IMT-1 quiz; follow-up exercises before Assessment Test 1.
+7,IMT-1 Quiz presentations,lesson,90,Students present their own quizzes; follow-up exercises before Assessment Test 1.
 8,Assessment Test 1,test,90,Parts of Speech; Noun; Article; Genitive.
 9,Pronoun: personal and possessive,lesson,90,Personal and possessive pronouns; possessive determiners; reflexive pronouns.
 10,Pronoun: demonstrative and indefinite,lesson,90,Demonstrative and indefinite pronouns; quantifiers; common errors.
@@ -16,4 +16,4 @@ position,topic,kind,duration_minutes,objectives
 15,Adverb: forms and position,lesson,90,Adverb formation and types; position; adjective/adverb contrasts.
 16,Adjective and Adverb: consolidation,lesson,90,Integrated exercises; error correction; comprehensive revision.
 17,Assessment Test 3,test,90,Adjective; Adverb; comprehensive semester review.
-18,Final credit,test,90,Pass/fail credit on the eighteenth and final class.
+18,Credit,credit,90,Pass/fail credit on the eighteenth and final class.
