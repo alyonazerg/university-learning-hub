@@ -65,3 +65,14 @@
 #workspace > .dashboard-links {position:sticky; top:8px; z-index:5; box-shadow:0 3px 12px #28304408;}
 #workspace section {scroll-margin-top:90px;}
 @media(max-width:700px) {#workspace section {scroll-margin-top:135px;}}
+#workspace .student-invitation {display:grid; gap:12px;}
+#workspace .student-invitation > summary {padding:10px 0;}
+#workspace .student-invitation > p {margin:0; line-height:1.6;}
+#workspace .student-invitation > button {justify-self:start;}
+#workspace .invitation-result {display:grid; gap:12px; min-width:0;}
+#workspace .invitation-result:empty {display:none;}
+#workspace .invitation-result > button, #workspace .invitation-open {justify-self:start;}
+#workspace .invitation-open {display:inline-flex; align-items:center; min-height:44px; padding:12px 18px; border-radius:12px; text-decoration:none; font-weight:600; white-space:normal; max-width:100%;}
+@media(max-width:600px) {
+  #workspace .student-invitation > button, #workspace .invitation-result > button, #workspace .invitation-open {justify-self:stretch; width:100%; justify-content:center; text-align:center;}
+}

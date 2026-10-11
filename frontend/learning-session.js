@@ -126,13 +126,13 @@
       for (const student of group.students) {const item = node('option', student.pseudonym); item.value = student.id; select.append(item);}
       select.value = group.editor_student_id || '';
       article.append(label, select, button('Save editor · ' + group.name, async () => {await request('/groups/' + group.id + '/editor', 'PUT', {student_id: select.value || null}); await refresh(); $('account-status').textContent = 'Group editor saved.';}));
-      const invitations = node('details'); invitations.append(node('summary', 'Invite a student'));
-      const result = node('div'); result.setAttribute('aria-live', 'polite');
+      const invitations = node('details', undefined, 'student-invitation'); invitations.append(node('summary', 'Invite a student'));
+      const result = node('div', undefined, 'invitation-result'); result.setAttribute('aria-live', 'polite');
       invitations.append(node('p', 'Each link registers one student and expires after 7 days. Create a separate link for each student.', 'muted'));
       invitations.append(button('Create invitation', async () => {
         const invitation = await request('/groups/' + group.id + '/invitations', 'POST');
         const url = 'https://t.me/mooncampusbot?startapp=' + encodeURIComponent(invitation.invitation_token);
-        const link = node('a', 'Open registration in Telegram'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+        const link = node('a', 'Open registration in Telegram', 'secondary invitation-open'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer';
         const field = node('input'); field.type = 'text'; field.readOnly = true; field.value = url; field.setAttribute('aria-label', 'Student invitation link');
         result.replaceChildren(link, field, button('Copy invitation', async () => {
           try {await navigator.clipboard.writeText(url); $('account-status').textContent = 'Invitation copied.';}
