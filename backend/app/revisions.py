@@ -245,6 +245,13 @@ def withdraw(identifier:str,authorization:str | None=Header(default=None),sessio
     row=access(identifier,authorization,session);row.research_consent=False;row.timing={};row.report={**(row.report or {}),'research_metrics':{}}
     if row.submitted_at:grade(row)
     session.commit();return {'withdrawn':True}
+@router.post('/learning/revisions/attempts/{identifier}/withdraw-research',dependencies=[Depends(administrator)])
+def teacher_withdraw(identifier:str,session=Depends(database)):
+    row=session.get(RevisionAttempt,identifier)
+    if row is None:raise HTTPException(404,'Attempt not found')
+    row.research_consent=False;row.timing={};row.report={**(row.report or {}),'research_metrics':{}}
+    if row.submitted_at:grade(row)
+    session.commit();return teacher_attempt(row)
 @router.get('/revision-attempts/{identifier}')
 def resume(identifier:str,authorization:str | None=Header(default=None),session=Depends(database)):return public_attempt(access(identifier,authorization,session))
 

@@ -43,3 +43,7 @@ RT1 covers Unit 7, RT2 Unit 8 (first assessment), RT3 Unit 9, Final RT Units 7â€
 ## RT1 contextual recognition update
 
 All vocabulary, collocation and group-specific vocabulary items now provide five options, testing context, meaning or natural usage rather than unsupported recall. Website grammar items retain their format. Paper versions use 20 Aâ€“E questions with eight lexical/collocation, eight grammar and four group-specific items, plus a separate essay. The fixed ZipGrade answer sheet is unchanged. Both printable archives contain the updated papers and password-protected teacher keys. Previously begun attempts retain their material snapshot; untouched old defaults in copied tests and unbegun attempts are updated by migration 014. Separate administration formats must still be retained for analysis.
+
+## Research choice display
+
+Consent is selected once, before the test. There is no repeated withdrawal button on the preview, question, essay or receipt screens. Students may ask the teacher to withdraw consent. The teacher action is inside Research data and answers, with confirmation; it preserves academic answers and marks, clears timing data and excludes the attempt from research exports. The protected teacher endpoint requires administrator access.

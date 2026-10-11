@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const fs=require('node:fs/promises');
 const path=require('node:path');
-for(const screen of ['warmup','question','essay'])test(`research withdrawal during ${screen} preserves academic answers`,async t=>{
+for(const screen of ['warmup','question','essay'])test(`research choice is not repeated during ${screen}`,async t=>{
  const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());
  const page=await browser.newPage({viewport:{width:390,height:844}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  let saved=null,withdrawals=0,submitted=false;
@@ -27,16 +27,14 @@ for(const screen of ['warmup','question','essay'])test(`research withdrawal duri
  await page.goto('http://moon.test/revision-test.html?test=test');
  if(screen==='question')await page.locator('#test-answer').fill('New answer');
  if(screen==='essay')await page.locator('#writing-answer').fill('Updated essay');
- await page.getByRole('button',{name:'Continue without participating in the research'}).click();
- await page.getByText(/Research participation withdrawn|You are taking this test without/).waitFor();
- assert.equal(withdrawals,1);assert.equal(await page.getByRole('button',{name:'Continue without participating in the research'}).count(),0);
+ assert.equal(await page.getByRole('button',{name:'Continue without participating in the research'}).count(),0);assert.equal(withdrawals,0);if(screen==='warmup')await page.getByRole('button',{name:'Start test',exact:true}).click();
  if(screen!=='essay'){
   assert.equal(await page.locator('#test-answer').inputValue(),screen==='question'?'New answer':'Existing answer');
   await page.getByRole('button',{name:'Next',exact:true}).click();
  }
  assert.equal(await page.locator('#writing-answer').inputValue(),screen==='essay'?'Updated essay':'Existing essay draft');
  await page.getByRole('button',{name:'Submit test',exact:true}).click();await page.getByRole('heading',{name:'Submitted',exact:true}).waitFor();
- assert(submitted);assert.deepEqual(saved.timing,{});assert.equal(await page.getByRole('button',{name:'Continue without participating in the research'}).count(),0);
+ assert(submitted);assert(saved.timing);assert.equal(await page.getByRole('button',{name:'Continue without participating in the research'}).count(),0);
  assert.deepEqual(errors,[]);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
 });
 

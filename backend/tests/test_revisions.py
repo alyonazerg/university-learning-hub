@@ -220,3 +220,20 @@ def test_criterion_marks_are_validated_and_summed(client):
     public=client.get(path,headers=auth).json()
     assert public['essay_breakdown']==essay and public['oral_breakdown']==oral
     assert client.put(review+'/review',headers=ADMIN,json={'writing_score':20,'breakdown':{'content':6}}).status_code==422
+
+def test_teacher_can_withdraw_consent_without_removing_academic_result(client):
+    identifier,ADMIN=setup(client)
+    started=client.post('/revision-tests/'+identifier+'/start',json={'group':'213','student_name':'Synthetic Learner','research_consent':True}).json()
+    path='/revision-attempts/'+started['attempt_id'];auth={'Authorization':'Bearer '+started['token']}
+    client.post(path+'/begin',headers=auth)
+    client.post(path+'/submit',headers=auth,json={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'Our heritage matters.'})
+    withdraw='/learning/revisions/attempts/'+started['attempt_id']+'/withdraw-research'
+    assert client.post(withdraw).status_code in [401,403]
+    assert client.post(withdraw,headers=auth).status_code in [401,403]
+    response=client.post(withdraw,headers=ADMIN)
+    assert response.status_code==200,response.text
+    result=response.json()
+    assert not result['research_consent'] and result['submitted_at']
+    assert result['writing']=='Our heritage matters.' and result['report']['controlled_score']==80
+    assert result['report']['research_metrics']=={}
+    assert client.get(path,headers=auth).json()['submitted']
