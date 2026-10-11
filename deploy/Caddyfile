@@ -8,3 +8,15 @@
 	}
 	reverse_proxy api:8000
 }
+
+{$SITE_DOMAIN:mooncampus.ru} {
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer
+    }
+    reverse_proxy frontend:80
+}
+
+www.{$SITE_DOMAIN:mooncampus.ru} {
+    redir https://{$SITE_DOMAIN:mooncampus.ru}{uri} permanent
+}

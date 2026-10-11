@@ -11,6 +11,7 @@ services:
     restart: unless-stopped
     environment:
       API_DOMAIN: ${API_DOMAIN:?Set API_DOMAIN to the API hostname}
+      SITE_DOMAIN: ${SITE_DOMAIN:-mooncampus.ru}
     ports:
       - "80:80"
       - "443:443"
@@ -20,6 +21,7 @@ services:
       - caddy_config:/config
     depends_on:
       - api
+      - frontend
 volumes:
   caddy_data:
   caddy_config:
