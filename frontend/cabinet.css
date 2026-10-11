@@ -76,3 +76,6 @@
 @media(max-width:600px) {
   #workspace .student-invitation > button, #workspace .invitation-result > button, #workspace .invitation-open {justify-self:stretch; width:100%; justify-content:center; text-align:center;}
 }
+#workspace .semester-weeks {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+#workspace .semester-import p {overflow-wrap:anywhere;}
+@media(max-width:600px){#workspace .semester-weeks {grid-template-columns:minmax(0,1fr);}}

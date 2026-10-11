@@ -34,6 +34,8 @@
     'Lesson already exists at this time': 'This group already has a lesson at that time.',
     'Submission changed concurrently; refresh': 'Your work may already have been saved. Refresh the hub before submitting again.',
     'Access changed concurrently; refresh': 'Approval was changed in another window. Refresh the hub.',
+    'Existing group has another course or is inactive': 'A matching group has a different course or is inactive. Check Groups before importing.',
+    'Schedule changed concurrently; preview again': 'The schedule changed. Preview the import again.',
     'Attendance changed concurrently; refresh': 'Attendance was changed in another window. Refresh the hub.'
   };
   async function request(path, method = 'GET', body) {
@@ -42,6 +44,7 @@
     if (!response.ok) {
       let detail; try {detail = (await response.json()).detail;} catch { /* generic message below */ }
       if (response.status === 404 && path === '/plans') return null;
+      if (response.status === 404 && path.startsWith('/schedule-import/')) throw new Error('Update the server to import the semester schedule.');
       if (response.status === 404 && path.endsWith('/invitations')) throw new Error('Update the server to create invitations.');
       if ((response.status === 401 || (path === '/me' && [403, 404].includes(response.status))) && token) clearSession();
       throw new Error(messages[detail] || (response.status === 422 ? 'Check the fields, dates and data format.' : 'Could not complete the action. Try again.'));
