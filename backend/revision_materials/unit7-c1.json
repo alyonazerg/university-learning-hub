@@ -19,7 +19,7 @@
     {
       "id": "v1",
       "section": "vocabulary",
-      "prompt": "A person in your family who lived several generations before you is an ___.",
+      "prompt": "A parish record links Elena to an ___ who left the village in 1820, long before any of her grandparents were born.",
       "answers": [
         "ancestor"
       ],
@@ -31,9 +31,11 @@
     {
       "id": "v2",
       "section": "vocabulary",
-      "prompt": "Your family origins and line of descent are your ___.",
+      "prompt": "The records trace Omar’s family line through several generations. They tell him about his ___, rather than his present-day citizenship.",
       "answers": [
-        "ancestry"
+        "ancestry",
+        "family history",
+        "family origins"
       ],
       "choices": [],
       "target_word": "ancestry",
@@ -43,7 +45,7 @@
     {
       "id": "v3",
       "section": "vocabulary",
-      "prompt": "The study of family history and descent is ___.",
+      "prompt": "Eva checks birth certificates, marriage records and family trees to establish who was related to whom. Her research is in ___, not DNA analysis.",
       "answers": [
         "genealogy"
       ],
@@ -55,7 +57,7 @@
     {
       "id": "v4",
       "section": "vocabulary",
-      "prompt": "A shared cultural or ethnic identity is called ___.",
+      "prompt": "The survey asks respondents how they identify culturally, separately from where they hold citizenship. That question concerns their ___.",
       "answers": [
         "ethnicity"
       ],
@@ -67,7 +69,7 @@
     {
       "id": "v5",
       "section": "vocabulary",
-      "prompt": "Traditions and cultural achievements passed down through generations form our ___.",
+      "prompt": "The community restored its old meeting hall and recorded traditional songs so that younger residents could learn about their cultural ___.",
       "answers": [
         "heritage"
       ],
@@ -79,7 +81,7 @@
     {
       "id": "v6",
       "section": "vocabulary",
-      "prompt": "Parents who legally take a child into their family are ___ parents.",
+      "prompt": "After the court completed the legal process, the couple became the child’s ___ parents, with permanent parental rights and responsibilities.",
       "answers": [
         "adoptive"
       ],
@@ -91,9 +93,12 @@
     {
       "id": "v7",
       "section": "vocabulary",
-      "prompt": "To give something new energy is to ___ it.",
+      "prompt": "Attendance at the annual festival had fallen for years. Organisers invited younger performers to ___ the event and give people a reason to return.",
       "answers": [
-        "reinvigorate"
+        "reinvigorate",
+        "revitalise",
+        "revitalize",
+        "revive"
       ],
       "choices": [],
       "target_word": "reinvigorate",
@@ -103,9 +108,11 @@
     {
       "id": "v8",
       "section": "vocabulary",
-      "prompt": "An object surviving from the distant past is a ___.",
+      "prompt": "The museum’s most valued ___ from the ancient settlement is a small clay bowl that survived while almost everything else was destroyed.",
       "answers": [
-        "relic"
+        "relic",
+        "artefact",
+        "artifact"
       ],
       "choices": [],
       "target_word": "relic",
@@ -115,9 +122,11 @@
     {
       "id": "v9",
       "section": "vocabulary",
-      "prompt": "Disagreement that creates tension between people is ___.",
+      "prompt": "One sibling wants to sell the inherited house; the other insists on keeping it. Their unresolved disagreement has caused growing ___ between them.",
       "answers": [
-        "friction"
+        "friction",
+        "tension",
+        "conflict"
       ],
       "choices": [],
       "target_word": "friction",
@@ -127,7 +136,7 @@
     {
       "id": "v10",
       "section": "vocabulary",
-      "prompt": "A guiding light or source of hope is a ___.",
+      "prompt": "During a difficult year, the community centre became a ___ of hope: it was somewhere people could find support and imagine a better future.",
       "answers": [
         "beacon"
       ],
@@ -139,7 +148,7 @@
     {
       "id": "v11",
       "section": "vocabulary",
-      "prompt": "A large celebratory meal is a ___.",
+      "prompt": "After the harvest, every family brought food to the village square. The celebration ended with a ___ that lasted late into the evening.",
       "answers": [
         "feast"
       ],
@@ -151,9 +160,11 @@
     {
       "id": "v12",
       "section": "vocabulary",
-      "prompt": "The importance or meaning of something is its ___.",
+      "prompt": "As a child, I thought the ceremony was just a chance to dress up. Only later did I understand its deeper ___ for the community.",
       "answers": [
-        "significance"
+        "significance",
+        "meaning",
+        "importance"
       ],
       "choices": [],
       "target_word": "significance",
@@ -163,7 +174,7 @@
     {
       "id": "c1",
       "section": "collocation",
-      "prompt": "Her story struck a ___ with the audience.",
+      "prompt": "When the speaker described feeling caught between two cultures, many listeners recognised their own experience. Her account struck a ___ with them.",
       "answers": [
         "chord"
       ],
@@ -175,7 +186,7 @@
     {
       "id": "c2",
       "section": "collocation",
-      "prompt": "The ceremony pays ___ to our elders.",
+      "prompt": "At the ceremony, the younger members paid ___ to the elders who had preserved the language and taught it to others.",
       "answers": [
         "tribute"
       ],
@@ -187,7 +198,7 @@
     {
       "id": "c3",
       "section": "collocation",
-      "prompt": "Families work to keep their traditions ___.",
+      "prompt": "Very few people still knew the traditional songs. By teaching them to local children, the choir hoped to keep the tradition ___.",
       "answers": [
         "alive"
       ],
@@ -199,9 +210,11 @@
     {
       "id": "c4",
       "section": "collocation",
-      "prompt": "Do not make ___ about someone based on appearance.",
+      "prompt": "You cannot infer someone’s beliefs from their surname. Making ___ on that basis may lead you to completely misunderstand them.",
       "answers": [
-        "assumptions"
+        "assumptions",
+        "generalisations",
+        "generalizations"
       ],
       "choices": [],
       "target_word": "assumptions",
@@ -211,9 +224,10 @@
     {
       "id": "c5",
       "section": "collocation",
-      "prompt": "Young people should be free to forge their own ___.",
+      "prompt": "Her relatives expected her to join the family business, but she chose to forge her own ___ and become a researcher.",
       "answers": [
-        "path"
+        "path",
+        "way"
       ],
       "choices": [],
       "target_word": "path",
@@ -223,7 +237,7 @@
     {
       "id": "c6",
       "section": "collocation",
-      "prompt": "The survey reported a small margin of ___.",
+      "prompt": "The survey estimated support at 51%, with a margin of ___ of three percentage points. The result does not establish a clear majority.",
       "answers": [
         "error"
       ],
@@ -361,7 +375,7 @@
     {
       "id": "e213-1",
       "section": "emergent",
-      "prompt": "Someone who believes certain objects bring bad luck is ___.",
+      "prompt": "Leo refuses to open an umbrella indoors because he believes it brings bad luck. Although he knows there is no evidence, he remains ___.",
       "answers": [
         "superstitious"
       ],
@@ -375,7 +389,7 @@
     {
       "id": "e213-2",
       "section": "emergent",
-      "prompt": "The spice often grated into warm drinks is ___.",
+      "prompt": "The recipe calls for a little freshly grated ___ to add a warm, slightly sweet flavour to the milk. It is the spice often paired with cinnamon.",
       "answers": [
         "nutmeg"
       ],
@@ -389,7 +403,7 @@
     {
       "id": "e213-3",
       "section": "emergent",
-      "prompt": "The Christian festival commemorating the visit of the Magi is ___.",
+      "prompt": "In our local tradition, celebrations continue until ___ on 6 January, when the visit of the Magi is commemorated.",
       "answers": [
         "Epiphany"
       ],
@@ -403,7 +417,7 @@
     {
       "id": "e213-4",
       "section": "emergent",
-      "prompt": "The Christian ceremony that often involves water is ___.",
+      "prompt": "The family gathered at the church for the child’s ___. During the ceremony, the priest poured water over the child’s head.",
       "answers": [
         "baptism"
       ],
@@ -417,9 +431,10 @@
     {
       "id": "e213-5",
       "section": "emergent",
-      "prompt": "A natural tendency to develop a trait is a ___.",
+      "prompt": "Several relatives have the same condition, so she may have a genetic ___ to develop it. That increases the risk but does not make it inevitable.",
       "answers": [
-        "predisposition"
+        "predisposition",
+        "susceptibility"
       ],
       "choices": [],
       "target_word": "predisposition",
@@ -431,7 +446,7 @@
     {
       "id": "e213-6",
       "section": "emergent",
-      "prompt": "A child may throw a ___ when frustrated.",
+      "prompt": "When his father refused to buy the toy, the child threw a ___: he screamed, stamped his feet and refused to leave the shop.",
       "answers": [
         "tantrum"
       ],
@@ -445,7 +460,7 @@
     {
       "id": "e214-1",
       "section": "emergent",
-      "prompt": "An event in which many shooting stars appear is a ___.",
+      "prompt": "We stayed outside after midnight to watch a ___. For almost an hour, bright streaks appeared repeatedly across the sky.",
       "answers": [
         "meteor shower"
       ],
@@ -459,7 +474,7 @@
     {
       "id": "e214-2",
       "section": "emergent",
-      "prompt": "To look like someone is to ___ them.",
+      "prompt": "You have your grandmother’s eyes and smile. In those features, you ___ her more than either of your parents.",
       "answers": [
         "resemble"
       ],
@@ -473,7 +488,7 @@
     {
       "id": "e214-3",
       "section": "emergent",
-      "prompt": "Adults who temporarily care for a child without adopting them are ___.",
+      "prompt": "The children stayed with ___ while the authorities assessed whether they could return home. The placement did not make those adults their permanent legal parents.",
       "answers": [
         "foster parents"
       ],
@@ -487,9 +502,10 @@
     {
       "id": "e214-4",
       "section": "emergent",
-      "prompt": "A natural tendency to develop a trait is a ___.",
+      "prompt": "Having relatives with the condition may indicate a genetic ___, but lifestyle and environment also affect whether it develops.",
       "answers": [
-        "predisposition"
+        "predisposition",
+        "susceptibility"
       ],
       "choices": [],
       "target_word": "predisposition",
@@ -501,9 +517,10 @@
     {
       "id": "e214-5",
       "section": "emergent",
-      "prompt": "To judge someone as less capable than they are is to ___ them.",
+      "prompt": "The manager gave the difficult task to someone else, assuming I could not cope with it. I had to prove that she should not ___ my abilities.",
       "answers": [
-        "underestimate"
+        "underestimate",
+        "undervalue"
       ],
       "choices": [],
       "target_word": "underestimate",
@@ -515,9 +532,10 @@
     {
       "id": "e214-6",
       "section": "emergent",
-      "prompt": "A hairstyle with a strip of hair down the middle and shaved sides is a ___.",
+      "prompt": "He shaved both sides of his head and left a narrow strip of hair running down the centre. The resulting hairstyle was a ___.",
       "answers": [
-        "mohawk"
+        "mohawk",
+        "Mohawk"
       ],
       "choices": [],
       "target_word": "mohawk",
@@ -548,5 +566,11 @@
     "Conversation Situation: Saving an Endangered Language\n\nSituation:\nA town can fund only one small cultural project this year. Decide how to support a local language that fewer young people use.\n\nStudent A:\nYou want to invest in classes and activities for young speakers. Explain the potential benefits.\n\nStudent B:\nYou want to prioritise recording stories and creating an accessible digital archive. Explain why this may be more practical and agree on a plan.",
     "Conversation Situation: A Place With Significance\n\nSituation:\nYou are planning a visit for people interested in your community’s history. Choose a place and decide how to explain its significance.\n\nStudent A:\nYou want to visit a well-known historical landmark. Explain what visitors could learn.\n\nStudent B:\nYou prefer a less famous place connected with everyday community life. Explain its value and help agree on a visit.",
     "Conversation Situation: Family Bonds and Boundaries\n\nSituation:\nYou are discussing whether relatives should make a greater effort than friends to repair a damaged relationship. Compare your views and agree on sensible limits.\n\nStudent A:\nYou think family ties create special responsibilities. Explain why making an effort can matter.\n\nStudent B:\nYou think relationships should depend on respectful behaviour rather than biology. Explain why boundaries can be necessary and look for common ground."
+  ],
+  "writing_topics": [
+    "Our roots influence who we are, but they should not determine who we become. To what extent do you agree?",
+    "The benefits of DNA ancestry testing outweigh the risks to personal privacy. Discuss both perspectives.",
+    "Traditions must change in order to survive. To what extent do you agree?",
+    "A sense of belonging depends more on shared experiences than on biological ancestry. Discuss both perspectives."
   ]
 }

@@ -93,3 +93,21 @@ test('mobile answers survive a dropped connection and are submitted only after r
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  await page.getByRole('button',{name:'Submit test',exact:true}).click();await page.getByRole('heading',{name:'Submitted',exact:true}).waitFor();assert.equal(submissions,1);
 });
+
+test('private return link loads current feedback without reopening a test',async t=>{
+ const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());
+ const page=await browser.newPage({viewport:{width:320,height:700}});let calls=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('http://moon.test/**',async route=>{
+  const u=new URL(route.request().url());
+  if(u.pathname==='/config.js')return route.fulfill({contentType:'text/javascript',body:"window.MOON_CAMPUS_API_BASE='http://moon.test/api';"});
+  if(u.pathname.startsWith('/api/')){assert.equal(u.pathname,'/api/revision-attempts/private-attempt');assert.equal(route.request().headers().authorization,'Bearer private-token');calls++;return route.fulfill({contentType:'application/json',body:JSON.stringify({submitted:true,title:'Unit 7',group:'213',controlled_score:72,essay_score:18,written_score:90,oral_score:16,rating_score:2.65,essay_feedback:'Good argument.',oral_feedback:'Clear speech.'})});}
+  try{return route.fulfill({body:await fs.readFile(path.resolve(__dirname,'../../frontend',u.pathname.slice(1))),contentType:u.pathname.endsWith('.js')?'text/javascript':u.pathname.endsWith('.css')?'text/css':u.pathname.endsWith('.html')?'text/html':'image/svg+xml'});}catch{return route.fulfill({status:404,body:''});}
+ });
+ await page.goto('http://moon.test/revision-test.html?view=result&attempt=private-attempt#token=private-token');
+ await page.getByText('Good argument.',{exact:true}).waitFor();assert.equal(new URL(page.url()).hash,'');
+ assert.equal(await page.getByRole('heading',{name:'Rating result: 2.65 / 3'}).count(),1);
+ assert.equal(await page.getByRole('button',{name:'Reveal my individual question'}).count(),0);
+ await page.getByRole('button',{name:'Refresh result'}).click();await page.waitForTimeout(100);assert(calls>=2);
+ await page.reload();await page.getByText('Clear speech.',{exact:true}).waitFor();assert.deepEqual(errors,[]);
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+});

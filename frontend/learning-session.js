@@ -81,14 +81,15 @@
   };
   let activeSection = '';
   function showSection(id, focus = false) {
-    if (!cabinetSections[id] || (['connected-groups','connected-revisions'].includes(id) && profile?.role !== 'admin')) id = 'connected-schedule';
+    if (!cabinetSections[id] || (id === 'connected-groups' && profile?.role !== 'admin')) id = 'connected-schedule';
     activeSection = id;
     const visible = cabinetSections[id];
     for (const section of Object.values(cabinetSections).flat()) $(section).classList.toggle('cabinet-inactive', !visible.includes(section));
     document.querySelectorAll('.dashboard-links a').forEach(link => {
       const selected = link.hash === '#' + id;
       if (selected) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
-      link.hidden = ['#connected-groups','#connected-revisions'].includes(link.hash) && profile?.role !== 'admin';
+      if(link.hash==='#connected-revisions')link.textContent=profile?.role==='admin'?'Revision Tests':'My results';
+      link.hidden = link.hash === '#connected-groups' && profile?.role !== 'admin';
     });
     if (focus) {const heading = $(visible[0]).querySelector('h2'); if (heading) {heading.tabIndex = -1; heading.focus({preventScroll:true});} $(visible[0]).scrollIntoView({block:'start'});}
   }

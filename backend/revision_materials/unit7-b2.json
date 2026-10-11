@@ -20,9 +20,11 @@
     {
       "id": "v1",
       "section": "vocabulary",
-      "prompt": "The deep satisfaction of doing meaningful work is called ___.",
+      "prompt": "A promotion doubled Nina’s salary, but she still felt that her work achieved nothing useful. Volunteering at a literacy centre finally gave her a sense of ___.",
       "answers": [
-        "fulfilment"
+        "fulfilment",
+        "fulfillment",
+        "satisfaction"
       ],
       "choices": [],
       "target_word": "fulfilment",
@@ -32,9 +34,10 @@
     {
       "id": "v2",
       "section": "vocabulary",
-      "prompt": "A profession you feel strongly drawn to is your ___.",
+      "prompt": "Most people find emergency medicine exhausting, but Sam cannot imagine doing anything else. He sees it as his ___, rather than just a way to earn money.",
       "answers": [
-        "calling"
+        "calling",
+        "vocation"
       ],
       "choices": [],
       "target_word": "calling",
@@ -44,9 +47,11 @@
     {
       "id": "v3",
       "section": "vocabulary",
-      "prompt": "A natural tendency or preference is an ___.",
+      "prompt": "Alex enjoys his colleagues’ company, but his natural ___ is to work independently. He usually chooses tasks he can complete alone.",
       "answers": [
-        "inclination"
+        "inclination",
+        "tendency",
+        "preference"
       ],
       "choices": [],
       "target_word": "inclination",
@@ -56,9 +61,10 @@
     {
       "id": "v4",
       "section": "vocabulary",
-      "prompt": "A difficult problem or puzzle is a ___.",
+      "prompt": "The cheaper supplier is unreliable; the reliable supplier would make the project unaffordable. Choosing between them has become a real ___ for the team.",
       "answers": [
-        "conundrum"
+        "conundrum",
+        "dilemma"
       ],
       "choices": [],
       "target_word": "conundrum",
@@ -68,7 +74,7 @@
     {
       "id": "v5",
       "section": "vocabulary",
-      "prompt": "Following an experienced worker to learn their job is called ___.",
+      "prompt": "Before accepting the role, I spent two days ___ an experienced colleague: I followed her through meetings and watched how she dealt with customers.",
       "answers": [
         "shadowing"
       ],
@@ -80,9 +86,10 @@
     {
       "id": "v6",
       "section": "vocabulary",
-      "prompt": "Skills associated with starting and running a business are ___ skills.",
+      "prompt": "When the café lost its main supplier, its owner quickly found a new one and turned the crisis into a business opportunity. That showed her ___ skills.",
       "answers": [
-        "entrepreneurial"
+        "entrepreneurial",
+        "business"
       ],
       "choices": [],
       "target_word": "entrepreneurial",
@@ -92,9 +99,11 @@
     {
       "id": "v7",
       "section": "vocabulary",
-      "prompt": "Someone who buys things without thinking is an ___ shopper.",
+      "prompt": "Jon went online to buy a charger and bought an expensive camera five minutes later, without checking reviews or his budget. It was an ___ purchase.",
       "answers": [
-        "impulsive"
+        "impulsive",
+        "spontaneous",
+        "unplanned"
       ],
       "choices": [],
       "target_word": "impulsive",
@@ -104,9 +113,11 @@
     {
       "id": "v8",
       "section": "vocabulary",
-      "prompt": "A shortage of something is called ___.",
+      "prompt": "The town has enough volunteers but too little drinking water. Because of the ___ of water, each household receives a limited daily supply.",
       "answers": [
-        "scarcity"
+        "scarcity",
+        "shortage",
+        "lack"
       ],
       "choices": [],
       "target_word": "scarcity",
@@ -116,9 +127,11 @@
     {
       "id": "v9",
       "section": "vocabulary",
-      "prompt": "A small encouragement towards a decision is a ___.",
+      "prompt": "The app does not force anyone to save money; it simply suggests putting a small amount aside on payday. The suggestion acts as a ___ towards saving.",
       "answers": [
-        "nudge"
+        "nudge",
+        "prompt",
+        "incentive"
       ],
       "choices": [],
       "target_word": "nudge",
@@ -128,9 +141,10 @@
     {
       "id": "v10",
       "section": "vocabulary",
-      "prompt": "Something that does not attract unwanted attention is ___.",
+      "prompt": "Users complained that reminders blocked their screens. The designer replaced them with a small, ___ icon that stays visible without interrupting the task.",
       "answers": [
-        "unobtrusive"
+        "unobtrusive",
+        "discreet"
       ],
       "choices": [],
       "target_word": "unobtrusive",
@@ -140,9 +154,12 @@
     {
       "id": "v11",
       "section": "vocabulary",
-      "prompt": "A standard used to judge success is a ___.",
+      "prompt": "The school uses students’ progress, rather than the number of awards, as its ___ for judging whether a programme is successful.",
       "answers": [
-        "yardstick"
+        "yardstick",
+        "benchmark",
+        "measure",
+        "criterion"
       ],
       "choices": [],
       "target_word": "yardstick",
@@ -152,9 +169,11 @@
     {
       "id": "v12",
       "section": "vocabulary",
-      "prompt": "A strong ambition for the future is an ___.",
+      "prompt": "Getting a secure job would be useful, but founding her own design studio is an ambition she hopes to achieve over the next ten years: it is her long-term ___.",
       "answers": [
-        "aspiration"
+        "aspiration",
+        "goal",
+        "ambition"
       ],
       "choices": [],
       "target_word": "aspiration",
@@ -164,7 +183,7 @@
     {
       "id": "c1",
       "section": "collocation",
-      "prompt": "She is a good ___ on her younger brother.",
+      "prompt": "Since joining the mentoring scheme, Dan has started taking his studies seriously. His mentor has clearly been a good ___ on him.",
       "answers": [
         "influence"
       ],
@@ -176,7 +195,7 @@
     {
       "id": "c2",
       "section": "collocation",
-      "prompt": "Even a small donation can make a ___.",
+      "prompt": "The new ramp is inexpensive, but it allows wheelchair users to enter independently. Even a small change can make a real ___.",
       "answers": [
         "difference"
       ],
@@ -188,9 +207,10 @@
     {
       "id": "c3",
       "section": "collocation",
-      "prompt": "I take ___ in helping others.",
+      "prompt": "I would help with the garden even if nobody paid me: I take ___ in seeing the plants grow and the neighbours enjoy the space.",
       "answers": [
-        "pleasure"
+        "pleasure",
+        "satisfaction"
       ],
       "choices": [],
       "target_word": "pleasure",
@@ -200,7 +220,7 @@
     {
       "id": "c4",
       "section": "collocation",
-      "prompt": "I bought it on a ___, without planning to.",
+      "prompt": "We had no travel plans that morning, but booked a weekend trip on a ___ after seeing a last-minute offer.",
       "answers": [
         "whim"
       ],
@@ -212,7 +232,7 @@
     {
       "id": "c5",
       "section": "collocation",
-      "prompt": "They offered a discount to sweeten the ___.",
+      "prompt": "The price was already competitive. To sweeten the ___, the seller included installation and a year of free repairs.",
       "answers": [
         "deal"
       ],
@@ -224,9 +244,10 @@
     {
       "id": "c6",
       "section": "collocation",
-      "prompt": "One policy change can have ___ effects across society.",
+      "prompt": "When the factory closed, local cafés lost customers and suppliers cut staff. Its closure had ___ effects throughout the town.",
       "answers": [
-        "ripple"
+        "ripple",
+        "knock-on"
       ],
       "choices": [],
       "target_word": "ripple",
@@ -361,9 +382,11 @@
     {
       "id": "e215-1",
       "section": "emergent",
-      "prompt": "A person employed to clean and maintain a building is a ___.",
+      "prompt": "When a pipe burst in the school corridor, the ___ turned off the water and cleaned the floor before the students arrived.",
       "answers": [
-        "janitor"
+        "janitor",
+        "caretaker",
+        "custodian"
       ],
       "choices": [],
       "target_word": "janitor",
@@ -375,9 +398,10 @@
     {
       "id": "e215-2",
       "section": "emergent",
-      "prompt": "Someone of similar age or status is a ___.",
+      "prompt": "Rather than ask her supervisor for advice, Mia discussed the problem with a ___ who had the same role and level of responsibility.",
       "answers": [
-        "peer"
+        "peer",
+        "colleague"
       ],
       "choices": [],
       "target_word": "peer",
@@ -389,7 +413,7 @@
     {
       "id": "e215-3",
       "section": "emergent",
-      "prompt": "Time spent working beyond regular hours is ___.",
+      "prompt": "Our contracts cover forty hours a week. The additional six hours needed to finish the project must be recorded and paid as ___.",
       "answers": [
         "overtime"
       ],
@@ -403,9 +427,10 @@
     {
       "id": "e215-4",
       "section": "emergent",
-      "prompt": "Introducing a new employee to a company is ___.",
+      "prompt": "New employees meet their team, learn the software and review company procedures during their first week. These activities are part of their ___.",
       "answers": [
-        "onboarding"
+        "onboarding",
+        "induction"
       ],
       "choices": [],
       "target_word": "onboarding",
@@ -417,9 +442,10 @@
     {
       "id": "e215-5",
       "section": "emergent",
-      "prompt": "An extra benefit of a job is a ___.",
+      "prompt": "The salary is fairly average, but free use of the company gym is a ___ that makes the job more attractive.",
       "answers": [
-        "perk"
+        "perk",
+        "benefit"
       ],
       "choices": [],
       "target_word": "perk",
@@ -431,7 +457,7 @@
     {
       "id": "e215-6",
       "section": "emergent",
-      "prompt": "A loan used to buy a home is a ___.",
+      "prompt": "They have saved a deposit for the flat, but need a ___ to cover the remaining cost. They will repay the bank over twenty years.",
       "answers": [
         "mortgage"
       ],
@@ -445,7 +471,7 @@
     {
       "id": "e216-1",
       "section": "emergent",
-      "prompt": "A person who prepares coffee professionally is a ___.",
+      "prompt": "The café’s ___ adjusted the grinder and steamed the milk again when a customer said the coffee tasted burnt.",
       "answers": [
         "barista"
       ],
@@ -459,7 +485,7 @@
     {
       "id": "e216-2",
       "section": "emergent",
-      "prompt": "Money returned after a purchase is a ___.",
+      "prompt": "The headphones stopped working after one day. I returned them to the shop and asked for a ___ rather than a replacement.",
       "answers": [
         "refund"
       ],
@@ -473,7 +499,7 @@
     {
       "id": "e216-3",
       "section": "emergent",
-      "prompt": "The linguistic links that connect sentences contribute to ___.",
+      "prompt": "The argument is logical, but the sentences feel disconnected. Adding suitable pronouns and linking expressions would improve the text’s ___.",
       "answers": [
         "cohesion"
       ],
@@ -487,7 +513,7 @@
     {
       "id": "e216-4",
       "section": "emergent",
-      "prompt": "The overall logical organisation of a text contributes to ___.",
+      "prompt": "The essay uses plenty of linking words, but its conclusion contradicts its main argument. It needs better ___, not simply more connectors.",
       "answers": [
         "coherence"
       ],
@@ -501,9 +527,11 @@
     {
       "id": "e216-5",
       "section": "emergent",
-      "prompt": "A small item used to hold keys together is a ___.",
+      "prompt": "I keep my house key and bike-lock key on the same ___ so that I do not have to search for them separately.",
       "answers": [
-        "keychain"
+        "keychain",
+        "key ring",
+        "keyring"
       ],
       "choices": [],
       "target_word": "keychain",
@@ -515,9 +543,10 @@
     {
       "id": "e216-6",
       "section": "emergent",
-      "prompt": "Something authentic rather than fake is ___.",
+      "prompt": "The watch looked like an expensive original, but the manufacturer confirmed that it was a copy. The seller’s claim that it was ___ was false.",
       "answers": [
-        "genuine"
+        "genuine",
+        "authentic"
       ],
       "choices": [],
       "target_word": "genuine",
@@ -529,9 +558,10 @@
     {
       "id": "e217-1",
       "section": "emergent",
-      "prompt": "The ability to keep going through prolonged difficulty is ___.",
+      "prompt": "The climb took twelve hours. Keeping the same steady effort until the end required considerable physical ___.",
       "answers": [
-        "endurance"
+        "endurance",
+        "stamina"
       ],
       "choices": [],
       "target_word": "endurance",
@@ -543,9 +573,10 @@
     {
       "id": "e217-2",
       "section": "emergent",
-      "prompt": "The ability to act despite fear is ___.",
+      "prompt": "She was afraid of losing her job, but still reported the unsafe working conditions. Speaking up took ___.",
       "answers": [
-        "courage"
+        "courage",
+        "bravery"
       ],
       "choices": [],
       "target_word": "courage",
@@ -557,9 +588,10 @@
     {
       "id": "e217-3",
       "section": "emergent",
-      "prompt": "A sensational headline designed to attract clicks is ___.",
+      "prompt": "The headline promised an astonishing secret, but the article contained nothing new. Its main purpose was to get people to open the link: it was ___.",
       "answers": [
-        "clickbait"
+        "clickbait",
+        "click bait"
       ],
       "choices": [],
       "target_word": "clickbait",
@@ -571,9 +603,10 @@
     {
       "id": "e217-4",
       "section": "emergent",
-      "prompt": "Content designed to provoke anger and engagement is ___.",
+      "prompt": "The post deliberately insulted its readers to trigger angry replies and arguments. It was ___, designed to turn outrage into engagement.",
       "answers": [
-        "ragebait"
+        "ragebait",
+        "rage bait"
       ],
       "choices": [],
       "target_word": "ragebait",
@@ -585,7 +618,7 @@
     {
       "id": "e217-5",
       "section": "emergent",
-      "prompt": "A group of cattle is a ___.",
+      "prompt": "The farmer moved the entire ___ of cattle into another field before the storm arrived.",
       "answers": [
         "herd"
       ],
@@ -599,7 +632,7 @@
     {
       "id": "e217-6",
       "section": "emergent",
-      "prompt": "To set a higher standard is to raise the ___.",
+      "prompt": "Last year’s team completed the project with half the usual budget. Their performance raised the ___ for every team that followed.",
       "answers": [
         "bar"
       ],
@@ -646,5 +679,11 @@
     "Conversation Situation: An Impulsive Purchase\n\nSituation:\nOne of you wants to buy an expensive item immediately because a website says the offer will end soon. Decide whether to buy it now or wait.\n\nStudent A:\nYou are excited about the offer and do not want to miss out. Explain why buying now seems worthwhile.\n\nStudent B:\nYou think the offer may encourage an impulsive decision. Suggest checking reviews, comparing alternatives, or sleeping on it before buying.",
     "Conversation Situation: A Class Boat Trip\n\nSituation:\nYou are organising a class boat trip with a limited budget. You cannot afford all the food, entertainment, and comfort options. Agree on three priorities.\n\nStudent A:\nYou want to spend most of the budget on activities and entertainment. Explain what will make the trip memorable.\n\nStudent B:\nYou want to prioritise practical needs such as food, shade, and transport. Explain your concerns and negotiate a balanced plan.",
     "Conversation Situation: Helping or Being Paid\n\nSituation:\nA neighbour has asked for help with a small task and offered a small payment. Discuss whether to accept the money or help as a favour.\n\nStudent A:\nYou think payment recognises a person’s time and effort. Explain why accepting it can be fair.\n\nStudent B:\nYou think treating help as a favour can strengthen relationships. Explain why money might change the situation and agree on an appropriate response."
+  ],
+  "writing_topics": [
+    "Meaningful work matters more than a high salary. To what extent do you agree?",
+    "Having more choices does not always make people happier. Discuss the advantages and disadvantages of a wide range of choices.",
+    "Companies should take responsibility for encouraging impulsive purchases. To what extent do you agree?",
+    "Paying people for small favours can damage relationships. Discuss both perspectives."
   ]
 }

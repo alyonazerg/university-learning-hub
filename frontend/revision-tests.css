@@ -53,3 +53,41 @@ body:has(.revision-public) .brand {font-weight:700;color:#7652ad;}
 #connected-revisions .revision-filters>div {min-width:0;}
 #connected-revisions .revision-filters label {display:block;margin-bottom:6px;}
 #connected-revisions .revision-filters select,#connected-revisions .revision-filters input {width:100%;}
+
+.revision-public #test-status:not(:empty) {background:transparent;padding:0;margin:6px 0 14px;font-size:13px;line-height:1.4;color:#62677c;}
+.revision-public .members-panel {gap:12px;}
+.revision-public .revision-progress {display:grid;gap:6px;padding-bottom:10px;border-bottom:1px solid #e4dcf1;}
+.revision-public .revision-progress p {font-size:13px;color:#62677c;}
+.revision-progress progress {width:100%;height:6px;accent-color:#7652ad;}
+.revision-public .revision-question {font-size:19px;line-height:1.55;margin:6px 0 0;font-weight:600;}
+.revision-public .revision-task-hint {font-size:13px;color:#62677c;}
+.revision-public label {font-size:14px;}
+.revision-public .revision-actions {margin-top:4px;}
+.revision-essay-topic {padding:18px;background:#eee6fb;border:1px solid #d0b9f0;border-left:5px solid #7652ad;border-radius:12px;}
+.revision-public .revision-essay-topic>p {color:#674298;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;}
+.revision-public .revision-essay-topic h2 {margin:8px 0 0;color:#51317f;font-size:21px;line-height:1.5;}
+.revision-public .revision-writing-instructions {font-size:14px;color:#62677c;}
+.revision-public .revision-word-count {font-size:13px;text-align:right;color:#62677c;}
+.revision-public .revision-word-count[data-range=within] {color:#21754b;}
+.revision-writing-rubric {border:1px solid #e4dcf1;border-radius:10px;padding:12px;font-size:14px;}
+.revision-writing-rubric summary {cursor:pointer;color:#674298;font-weight:600;}
+.revision-writing-rubric li {margin-bottom:8px;}
+.revision-public .revision-writing-rubric p {font-size:13px;}
+.revision-speaking {display:grid;gap:14px;padding-top:20px;margin-top:6px;border-top:1px solid #e4dcf1;}
+.revision-speaking h2 {margin:0;}
+.revision-speaking ol {margin:0;padding-left:22px;}
+.revision-speaking li {margin:0 0 10px;line-height:1.6;}
+.revision-speaking-card {padding:16px;border:1px solid #d0b9f0;border-left:4px solid #7652ad;background:#f7f2fd;border-radius:12px;}
+.revision-speaking-card h3 {margin:10px 0 0;font-size:18px;line-height:1.5;}
+.revision-speaking-card p {white-space:pre-line;overflow-wrap:anywhere;margin-bottom:8px;}
+.revision-dialogue-status {display:grid;gap:12px;}
+.revision-public .revision-preparation-clock {font-weight:600;color:#674298;}
+@media(max-width:480px){.revision-public .revision-essay-topic h2{font-size:18px;}.revision-essay-topic{padding:14px;}.revision-speaking button{width:100%;}}
+
+.revision-attempt-id {font-family:ui-monospace,monospace;font-size:12px!important;overflow-wrap:anywhere;padding:10px;background:#f7f2fd;border-radius:8px;}
+.revision-grade-summary {display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:16px 0;}
+.revision-grade-summary>div {padding:12px;background:#f4effb;border-radius:10px;}
+.revision-grade-summary span {display:block;font-size:12px;color:#62677c;}
+.revision-grade-summary strong {display:block;margin-top:4px;font-size:16px;color:#51317f;}
+#connected-revisions .revision-row>details {border-top:1px solid #e4dcf1;margin-top:16px;padding-top:16px;}
+#connected-revisions .revision-row p {white-space:pre-wrap;overflow-wrap:anywhere;}

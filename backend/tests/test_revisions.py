@@ -159,3 +159,47 @@ def test_common_student_link_lists_only_published_tests_without_private_data(cli
     assert draft not in str(public.json()) and 'Synthetic Learner' not in str(public.json()) and 'answers' not in str(public.json())
     client.put('/learning/revisions/tests/'+identifier,headers=ADMIN,json=spec)
     assert client.get('/revision-tests').json()==[]
+
+
+def test_essay_topic_is_saved_validated_and_exported(client):
+    identifier,ADMIN=setup(client)
+    spec=client.get('/learning/revisions/tests',headers=ADMIN).json()[0]['definition']
+    spec['writing_topics']=['Traditions should change. Discuss.','Ancestry does not determine identity. Discuss.']
+    assert client.put('/learning/revisions/tests/'+identifier,headers=ADMIN,json=spec).status_code==200
+    client.post('/learning/revisions/tests/'+identifier+'/publish',headers=ADMIN)
+    row=client.post('/revision-tests/'+identifier+'/start',json={'group':'213','student_name':'Synthetic Learner','research_consent':False}).json()
+    path='/revision-attempts/'+row['attempt_id'];auth={'Authorization':'Bearer '+row['token']};client.post(path+'/begin',headers=auth)
+    body={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'Our heritage influences us, but we make our own choices.'}
+    assert row['writing_topics']==spec['writing_topics']
+    assert client.post(path+'/submit',headers=auth,json=body).status_code==422
+    assert client.put(path,headers=auth,json={**body,'writing_topic':'Not an available topic'}).status_code==422
+    body['writing_topic']=spec['writing_topics'][1]
+    assert client.put(path,headers=auth,json=body).status_code==200
+    assert client.get(path,headers=auth).json()['writing_topic']==body['writing_topic']
+    assert client.post(path+'/submit',headers=auth,json=body).status_code==200
+    rows=client.get('/learning/revisions/tests/'+identifier+'/attempts',headers=ADMIN).json()
+    assert rows[0]['report']['writing_topic']==body['writing_topic']
+    reviewed=client.put('/learning/revisions/attempts/'+row['attempt_id']+'/review',headers=ADMIN,json={'writing_score':18}).json()
+    assert reviewed['report']['writing_topic']==body['writing_topic'] and reviewed['report']['total_score']==98
+    export=client.get('/learning/revisions/tests/'+identifier+'/export?research_only=false',headers=ADMIN).json()
+    assert body['writing_topic'] in base64.b64decode(export['files'][0]['content']).decode('utf-8-sig')
+
+def test_private_result_updates_and_rating_waits_for_both_reviews(client):
+    identifier,ADMIN=setup(client)
+    started=client.post('/revision-tests/'+identifier+'/start',json={'group':'214','student_name':'Synthetic Learner','research_consent':False}).json()
+    path='/revision-attempts/'+started['attempt_id'];auth={'Authorization':'Bearer '+started['token']}
+    assert client.post(path+'/begin',headers=auth).status_code==200
+    body={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'A family tradition.'}
+    result=client.post(path+'/submit',headers=auth,json=body).json()
+    assert result['rating_score'] is None and result['rating_pending']
+    assert client.get(path).status_code==401
+    assert client.get(path,headers={'Authorization':'Bearer wrong'}).status_code in [401,403]
+    client.put('/learning/revisions/attempts/'+started['attempt_id']+'/review',headers=ADMIN,json={'writing_score':16,'feedback':'Develop your example.','usage':{}})
+    assert client.get(path,headers=auth).json()['rating_score'] is None
+    client.put('/learning/revisions/attempts/'+started['attempt_id']+'/oral-review',headers=ADMIN,json={'score':12,'feedback':'Clear, but pause less.'})
+    result=client.get(path,headers=auth).json()
+    assert result['rating_score']==2.7 and result['rating_max']==3 and not result['rating_pending']
+    assert result['essay_feedback']=='Develop your example.' and result['oral_feedback']=='Clear, but pause less.'
+    assert 'answers' not in result and 'items' not in result
+    client.put('/learning/revisions/attempts/'+started['attempt_id']+'/oral-review',headers=ADMIN,json={'score':20,'feedback':'Updated.'})
+    assert client.get(path,headers=auth).json()['rating_score']==2.9

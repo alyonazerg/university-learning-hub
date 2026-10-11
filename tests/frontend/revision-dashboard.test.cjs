@@ -22,3 +22,21 @@ for(const width of [320,1280])test(`revision dashboard has two main actions at $
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
  if(width===1280)await page.screenshot({path:'/workspace/work/revision-dashboard-desktop.png',fullPage:true});
 });
+
+test('student cabinet exposes only locally saved private results',async t=>{
+ const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());const page=await browser.newPage({viewport:{width:320,height:800}});
+ await page.route('http://moon.test/**',route=>route.fulfill({contentType:'text/html',body:'<section id="connected-revisions"></section>'}));await page.goto('http://moon.test/learning.html');await page.addScriptTag({path:path.join(root,'revision-session.js')});
+ await page.evaluate(()=>{localStorage.setItem('moon-revision-results',JSON.stringify([{attempt_id:'own',token:'private',title:'Unit 7',group:'213'}]));MoonRevisions.render({student:true},{profile:{role:'student'},run:async fn=>fn()});});
+ assert.equal(await page.getByRole('heading',{name:'My results'}).count(),1);const url=new URL(await page.getByRole('link',{name:'Unit 7 · 213'}).getAttribute('href'));assert.equal(url.searchParams.get('attempt'),'own');assert.equal(url.hash,'#token=private');assert.equal(await page.getByText('Groups, class lists and research conditions').count(),0);
+});
+
+test('teacher can find separate essay and oral grading criteria and rating',async t=>{
+ const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());const page=await browser.newPage({viewport:{width:320,height:1200}});
+ const styles=(await Promise.all(['admin.css','cabinet.css','revision-tests.css'].map(f=>fs.readFile(path.join(root,f),'utf8')))).join('\n');
+ await page.route('http://moon.test/**',route=>route.fulfill({contentType:'text/html',body:'<html></html>'}));await page.goto('http://moon.test/learning.html');await page.setContent(`<style>${styles}</style><main><section id="connected-revisions" class="members-panel"></section></main>`);await page.addScriptTag({path:path.join(root,'revision-session.js')});
+ await page.evaluate(()=>{const test={id:'one',published:true,definition:{title:'Unit 7',level:'C1',unit:'7',groups:['213'],priming:[],items:[],writing_prompt:'Essay'}};const row={id:'attempt',test_id:'one',student_name:'Synthetic Learner',group:'213',condition:'control',submitted_at:'2026-10-11T10:00:00',started_at:'2026-10-11T09:00:00',teacher_status:'reviewed',writing:'Essay text',oral:{status:'paired',score:16},report:{controlled_score:72,writing_score:18,total_score:90},rating_score:2.65};MoonRevisions.render({groups:[],tests:[test]},{profile:{role:'admin'},run:async fn=>fn(),request:async()=>[row],refresh:async()=>{}});});
+ await page.getByRole('button',{name:'View results',exact:true}).click();await page.locator('summary').filter({hasText:'Synthetic Learner'}).click();
+ assert.equal(await page.getByText('Rating: 2.65 / 3',{exact:true}).count(),1);assert.equal(await page.getByRole('button',{name:'Save essay grade'}).count(),1);assert.equal(await page.getByRole('button',{name:'Save speaking grade'}).count(),1);
+ assert.equal(await page.getByText('Speaking criteria · five × 4 points',{exact:true}).count(),1);assert.equal(await page.getByText('Essay criteria · four × 5 points',{exact:true}).count(),1);
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+});

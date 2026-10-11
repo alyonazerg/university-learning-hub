@@ -32,3 +32,30 @@ def test_preview_migration_updates_defaults_and_preserves_teacher_edits_and_atte
         assert session.get(RevisionTest,'custom').definition==previous
         attempt=session.get(RevisionAttempt,attempt_id)
         assert attempt.snapshot==previous and attempt.answers=={'v1':'Saved answer'} and attempt.writing=='Saved essay'
+
+
+@pytest.mark.parametrize('level',['b2','c1'])
+def test_contextual_tasks_preserve_question_edits_and_started_attempts(level,monkeypatch):
+    folder=Path(__file__).parents[1]
+    spec=importlib.util.spec_from_file_location('context_migration',folder/'alembic/versions/010_contextual_vocabulary.py')
+    migration=importlib.util.module_from_spec(spec);spec.loader.exec_module(migration)
+    identifier='53cc2eae-9888-469d-bc40-b9f648b58775' if level=='b2' else 'a90c0f9c-a40c-40e4-95bb-c22c4bfb36a8'
+    template=json.loads((folder/'revision_materials'/f'unit7-{level}.json').read_text())
+    previous=json.loads(json.dumps(template))
+    for item in previous['items']:
+        if item['id'] in migration.OLD[level]:item.update(migration.OLD[level][item['id']])
+    previous['items'][0]['prompt']='Teacher-edited context.'
+    previous['items'][1]['answers']=['Teacher-added answer']
+    with SessionLocal() as session:
+        session.add(RevisionTest(id=identifier,definition=previous,published=True));session.commit()
+        attempt=RevisionAttempt(test_id=identifier,snapshot=previous,research_consent=True,consent_version='synthetic',token_hash='synthetic',student_id='synthetic',student_name='Synthetic Learner',group_code='213' if level=='c1' else '215',condition='experimental',answers={'v1':'Saved answer'},writing='Saved essay')
+        session.add(attempt);session.commit();attempt_id=attempt.id
+    with engine.begin() as connection:
+        monkeypatch.setattr(migration.op,'get_bind',lambda:connection);migration.upgrade();migration.upgrade()
+    with SessionLocal() as session:
+        updated=session.get(RevisionTest,identifier)
+        assert updated.published and len(updated.definition['items'])==len(template['items'])
+        assert updated.definition['items'][0]['prompt']=='Teacher-edited context.'
+        assert updated.definition['items'][1]['answers']==['Teacher-added answer']
+        assert updated.definition['items'][2]==template['items'][2]
+        assert session.get(RevisionAttempt,attempt_id).snapshot==previous
