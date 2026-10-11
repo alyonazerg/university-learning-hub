@@ -34,7 +34,7 @@
   const firstAliases = ['Silver', 'Amber', 'Misty', 'Violet', 'Golden', 'Crystal', 'Moon', 'Velvet'];
   const roster = groups.flatMap((group, index) => ['Fern', 'Willow'].map((ending, i) => ({id: index === 0 ? `demo-student-${i + 1}` : `demo-student-${group.id}-${i}`, alias: `${firstAliases[index] || `Opal${index + 1}`} ${ending}`, groupId: group.id})));
   function permitted(task, learner = student) {return task.type !== 'compensation' || certificates.has(task.checkpointId + ':' + learner.id);}
-  const types = {regular: 'Regular assignment', imt: 'IMT', checkpoint: 'Checkpoint', extra: 'Extra task', compensation: 'Make-up assignment'};
+  const types = {regular: 'Regular assignment', imt: 'IMT', checkpoint: 'Assessment Test', extra: 'Extra task', compensation: 'Make-up assignment'};
   const notices = [{id: 'demo-notice-1', text: 'Welcome to your learning universe! :moon: Course updates will appear here.', groupIds: groups.map(group => group.id), createdAt: startedAt}];
   const reactions = new Map();
   const comments = new Map();
@@ -198,7 +198,7 @@
     else renderStudentWork(details, task);
   }
   function renderCheckpoint(details, task) {
-    const section = node('section', undefined, 'checkpoint-results'); section.append(node('h3', 'Checkpoint results and submissions'));
+    const section = node('section', undefined, 'checkpoint-results'); section.append(node('h3', 'Assessment Test results and submissions'));
     const learners = roster.filter(learner => task.groupIds.includes(learner.groupId));
     if (role === 'teacher') {
       section.append(node('p', 'Certificate approval applies to this period only. Medical documents and diagnoses are not stored here.', 'muted'));
@@ -215,7 +215,7 @@
       const scoreLabel = node('label', 'Result', 'input-label'); scoreLabel.htmlFor = score.id; const maxLabel = node('label', 'Maximum', 'input-label'); maxLabel.htmlFor = maximum.id;
       const photos = MoonPhotos.picker('result-photos'); const error = node('p', '', 'form-error'); error.setAttribute('role', 'alert'); const save = node('button', 'Save result and photos', 'primary'); save.type = 'submit';
       form.append(learnerLabel, select, scoreLabel, score, maxLabel, maximum, photos.element, error, save);
-      form.addEventListener('submit', event => {event.preventDefault(); const value = score.value.trim() ? Number(score.value) : null, max = Number(maximum.value); if ((value !== null && !Number.isFinite(value)) || (value === null && !photos.photos.length && !results.get(task.id + ':' + select.value)?.photos.length) || !Number.isFinite(max) || max <= 0 || value < 0 || value > max || photos.busy || photos.invalid) {error.textContent = 'Check the scores and wait for supported photos to finish processing.'; return;} results.set(task.id + ':' + select.value, Object.freeze({score: value, maximum: max, photos: photos.photos.length ? Object.freeze(photos.photos.slice()) : (results.get(task.id + ':' + select.value)?.photos || Object.freeze([]))})); render(); announce('Checkpoint result saved in the demo.');});
+      form.addEventListener('submit', event => {event.preventDefault(); const value = score.value.trim() ? Number(score.value) : null, max = Number(maximum.value); if ((value !== null && !Number.isFinite(value)) || (value === null && !photos.photos.length && !results.get(task.id + ':' + select.value)?.photos.length) || !Number.isFinite(max) || max <= 0 || value < 0 || value > max || photos.busy || photos.invalid) {error.textContent = 'Check the scores and wait for supported photos to finish processing.'; return;} results.set(task.id + ':' + select.value, Object.freeze({score: value, maximum: max, photos: photos.photos.length ? Object.freeze(photos.photos.slice()) : (results.get(task.id + ':' + select.value)?.photos || Object.freeze([]))})); render(); announce('Assessment Test result saved in the demo.');});
       section.append(form);
       const csvLabel = node('label', 'Import results as CSV: alias; score; maximum', 'input-label'); csvLabel.htmlFor = 'result-import'; const csv = node('input'); csv.id = 'result-import'; csv.type = 'file'; csv.accept = '.csv,.txt,text/csv,text/plain'; const csvError = node('p', '', 'form-error'); csvError.setAttribute('role', 'alert');
       csv.addEventListener('change', async () => {try {
@@ -427,7 +427,7 @@
   });
   function assignmentGroups() {
     assignmentWordLists();
-    $('assignment-checkpoint').replaceChildren(); const empty = node('option', 'Choose a make-up checkpoint'); empty.value = ''; $('assignment-checkpoint').append(empty);
+    $('assignment-checkpoint').replaceChildren(); const empty = node('option', 'Choose a make-up Assessment Test'); empty.value = ''; $('assignment-checkpoint').append(empty);
     for (const checkpoint of tasks.filter(task => task.type === 'checkpoint' && task.courseId === $('assignment-course').value)) {const option = node('option', `${checkpoint.title} · ${checkpoint.period || 'period'}`); option.value = checkpoint.id; $('assignment-checkpoint').append(option);}
     const available = groups.filter(group => group.courseId === $('assignment-course').value);
     $('assignment-group').replaceChildren(); $('assignment-group-choices').replaceChildren();
@@ -477,11 +477,11 @@
     const task = {id: `demo-task-${crypto.randomUUID()}`, title, description, groupIds, courseId, deadline, startsAt, type: $('assignment-type').value, period: $('assignment-period').value.trim(), criteria: $('assignment-criteria').value.trim(), vocabulary: MoonTextReview.parseVocabulary($('assignment-vocabulary').value), constructions: $('assignment-constructions').value.split('\n').map(value => value.trim()).filter(Boolean)};
     if (task.type === 'checkpoint') {
       task.periodEnd = parseMoscow($('assignment-period-end').value); task.testAt = parseMoscow($('assignment-test-date').value);
-      if (!Number.isFinite(task.periodEnd) || task.periodEnd <= startsAt || !Number.isFinite(task.testAt)) {$('assignment-error').textContent = 'For a checkpoint, set an end date after the start date and provide a test date.'; return;}
+      if (!Number.isFinite(task.periodEnd) || task.periodEnd <= startsAt || !Number.isFinite(task.testAt)) {$('assignment-error').textContent = 'For an Assessment Test, set an end date after the start date and provide a test date.'; return;}
     }
     if (task.type === 'compensation') {
       const checkpoint = tasks.find(item => item.id === $('assignment-checkpoint').value && item.type === 'checkpoint');
-      if (!checkpoint || checkpoint.courseId !== courseId || groupIds.some(id => !checkpoint.groupIds.includes(id))) {$('assignment-error').textContent = 'Choose a checkpoint and its groups from the same course.'; return;}
+      if (!checkpoint || checkpoint.courseId !== courseId || groupIds.some(id => !checkpoint.groupIds.includes(id))) {$('assignment-error').textContent = 'Choose an Assessment Test and its groups from the same course.'; return;}
       task.checkpointId = checkpoint.id;
     }
     tasks.unshift(task); teacherSelected = task.id; groupFilter = 'all'; courseFilter = 'all'; typeFilter = 'all';

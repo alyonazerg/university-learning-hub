@@ -13,3 +13,6 @@ COPY --from=ocr-assets /build/ocr /usr/share/nginx/html/ocr
 COPY --chmod=644 calendars /usr/share/nginx/html/calendars
 
 COPY --chmod=644 favicon.svg /usr/share/nginx/html/favicon.svg
+
+COPY --chmod=644 topic-import.js /usr/share/nginx/html/topic-import.js
+COPY --chmod=644 templates /usr/share/nginx/html/templates

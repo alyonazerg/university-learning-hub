@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const types = {regular: 'Regular assignment', imt: 'IMT', checkpoint: 'Checkpoint', extra: 'Extra task', compensation: 'Make-up assignment'};
+  const types = {regular: 'Regular assignment', imt: 'IMT', checkpoint: 'Assessment Test', extra: 'Extra task', compensation: 'Make-up assignment'};
   const statuses = {unmarked: 'Unmarked', present: 'Present', late: 'Late', absent: 'Absent', excused: 'Excused'};
   const format = value => new Intl.DateTimeFormat('en-GB', {timeZone: 'Europe/Moscow', dateStyle: 'medium', timeStyle: 'short'}).format(new Date(value));
   function node(tag, text, className) {const element = document.createElement(tag); if (text !== undefined) element.textContent = text; if (className) element.className = className; return element;}
@@ -53,7 +53,7 @@
         if (task.criteria) article.append(node('p', 'Criteria: ' + task.criteria));
       }
       if (detail.access.length) {
-        const form = node('form'), title = node('h4', 'Make-up approval · this checkpoint'); form.append(title, node('p', 'Tick only after checking the certificate. The certificate file and diagnosis are not stored here.', 'muted'));
+        const form = node('form'), title = node('h4', 'Make-up approval · this Assessment Test'); form.append(title, node('p', 'Tick only after checking the certificate. The certificate file and diagnosis are not stored here.', 'muted'));
         for (const learner of detail.access) {
           const label = node('label', undefined, 'attendance-choice'), checkbox = node('input'); checkbox.type = 'checkbox'; checkbox.checked = learner.certificate_checked;
           checkbox.setAttribute('aria-label', 'Certificate checked · ' + learner.pseudonym);
@@ -116,7 +116,7 @@
     const start = field(form, 'Start date · Moscow', 'server-task-start', 'datetime-local'); start.value = moscowInput(-60000);
     const end = field(form, 'End date / deadline · Moscow', 'server-task-end', 'datetime-local'); end.value = moscowInput(7 * 86400000);
     const test = field(form, 'Test date · Moscow (optional)', 'server-task-test', 'datetime-local'); test.required = false;
-    const checkpoint = select(form, 'Checkpoint for make-up work', 'server-task-checkpoint', [['', 'Choose a checkpoint'], ...data.tasks.filter(task => task.kind === 'checkpoint').map(task => [task.id, task.title])]);
+    const checkpoint = select(form, 'Assessment Test for make-up work', 'server-task-checkpoint', [['', 'Choose an Assessment Test'], ...data.tasks.filter(task => task.kind === 'checkpoint').map(task => [task.id, task.title])]);
     const vocabulary = field(form, 'Target vocabulary · one expression per line', 'server-task-vocabulary', 'textarea', 20000); vocabulary.required = false;
     const constructions = field(form, 'Target structures · one per line', 'server-task-constructions', 'textarea', 20000); constructions.required = false;
     const criteria = field(form, 'Criteria (optional)', 'server-task-criteria', 'textarea', 10000); criteria.required = false;

@@ -159,3 +159,6 @@ app.include_router(planning_router)
 
 from .schedule_import import router as schedule_import_router
 app.include_router(schedule_import_router)
+
+from .topic_import import router as topic_import_router
+app.include_router(topic_import_router)

@@ -25,7 +25,7 @@
     'Telegram authentication is not configured': 'Telegram sign-in has not been configured on the server yet.',
     'Group already exists': 'A group with this name already exists.', 'Group not found': 'This group is unavailable.', 'Student unavailable': 'Student access has been disabled.',
     'Choose groups from one course': 'Choose groups from the same course.',
-    'Compensation must use groups of its checkpoint': 'Make-up work must use groups from the selected checkpoint.',
+    'Compensation must use groups of its checkpoint': 'Make-up work must use groups from the selected Assessment Test.',
     'Compensation access required': 'Make-up work requires approval after your certificate has been checked.',
     'Task has not started': 'The submission period has not started yet.',
     'All three attempts used': 'All three attempts have been used.',

@@ -73,7 +73,7 @@ test('older API without planning still allows teacher login and existing cabinet
 
 test('schedule and thematic plan persist, create one attendance journal and keep cabinet spacing on mobile',async t=>{
   const {pageFor,errors,restart}=await open(t);const page=await pageFor();await teacher(page);
-  await page.locator('#connected-schedule summary').click();
+  await page.getByText('Add weekly schedule',{exact:true}).click();
   await page.locator('#weekly-from').fill('2026-10-12');await page.locator('#weekly-until').fill('2026-10-26');
   await page.locator('#weekly-time').fill('10:00');await page.getByRole('button',{name:'Add schedule',exact:true}).click();
   await page.getByText('Schedule saved. Topics are available in the teaching plan.',{exact:true}).waitFor();
@@ -227,7 +227,7 @@ test('cabinet navigation reduces visible content, supports roles and preserves u
   assert(await page.locator('#connected-schedule').isVisible());
   assert(!(await page.locator('#connected-coursework').isVisible()));
   await section(page,'connected-groups');assert(!(await page.locator('#connected-group-form').isVisible()));
-  await page.locator('#connected-groups summary').click();await page.locator('#new-group-name').fill('Unfinished group');
+  await page.locator('#connected-groups > details > summary').click();await page.locator('#new-group-name').fill('Unfinished group');
   await section(page,'connected-coursework');await page.getByText('Create assignment',{exact:true}).click();await page.locator('#server-task-title').fill('Unfinished task');
   await section(page,'connected-groups');assert.equal(await page.locator('#new-group-name').inputValue(),'Unfinished group');
   await section(page,'connected-coursework');assert.equal(await page.locator('#server-task-title').inputValue(),'Unfinished task');
@@ -283,6 +283,20 @@ test('reviewed autumn semester imports eight groups, honors week exceptions and 
   await page.locator('#planning-group-filter').selectOption({label:'151'});await section(page,'connected-planning');
   assert.equal(await page.locator('#connected-planning article').count(),18);
   assert.match(await page.locator('#connected-planning').textContent(),/Lesson 18 · Final credit/);
+  await page.getByText('Import lesson topics · CSV / XLS / XLSX',{exact:true}).click();await page.locator('#topic-import-all').check();
+  await page.getByRole('button',{name:'Preview suggested grammar plan',exact:true}).click();await page.getByRole('button',{name:'Confirm topic import',exact:true}).waitFor();
+  assert.equal(await page.locator('.topic-import h3').count(),3);
+  await page.getByRole('button',{name:'Confirm topic import',exact:true}).click();await page.getByText('Lesson topics imported. Existing dates were preserved unless specified in the file.',{exact:true}).waitFor();
+  assert.equal(await page.locator('#connected-planning article').count(),18);
+  const assessment=page.locator('#connected-planning article').filter({has:page.getByRole('heading',{name:'8. Assessment Test 1',exact:true})});
+  assert.match(await assessment.textContent(),/19 Oct 2026, 12:40 · 90 min/);
+  await assessment.getByText('Edit topic',{exact:true}).click();const date=assessment.locator('input[type=datetime-local]');await date.fill('2026-10-20T12:40');
+  assert.equal(await assessment.locator('input[id^=plan-duration-]').inputValue(),'90');
+  await assessment.getByRole('button',{name:'Save topic changes',exact:true}).click();await page.getByText('Topic saved.',{exact:true}).waitFor();
+  assert.match(await assessment.textContent(),/20 Oct 2026, 12:40/);
+  for(const width of [320,390,1280]){await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    const gap=await assessment.locator('.planning-actions').evaluate(el=>{const [first,second]=[...el.children].map(x=>x.getBoundingClientRect());return Math.max(second.left-first.right,second.top-first.bottom);});assert(gap>=11);
+  }
   for(const width of [320,390,1280]){await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
   assert.deepEqual(errors,[]);
 });

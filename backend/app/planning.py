@@ -2,7 +2,7 @@
 from datetime import timedelta
 from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from .learning import StrictModel, principal, administrator, database, no_store, group_for
@@ -26,6 +26,12 @@ class PlanInput(StrictModel):
     vocabulary: list[str] = Field(default_factory=list, max_length=100)
     constructions: list[str] = Field(default_factory=list, max_length=100)
     completed: bool = False
+
+    @model_validator(mode='after')
+    def assessment_duration(self):
+        if self.kind == 'test':
+            self.duration_minutes = 90
+        return self
 
     @field_validator('starts_at')
     @classmethod

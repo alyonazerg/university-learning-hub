@@ -79,3 +79,13 @@
 #workspace .semester-weeks {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
 #workspace .semester-import p {overflow-wrap:anywhere;}
 @media(max-width:600px){#workspace .semester-weeks {grid-template-columns:minmax(0,1fr);}}
+
+#workspace .planning-actions {display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;align-items:center;}
+#workspace .planning-actions > button, #workspace .planning-actions > a {margin:0;max-width:100%;white-space:normal;}
+#workspace .planning-actions > a {display:inline-flex;align-items:center;min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:12px;text-decoration:none;}
+#workspace .topic-import ol {padding-left:24px;}
+#workspace .topic-import li {padding:5px 0;overflow-wrap:anywhere;}
+@media(max-width:600px){#workspace .planning-actions > button,#workspace .planning-actions > a {width:100%;justify-content:center;}}
+
+#workspace .topic-import-selection {display:flex;gap:10px;align-items:center;}
+#workspace .topic-import-selection input {width:20px;min-height:20px;flex:0 0 20px;accent-color:var(--purple);}

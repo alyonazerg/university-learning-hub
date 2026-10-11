@@ -26,3 +26,10 @@ The default reviewed period is 12 September–29 December 2026. Grammar groups 1
 Full-class checkpoints replace existing class slots: lesson 8 on 19 October, lesson 13 on 25 November (154) or 27 November (150/151), lesson 17 on 23 December (154) or 25 December (150/151), and credit on lesson 18, 28 December. Tests 2 and 3 are proposed dates and remain editable in the teaching plan. Objectives contain the three topic blocks from the supplied rating plan. The importer upgrades untouched generic placeholders, preserves completed or teacher-edited lessons and journals, and previews upgrade counts.
 
 Download Google Calendar (.ics) exports the currently reviewed week calendar with biweekly RRULE series, EXDATE exclusions for changed or cancelled weeks, and RECURRENCE-ID overrides for checkpoints. The checked-in calendars/moon-campus-autumn-2026.ics is the initial full-semester version for all eight groups. Dates are encoded in UTC; Moscow is UTC+3 throughout this semester. Importing a file is not live synchronization: subsequent edits on the platform do not update previously imported Google events.
+
+
+## Lesson-topic files
+
+Teaching plan → Import lesson topics accepts UTF-8 CSV (comma/semicolon), XLS and XLSX, up to 2 MB and 120 rows. Uses the first visible worksheet. Required headers: position, topic; optional: kind, date, time, duration_minutes, objectives, materials. Dates use YYYY-MM-DD and Moscow HH:MM times; Excel date/time cells are supported. Kinds: lesson/test/imt/extra. Assessment Tests are normalized to 90 minutes.
+
+Existing positions are updated, new positions added; duplicate positions and conflicts reject the whole import. Blank optional cells preserve values, dates and completion status. Preview performs no writes. Confirmation revalidates and commits all selected groups atomically. Linked attendance dates/topics remain protected. The suggested 18-lesson grammar file can be applied to one group or 150/151/154 together, without replacing dates. The first seven topics follow the teacher's retrospective sequence and upcoming IMT-1 quiz; future pronoun/numeral and adjective/adverb allocation is a proposal.
