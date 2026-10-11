@@ -102,3 +102,25 @@ def test_recognition_migration_and_group_choices(level,monkeypatch):
     with engine.begin() as connection:
         monkeypatch.setattr(migration.op,'get_bind',lambda:connection);migration.upgrade();migration.upgrade()
     with SessionLocal() as session:assert session.get(RevisionTest,'copy').definition==current
+
+@pytest.mark.parametrize('level',['b2','c1'])
+def test_familiar_options_migration_preserves_edits(level,monkeypatch):
+    folder=Path(__file__).parents[1]
+    spec=importlib.util.spec_from_file_location('familiar',folder/'alembic/versions/015_familiar_options_full_grammar.py')
+    migration=importlib.util.module_from_spec(spec);spec.loader.exec_module(migration)
+    current=json.loads((folder/'revision_materials'/f'unit7-{level}.json').read_text())
+    previous={**current,'items':[migration.OLD[level].get(i['id'],i) for i in current['items']]}
+    edited=json.loads(json.dumps(previous));edited['items'][0]['prompt']='Teacher-created question'
+    with SessionLocal() as session:
+        transitional=json.loads(json.dumps(current))
+        for item in transitional['items']:item['choices']=[]
+        session.add_all([RevisionTest(id='transitional',definition=transitional,published=True),RevisionTest(id='old',definition=previous,published=True),RevisionTest(id='edited',definition=edited,published=True)]);session.commit()
+    with engine.begin() as connection:
+        monkeypatch.setattr(migration.op,'get_bind',lambda:connection);migration.upgrade();migration.upgrade()
+    with SessionLocal() as session:
+        assert session.get(RevisionTest,'old').definition==current
+        assert session.get(RevisionTest,'transitional').definition==current
+        assert session.get(RevisionTest,'edited').definition['items'][0]['prompt']=='Teacher-created question'
+    if level=='c1':
+        for item in current['items']:
+            if item['section']=='grammar':assert not item['choices'] and all(len(answer.split())>=2 for answer in item['answers'])

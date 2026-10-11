@@ -6,7 +6,7 @@ After submission, the receipt shows the Attempt ID. In the teacher cabinet, sele
 
 ## Speaking procedure
 
-Call submitted students individually; they reveal the individual question and answer immediately for 60–90 seconds. After two students from the same group complete their individual answers, tell those two to open the dialogue. The two ready attempts are paired in readiness order. They have one minute of preparation and speak for 2–3 minutes. Written tests need not finish simultaneously. For an odd participant, expand the student row and use Pair with teacher, then enter the speaking score.
+Call submitted students individually; they reveal the individual question and answer immediately for 60–90 seconds. In Results → Speaking, choose the second submitted student from the same group and assign the dialogue after both individual answers. Both students get the same situation with roles A/B. Each opens the card when instructed. Once both cards are open, a shared timer gives 30 seconds to read, then 60 seconds to prepare, then 2–3 minutes to speak. For an odd participant, choose Teacher as partner. Written tests need not finish simultaneously.
 
 ## Essay review with AI
 
@@ -47,3 +47,27 @@ All vocabulary, collocation and group-specific vocabulary items now provide five
 ## Research choice display
 
 Consent is selected once, before the test. There is no repeated withdrawal button on the preview, question, essay or receipt screens. Students may ask the teacher to withdraw consent. The teacher action is inside Research data and answers, with confirmation; it preserves academic answers and marks, clears timing data and excludes the attempt from research exports. The protected teacher endpoint requires administrator access.
+
+## Familiar alternatives and full grammar constructions
+
+Unit 7 lexical alternatives use taught shared vocabulary or full examples of the same target word/expression. This prevents simply selecting the sole familiar word among unrelated distractors. C1 online grammar requires the whole construction or a sentence rewrite, with mixed noun/pronoun subjects. Grammatical ordinary subject–verb order is also accepted for optional place-fronting cases. Paper grammar keeps A–E but tests complete constructions. Migration 015 updates untouched previous defaults and unbegun snapshots while preserving teacher edits and begun attempts. Copy detection in essays includes option sentences as well as question text.
+
+## Current speaking administration
+
+Dialogue assignment is controlled by the teacher, rather than automatically pairing whichever students finish together. Printed situations can also be distributed in person with the same 30-second reading and one-minute preparation allowance.
+
+Current speaking grading has two sets of four criteria, each 0–5: Vocabulary, Grammar, Coherence, and Content for the individual answer; Vocabulary, Grammar, Coherence, and Communication strategies for the dialogue. The speaking mark is the average of the two /20 totals. Prior five-criterion marks remain readable and are not redistributed automatically.
+
+AI rubric requires evidence for every mark. Keyboard-mashing responses without any vowel-bearing English token receive a provisional zero locally, without an external AI request; other nonsense is explicitly covered in the model rubric. Meaningful short responses are assessed on actual evidence, not a mechanical word-count penalty. Existing AI suggestions require rerunning the review to update; teacher-confirmed marks are not overwritten automatically.
+
+## Dashboard and AI evidence
+
+Teacher navigation separates Tests, Results, Analytics and Settings. Results shows one selected student's work with Essay, Speaking, Answers and Research views. Pending marks are not zeros. Analytics can aggregate the selected test or all tests and show groups or all groups, section means and lowest-scoring tasks with sample counts. It counts attempts, not unique students; differing levels, formats and versions remain descriptive comparisons.
+
+AI receives the attempt's group-filtered target words and grammar notes, returns exact essay quotations and provisional quality labels, and counts distinct correctly used lexical units and grammar constructions. Three naturally correct lexical units are strong evidence for a high vocabulary mark, not an automatic full mark. The teacher confirms all grading; quotations absent from the essay and unknown lexical targets are discarded. An AI review rerun does not change final teacher marks by itself.
+
+## Essay integrity controls
+
+The start page and essay screen disclose independent writing without AI, paste/drop blocking and browser activity recording. Paste, beforeinput-from-paste and drop are blocked in the essay field. Ordinary typing, mobile keyboard input and autocorrection remain available. JavaScript controls are bypassable and do not detect external AI authorship.
+
+Academic integrity metrics are retained regardless of optional research consent: paste/drop attempt counts, page-hide/focus-loss counts, accumulated away duration, reload count, viewport width/touch flag and the last 50 timestamped events. They contain no clipboard contents, keystrokes, screenshots or other-app contents. They persist in local drafts through weak connectivity and are submitted with the test. Student actions are client-reported and incomplete; phone calls, notifications, OS switching and accessibility tools can produce similar events. No score penalty or cheating conclusion is inferred automatically. Research exports still filter out non-consenting students.

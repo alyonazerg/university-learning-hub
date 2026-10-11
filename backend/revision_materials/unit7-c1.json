@@ -19,16 +19,16 @@
     {
       "id": "v1",
       "section": "vocabulary",
-      "prompt": "Elena discovered that her great-great-grandfather moved abroad in 1820. Which statement describes the discovery accurately?",
+      "prompt": "Which sentence uses “ancestor” correctly in meaning and usage?",
       "answers": [
-        "She learned where one of her ancestors had lived."
+        "Her great-great-grandfather was one of her ancestors."
       ],
       "choices": [
-        "She identified the parents who had adopted her.",
-        "She learned where one of her ancestors had lived.",
-        "She discovered her present-day citizenship.",
-        "She learned where one of her descendants had lived.",
-        "She discovered who would inherit her possessions."
+        "A person who joins the company after her is necessarily her ancestor.",
+        "Every person with her nationality is automatically her ancestor.",
+        "Her future great-grandchild is one of her ancestors.",
+        "Every neighbour from her childhood is automatically her ancestor.",
+        "Her great-great-grandfather was one of her ancestors."
       ],
       "target_word": "ancestor",
       "target_variants": [],
@@ -42,10 +42,10 @@
         "ancestry"
       ],
       "choices": [
-        "ancestry",
-        "nationality",
         "heritage",
-        "identity",
+        "genealogy",
+        "ancestry",
+        "significance",
         "ethnicity"
       ],
       "target_word": "ancestry",
@@ -60,11 +60,11 @@
         "genealogy"
       ],
       "choices": [
+        "significance",
+        "heritage",
+        "ancestry",
         "genealogy",
-        "archaeology",
-        "ethnography",
-        "genetics",
-        "anthropology"
+        "ethnicity"
       ],
       "target_word": "genealogy",
       "target_variants": [],
@@ -78,11 +78,11 @@
         "ethnicity"
       ],
       "choices": [
-        "nationality",
+        "friction",
         "ethnicity",
-        "ancestry",
-        "citizenship",
-        "residence"
+        "heritage",
+        "significance",
+        "genealogy"
       ],
       "target_word": "ethnicity",
       "target_variants": [],
@@ -96,11 +96,11 @@
         "heritage"
       ],
       "choices": [
-        "genealogy",
+        "ancestry",
         "ethnicity",
         "heritage",
-        "ancestry",
-        "nationality"
+        "friction",
+        "genealogy"
       ],
       "target_word": "heritage",
       "target_variants": [],
@@ -109,16 +109,16 @@
     {
       "id": "v6",
       "section": "vocabulary",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nAfter the court completed the legal process, the couple became the child’s ___ parents, with permanent parental rights and responsibilities.",
+      "prompt": "Which sentence uses “adoptive” correctly in meaning and usage?",
       "answers": [
-        "adoptive"
+        "The court made them the child’s adoptive parents, with permanent parental rights."
       ],
       "choices": [
-        "surrogate",
-        "adoptive",
-        "biological",
-        "prospective",
-        "foster"
+        "All biological parents are adoptive parents simply because they raise their children.",
+        "Any teacher becomes an adoptive parent by teaching a child.",
+        "The court made them the child’s adoptive parents, with permanent parental rights.",
+        "The court called them adoptive parents solely because they cared for the child temporarily.",
+        "A family friend becomes an adoptive parent by visiting the child."
       ],
       "target_word": "adoptive",
       "target_variants": [],
@@ -127,16 +127,16 @@
     {
       "id": "v7",
       "section": "vocabulary",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nAttendance at the annual festival had fallen for years. Organisers invited younger performers to ___ the event and give people a reason to return.",
+      "prompt": "Which sentence uses “reinvigorate” correctly in meaning and usage?",
       "answers": [
-        "reinvigorate"
+        "New performers helped reinvigorate the declining festival and attract visitors again."
       ],
       "choices": [
-        "preserve",
-        "replicate",
-        "reinvigorate",
-        "formalise",
-        "commemorate"
+        "New performers helped reinvigorate the declining festival and attract visitors again.",
+        "Organisers reinvigorated the festival by removing every activity and closing the venue.",
+        "Organisers reinvigorated the festival by ensuring nobody attended it again.",
+        "Organisers reinvigorated the festival by cancelling it permanently.",
+        "Organisers reinvigorated the festival by preventing any further celebration."
       ],
       "target_word": "reinvigorate",
       "target_variants": [],
@@ -150,11 +150,11 @@
         "relic"
       ],
       "choices": [
-        "reconstruction",
-        "souvenir",
-        "replica",
+        "feast",
+        "ancestor",
         "relic",
-        "heirloom"
+        "beacon",
+        "friction"
       ],
       "target_word": "relic",
       "target_variants": [],
@@ -168,11 +168,11 @@
         "friction"
       ],
       "choices": [
-        "resentment",
+        "ethnicity",
         "friction",
-        "distance",
-        "rivalry",
-        "pressure"
+        "genealogy",
+        "ancestry",
+        "heritage"
       ],
       "target_word": "friction",
       "target_variants": [],
@@ -186,11 +186,11 @@
         "beacon"
       ],
       "choices": [
+        "relic",
+        "ancestor",
+        "friction",
         "beacon",
-        "refuge",
-        "promise",
-        "signal",
-        "pillar"
+        "feast"
       ],
       "target_word": "beacon",
       "target_variants": [],
@@ -204,11 +204,11 @@
         "feast"
       ],
       "choices": [
-        "rite",
-        "fast",
-        "procession",
+        "ancestry",
+        "ethnicity",
         "feast",
-        "vigil"
+        "genealogy",
+        "friction"
       ],
       "target_word": "feast",
       "target_variants": [],
@@ -222,11 +222,11 @@
         "significance"
       ],
       "choices": [
-        "genealogy",
-        "ancestry",
         "significance",
-        "inheritance",
-        "ethnicity"
+        "ethnicity",
+        "ancestry",
+        "friction",
+        "genealogy"
       ],
       "target_word": "significance",
       "target_variants": [],
@@ -235,16 +235,16 @@
     {
       "id": "c1",
       "section": "collocation",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nWhen the speaker described feeling caught between two cultures, many listeners recognised their own experience. Her account struck a ___ with them.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "chord"
+        "struck a chord with"
       ],
       "choices": [
-        "harmony",
-        "chord",
-        "rhythm",
-        "tone",
-        "note"
+        "struck a chord on",
+        "struck a chord at",
+        "struck a chord with",
+        "struck a chord for",
+        "struck a chord to"
       ],
       "target_word": "chord",
       "target_variants": [],
@@ -253,16 +253,16 @@
     {
       "id": "c2",
       "section": "collocation",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nAt the ceremony, the younger members paid ___ to the elders who had preserved the language and taught it to others.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "tribute"
+        "paid tribute to"
       ],
       "choices": [
-        "respect",
-        "tribute",
-        "homage",
-        "attention",
-        "honour"
+        "paid tribute on",
+        "paid tribute at",
+        "paid tribute to",
+        "paid tribute with",
+        "paid tribute of"
       ],
       "target_word": "tribute",
       "target_variants": [],
@@ -271,16 +271,16 @@
     {
       "id": "c3",
       "section": "collocation",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nVery few people still knew the traditional songs. By teaching them to local children, the choir hoped to keep the tradition ___.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "alive"
+        "keep the tradition alive"
       ],
       "choices": [
-        "unchanged",
-        "lasting",
-        "active",
-        "alive",
-        "intact"
+        "keep the tradition alive",
+        "keep the tradition live",
+        "keep the tradition living",
+        "keep the tradition life",
+        "keep the tradition lively"
       ],
       "target_word": "alive",
       "target_variants": [],
@@ -289,16 +289,16 @@
     {
       "id": "c4",
       "section": "collocation",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nYou cannot infer someone’s beliefs from their surname. Making ___ on that basis may lead you to completely misunderstand them.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "assumptions"
+        "make assumptions about"
       ],
       "choices": [
-        "conclusions",
-        "opinions",
-        "assumptions",
-        "predictions",
-        "judgements"
+        "make assumptions about",
+        "have assumptions to",
+        "take assumptions about",
+        "give assumptions about",
+        "do assumptions about"
       ],
       "target_word": "assumptions",
       "target_variants": [],
@@ -307,16 +307,16 @@
     {
       "id": "c5",
       "section": "collocation",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nHer relatives expected her to join the family business, but she chose to forge her own ___ and become a researcher.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "path"
+        "forge her own path"
       ],
       "choices": [
-        "career",
-        "route",
-        "direction",
-        "path",
-        "identity"
+        "forge with her own path",
+        "forge at her own path",
+        "forge her own path",
+        "forge her own pathway to of",
+        "forge on her own path"
       ],
       "target_word": "path",
       "target_variants": [],
@@ -325,16 +325,16 @@
     {
       "id": "c6",
       "section": "collocation",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe survey estimated support at 51%, with a margin of ___ of three percentage points. The result does not establish a clear majority.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "error"
+        "a margin of error"
       ],
       "choices": [
-        "inaccuracy",
-        "uncertainty",
-        "deviation",
-        "variation",
-        "error"
+        "a margin of error",
+        "a margin to error",
+        "a margin with error",
+        "a margin on error",
+        "a margin in error"
       ],
       "target_word": "error",
       "target_variants": [],
@@ -343,9 +343,9 @@
     {
       "id": "g1",
       "section": "grammar",
-      "prompt": "Complete the auxiliary: Never ___ I seen such a detailed family tree.",
+      "prompt": "Complete the whole gap using SEE. The speaker is describing their experience up to now.\nNever ___ such a detailed family tree.",
       "answers": [
-        "have"
+        "have I seen"
       ],
       "choices": [],
       "target_word": "",
@@ -355,9 +355,10 @@
     {
       "id": "g2",
       "section": "grammar",
-      "prompt": "Complete the auxiliary: Only after the ceremony ___ we realise its significance.",
+      "prompt": "Complete the whole gap using REALISE in the past simple.\nOnly after the ceremony ___ its significance.",
       "answers": [
-        "did"
+        "did we realise",
+        "did we realize"
       ],
       "choices": [],
       "target_word": "",
@@ -367,9 +368,9 @@
     {
       "id": "g3",
       "section": "grammar",
-      "prompt": "Complete the auxiliary: Not until the documents arrived ___ she discover her ancestry.",
+      "prompt": "Complete the whole gap using DISCOVER in the past simple.\nNot until the documents arrived ___ the missing branch of her family tree.",
       "answers": [
-        "did"
+        "did she discover"
       ],
       "choices": [],
       "target_word": "",
@@ -379,9 +380,9 @@
     {
       "id": "g4",
       "section": "grammar",
-      "prompt": "Complete the auxiliary: Rarely ___ he speak about his childhood nowadays.",
+      "prompt": "Complete the whole gap using SPEAK in the present simple.\nRarely ___ about his childhood nowadays.",
       "answers": [
-        "does"
+        "does he speak"
       ],
       "choices": [],
       "target_word": "",
@@ -391,9 +392,9 @@
     {
       "id": "g5",
       "section": "grammar",
-      "prompt": "Complete the auxiliary: Under no circumstances ___ you allowed to share these records.",
+      "prompt": "Complete the whole gap using BE in the present simple.\nUnder no circumstances ___ allowed to share these records.",
       "answers": [
-        "are"
+        "are you"
       ],
       "choices": [],
       "target_word": "",
@@ -403,9 +404,9 @@
     {
       "id": "g6",
       "section": "grammar",
-      "prompt": "Complete the auxiliary: Little ___ they know at the time how much would change.",
+      "prompt": "Complete the whole gap using KNOW in the past simple.\nLittle ___ at the time how much would change.",
       "answers": [
-        "did"
+        "did they know"
       ],
       "choices": [],
       "target_word": "",
@@ -415,9 +416,10 @@
     {
       "id": "g7",
       "section": "grammar",
-      "prompt": "Complete the verb: At the end of the road ___ (stand) an old church.",
+      "prompt": "Rewrite the sentence, beginning with the words given. Keep the present simple and all the information.\nAn old church stands at the end of the road.\nAt the end of the road ___.",
       "answers": [
-        "stands"
+        "stands an old church",
+        "an old church stands"
       ],
       "choices": [],
       "target_word": "",
@@ -427,9 +429,12 @@
     {
       "id": "g8",
       "section": "grammar",
-      "prompt": "Complete the past-tense verb: Into the hall ___ (walk) the guest of honour.",
+      "prompt": "Rewrite the sentence, beginning with the words given. Keep the past simple and all the information.\nThe guest of honour walked into the hall.\nInto the hall ___.",
       "answers": [
-        "walked"
+        "walked the guest of honour",
+        "the guest of honour walked",
+        "walked the guest of honor",
+        "the guest of honor walked"
       ],
       "choices": [],
       "target_word": "",
@@ -439,14 +444,12 @@
     {
       "id": "g9",
       "section": "grammar",
-      "prompt": "Use full subject–verb inversion with the noun subject: Down the hill ___.",
+      "prompt": "Rewrite the sentence, beginning with the words given. Keep the past simple and all the information.\nThe children ran down the hill.\nDown the hill ___.",
       "answers": [
-        "ran the children"
+        "ran the children",
+        "the children ran"
       ],
-      "choices": [
-        "the children ran",
-        "ran the children"
-      ],
+      "choices": [],
       "target_word": "",
       "target_variants": [],
       "groups": []
@@ -454,14 +457,11 @@
     {
       "id": "g10",
       "section": "grammar",
-      "prompt": "Choose the correct word order: Here ___.",
+      "prompt": "Rewrite the sentence, beginning with the words given. Keep the past simple and the pronoun.\nShe ran into the courtyard.\nInto the courtyard ___.",
       "answers": [
-        "she comes"
+        "she ran"
       ],
-      "choices": [
-        "she comes",
-        "comes she"
-      ],
+      "choices": [],
       "target_word": "",
       "target_variants": [],
       "groups": []
@@ -469,16 +469,16 @@
     {
       "id": "e213-1",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nLeo refuses to open an umbrella indoors because he believes it brings bad luck. Although he knows there is no evidence, he remains ___.",
+      "prompt": "Which sentence uses “superstitious” correctly in meaning and usage?",
       "answers": [
-        "superstitious"
+        "Avoiding certain dates because they supposedly bring bad luck is superstitious behaviour."
       ],
       "choices": [
-        "superstitious",
-        "traditional",
-        "religious",
-        "sceptical",
-        "cautious"
+        "Avoiding certain dates because they supposedly bring bad luck is superstitious behaviour.",
+        "Using birth certificates to verify a date is necessarily superstitious behaviour.",
+        "Checking clinical evidence before treatment is necessarily superstitious behaviour.",
+        "Checking whether a website is secure is necessarily superstitious behaviour.",
+        "Checking the weather forecast before sailing is necessarily superstitious behaviour."
       ],
       "target_word": "superstitious",
       "target_variants": [],
@@ -489,16 +489,16 @@
     {
       "id": "e213-2",
       "section": "emergent",
-      "prompt": "Which sentence uses nutmeg accurately?",
+      "prompt": "Which sentence uses “nutmeg” correctly in meaning and usage?",
       "answers": [
-        "She grated a little nutmeg into the warm milk."
+        "She grated a little nutmeg into the milk to add flavour."
       ],
       "choices": [
-        "She grated a little nutmeg into the warm milk.",
-        "She used nutmeg to describe her family tree.",
-        "She poured a glass of nutmeg over the salad.",
-        "She booked a nutmeg to celebrate the festival.",
-        "She wore a nutmeg to protect her hands."
+        "She grated a little nutmeg into the milk to add flavour.",
+        "She wore a nutmeg on her wrist to tell the time.",
+        "She drank a glass of nutmeg as her main beverage.",
+        "She paid a nutmeg to borrow money for her flat.",
+        "She booked a nutmeg to record her family history."
       ],
       "target_word": "nutmeg",
       "target_variants": [],
@@ -509,16 +509,16 @@
     {
       "id": "e213-3",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nIn our local tradition, celebrations continue until ___ on 6 January, when the visit of the Magi is commemorated.",
+      "prompt": "Which sentence uses “Epiphany” correctly in meaning and usage?",
       "answers": [
-        "Epiphany"
+        "They marked Epiphany on 6 January with a celebration of the visit of the Magi."
       ],
       "choices": [
-        "Pentecost",
-        "Easter",
-        "Christmas",
-        "Advent",
-        "Epiphany"
+        "They marked Epiphany as the celebration of the coming of the Holy Spirit at Pentecost.",
+        "They marked Epiphany as a ceremony that legally adopts a child.",
+        "They marked Epiphany on 6 January with a celebration of the visit of the Magi.",
+        "They marked Epiphany as the beginning of Advent before Christmas.",
+        "They marked Epiphany as the Christian celebration of the Resurrection."
       ],
       "target_word": "Epiphany",
       "target_variants": [],
@@ -529,16 +529,16 @@
     {
       "id": "e213-4",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe family gathered at the church for the child’s ___. During the ceremony, the priest poured water over the child’s head.",
+      "prompt": "Which sentence uses “baptism” correctly in meaning and usage?",
       "answers": [
-        "baptism"
+        "The family attended the child’s baptism, during which the priest poured water over the child’s head."
       ],
       "choices": [
-        "confirmation",
-        "communion",
-        "wedding",
-        "ordination",
-        "baptism"
+        "The family attended a baptism that was solely a discussion of genetic test results.",
+        "The family attended a baptism that was solely the signing of a mortgage.",
+        "The family attended the child’s baptism, during which the priest poured water over the child’s head.",
+        "The family attended a baptism that was solely a workplace induction.",
+        "The family attended a baptism that was solely a legal adoption hearing."
       ],
       "target_word": "baptism",
       "target_variants": [],
@@ -549,16 +549,16 @@
     {
       "id": "e213-5",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nSeveral relatives have the same condition, so she may have a genetic ___ to develop it. That increases the risk but does not make it inevitable.",
+      "prompt": "Which sentence uses “predisposition” correctly in meaning and usage?",
       "answers": [
-        "predisposition"
+        "A genetic predisposition increases the likelihood of a condition but does not make it inevitable."
       ],
       "choices": [
-        "symptom",
-        "immunity",
-        "predisposition",
-        "inheritance",
-        "diagnosis"
+        "A genetic predisposition increases the likelihood of a condition but does not make it inevitable.",
+        "A genetic predisposition means the condition is certain to develop.",
+        "A genetic predisposition means the condition has already been clinically diagnosed.",
+        "A genetic predisposition means the person is immune to the condition.",
+        "A genetic predisposition means no environmental factor can matter."
       ],
       "target_word": "predisposition",
       "target_variants": [],
@@ -569,16 +569,16 @@
     {
       "id": "e213-6",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nWhen his father refused to buy the toy, the child threw a ___: he screamed, stamped his feet and refused to leave the shop.",
+      "prompt": "Which sentence uses “tantrum” correctly in meaning and usage?",
       "answers": [
-        "tantrum"
+        "The child threw a tantrum, screaming and stamping when he was refused the toy."
       ],
       "choices": [
-        "tantrum",
-        "protest",
-        "argument",
-        "outburst",
-        "complaint"
+        "The child threw a tantrum by calmly accepting the refusal without protest.",
+        "The child threw a tantrum by writing a calm formal thank-you letter.",
+        "The child threw a tantrum by falling asleep peacefully.",
+        "The child threw a tantrum by politely asking a factual question.",
+        "The child threw a tantrum, screaming and stamping when he was refused the toy."
       ],
       "target_word": "tantrum",
       "target_variants": [],
@@ -589,16 +589,16 @@
     {
       "id": "e214-1",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nWe stayed outside after midnight to watch a ___. For almost an hour, bright streaks appeared repeatedly across the sky.",
+      "prompt": "Which sentence uses “meteor shower” correctly in meaning and usage?",
       "answers": [
-        "meteor shower"
+        "We watched a meteor shower as many bright streaks crossed the sky."
       ],
       "choices": [
-        "comet",
-        "eclipse",
-        "aurora",
-        "shooting star",
-        "meteor shower"
+        "We watched a meteor shower as the Moon temporarily covered the Sun.",
+        "We watched a meteor shower as rain fell from ordinary clouds.",
+        "We watched a meteor shower as coloured bands of aurora moved across the sky.",
+        "We watched a meteor shower as one comet stayed visible for several weeks.",
+        "We watched a meteor shower as many bright streaks crossed the sky."
       ],
       "target_word": "meteor shower",
       "target_variants": [],
@@ -609,16 +609,16 @@
     {
       "id": "e214-2",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nYou have your grandmother’s eyes and smile. In those features, you ___ her more than either of your parents.",
+      "prompt": "Which sentence uses “resemble” correctly in meaning and usage?",
       "answers": [
-        "resemble"
+        "She resembles her grandmother in her eyes and smile."
       ],
       "choices": [
-        "reflect",
-        "represent",
-        "inherit",
-        "imitate",
-        "resemble"
+        "She resembles with her grandmother in her eyes and smile.",
+        "She resembles at her grandmother in her eyes and smile.",
+        "She resembles her grandmother in her eyes and smile.",
+        "She resembles of her grandmother in her eyes and smile.",
+        "She resembles to her grandmother in her eyes and smile."
       ],
       "target_word": "resemble",
       "target_variants": [],
@@ -629,16 +629,16 @@
     {
       "id": "e214-3",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe children stayed with ___ while the authorities assessed whether they could return home. The placement did not make those adults their permanent legal parents.",
+      "prompt": "Which sentence uses “foster parents” correctly in meaning and usage?",
       "answers": [
-        "foster parents"
+        "The foster parents cared for the children temporarily without adopting them."
       ],
       "choices": [
-        "foster parents",
-        "godparents",
-        "ancestors",
-        "biological parents",
-        "adoptive parents"
+        "Foster parents are the children’s ancestors from several generations ago.",
+        "The foster parents became biological parents by caring for the children.",
+        "Foster parents are automatically the godparents chosen at baptism.",
+        "The foster parents cared for the children temporarily without adopting them.",
+        "All foster parents permanently adopt every child they care for."
       ],
       "target_word": "foster parents",
       "target_variants": [],
@@ -649,16 +649,16 @@
     {
       "id": "e214-4",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nHaving relatives with the condition may indicate a genetic ___, but lifestyle and environment also affect whether it develops.",
+      "prompt": "Which sentence uses “predisposition” correctly in meaning and usage?",
       "answers": [
-        "predisposition"
+        "A genetic predisposition increases the likelihood of a condition but does not make it inevitable."
       ],
       "choices": [
-        "inheritance",
-        "immunity",
-        "predisposition",
-        "symptom",
-        "diagnosis"
+        "A genetic predisposition means no environmental factor can matter.",
+        "A genetic predisposition means the person is immune to the condition.",
+        "A genetic predisposition means the condition has already been clinically diagnosed.",
+        "A genetic predisposition means the condition is certain to develop.",
+        "A genetic predisposition increases the likelihood of a condition but does not make it inevitable."
       ],
       "target_word": "predisposition",
       "target_variants": [],
@@ -669,16 +669,16 @@
     {
       "id": "e214-5",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe manager gave the difficult task to someone else, assuming I could not cope with it. I had to prove that she should not ___ my abilities.",
+      "prompt": "Which sentence uses “underestimate” correctly in meaning and usage?",
       "answers": [
-        "underestimate"
+        "I underestimated the task: I allowed one hour, but it took four."
       ],
       "choices": [
-        "inherit",
-        "imitate",
-        "resemble",
-        "underestimate",
-        "overestimate"
+        "I underestimated the task: I expected four hours, but it took one.",
+        "I underestimated the task: I allowed one hour, but it took four.",
+        "I underestimated the task because I made no estimate or judgement about it.",
+        "I underestimated the task by correctly predicting every difficulty.",
+        "I underestimated the task because my estimate was exactly correct."
       ],
       "target_word": "underestimate",
       "target_variants": [],
@@ -689,16 +689,16 @@
     {
       "id": "e214-6",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nHe shaved both sides of his head and left a narrow strip of hair running down the centre. The resulting hairstyle was a ___.",
+      "prompt": "Which sentence uses “mohawk” correctly in meaning and usage?",
       "answers": [
-        "mohawk"
+        "He wore a mohawk, with shaved sides and a narrow strip of hair down the centre."
       ],
       "choices": [
-        "crew cut",
-        "mohawk",
-        "ponytail",
-        "buzz cut",
-        "undercut"
+        "He wore a mohawk, with all his hair shaved off completely.",
+        "He wore a mohawk, with shaved sides and a narrow strip of hair down the centre.",
+        "He wore a mohawk, with long hair tied into a ponytail and no shaved sides.",
+        "He wore a mohawk, with a full fringe and the sides left long.",
+        "He wore a mohawk, with all his hair cut to the same short length."
       ],
       "target_word": "mohawk",
       "target_variants": [],

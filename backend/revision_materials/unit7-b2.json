@@ -25,11 +25,11 @@
         "fulfilment"
       ],
       "choices": [
-        "ambition",
-        "recognition",
+        "calling",
+        "aspiration",
         "fulfilment",
-        "security",
-        "prosperity"
+        "scarcity",
+        "inclination"
       ],
       "target_word": "fulfilment",
       "target_variants": [],
@@ -43,11 +43,11 @@
         "calling"
       ],
       "choices": [
-        "achievement",
-        "promotion",
-        "qualification",
+        "conundrum",
         "calling",
-        "reputation"
+        "inclination",
+        "aspiration",
+        "fulfilment"
       ],
       "target_word": "calling",
       "target_variants": [],
@@ -61,11 +61,11 @@
         "inclination"
       ],
       "choices": [
-        "opportunity",
-        "ability",
+        "calling",
+        "aspiration",
+        "scarcity",
         "inclination",
-        "qualification",
-        "obligation"
+        "fulfilment"
       ],
       "target_word": "inclination",
       "target_variants": [],
@@ -74,16 +74,16 @@
     {
       "id": "v4",
       "section": "vocabulary",
-      "prompt": "Which sentence uses conundrum accurately?",
+      "prompt": "The cheaper supplier is unreliable; the reliable supplier would make the project unaffordable. Choosing between them has become a real ___ for the team.",
       "answers": [
-        "Both suppliers have serious drawbacks, and the team faces a conundrum."
+        "conundrum"
       ],
       "choices": [
-        "The manager congratulated the team with a conundrum.",
-        "Both suppliers have serious drawbacks, and the team faces a conundrum.",
-        "The team hired a conundrum to supervise the delivery.",
-        "The supplier delivered early, so the team received a conundrum.",
-        "The cheaper supplier offered a conundrum on the price."
+        "aspiration",
+        "conundrum",
+        "scarcity",
+        "calling",
+        "inclination"
       ],
       "target_word": "conundrum",
       "target_variants": [],
@@ -92,16 +92,16 @@
     {
       "id": "v5",
       "section": "vocabulary",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nBefore accepting the role, I spent two days ___ an experienced colleague: I followed her through meetings and watched how she dealt with customers.",
+      "prompt": "Which sentence uses “shadowing” correctly in meaning and usage?",
       "answers": [
-        "shadowing"
+        "I spent the day shadowing a colleague to see how she handled customers."
       ],
       "choices": [
-        "supervising",
-        "recruiting",
-        "mentoring",
-        "replacing",
-        "shadowing"
+        "I was shadowing a colleague, so I permanently replaced her in the team.",
+        "I was shadowing a colleague, so I formally evaluated her performance.",
+        "I was shadowing a colleague, which meant I recruited her for the vacancy.",
+        "I spent the day shadowing a colleague, which meant I trained her for her new role.",
+        "I spent the day shadowing a colleague to see how she handled customers."
       ],
       "target_word": "shadowing",
       "target_variants": [],
@@ -110,16 +110,16 @@
     {
       "id": "v6",
       "section": "vocabulary",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nWhen the café lost its main supplier, its owner quickly found a new one and turned the crisis into a business opportunity. That showed her ___ skills.",
+      "prompt": "Which sentence uses “entrepreneurial” correctly in meaning and usage?",
       "answers": [
-        "entrepreneurial"
+        "Finding a new market for the café showed her entrepreneurial skills."
       ],
       "choices": [
-        "administrative",
-        "interpersonal",
-        "technical",
-        "entrepreneurial",
-        "analytical"
+        "Typing the meeting notes without mistakes showed her entrepreneurial skills.",
+        "Arriving at the same time every day showed her entrepreneurial skills.",
+        "Filing the old records alphabetically showed her entrepreneurial skills.",
+        "Finding a new market for the café showed her entrepreneurial skills.",
+        "Following the existing office rules exactly showed her entrepreneurial skills."
       ],
       "target_word": "entrepreneurial",
       "target_variants": [],
@@ -128,16 +128,16 @@
     {
       "id": "v7",
       "section": "vocabulary",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nJon went online to buy a charger and bought an expensive camera five minutes later, without checking reviews or his budget. It was an ___ purchase.",
+      "prompt": "Which sentence uses “impulsive” correctly in meaning and usage?",
       "answers": [
-        "impulsive"
+        "Buying the camera without considering the cost was an impulsive decision."
       ],
       "choices": [
-        "compulsive",
-        "impulsive",
-        "deliberate",
-        "inevitable",
-        "habitual"
+        "Buying the camera without considering the cost was an impulsive decision.",
+        "An impulsive decision is one taken only after comparing every alternative.",
+        "An impulsive decision is one required by a legal contract.",
+        "Buying the camera after six months of careful research was an impulsive decision.",
+        "An impulsive purchase is a purchase made on a regular monthly schedule."
       ],
       "target_word": "impulsive",
       "target_variants": [],
@@ -151,11 +151,11 @@
         "scarcity"
       ],
       "choices": [
-        "scarcity",
-        "consumption",
-        "availability",
-        "quality",
-        "distribution"
+        "calling",
+        "inclination",
+        "aspiration",
+        "fulfilment",
+        "scarcity"
       ],
       "target_word": "scarcity",
       "target_variants": [],
@@ -169,10 +169,10 @@
         "nudge"
       ],
       "choices": [
-        "restriction",
-        "penalty",
-        "guarantee",
-        "requirement",
+        "aspiration",
+        "calling",
+        "conundrum",
+        "yardstick",
         "nudge"
       ],
       "target_word": "nudge",
@@ -182,16 +182,16 @@
     {
       "id": "v10",
       "section": "vocabulary",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nUsers complained that reminders blocked their screens. The designer replaced them with a small, ___ icon that stays visible without interrupting the task.",
+      "prompt": "Which sentence uses “unobtrusive” correctly in meaning and usage?",
       "answers": [
-        "unobtrusive"
+        "The unobtrusive reminder stayed in a corner without interrupting my work."
       ],
       "choices": [
-        "inaccessible",
-        "unreliable",
-        "unfamiliar",
-        "unobtrusive",
-        "unnecessary"
+        "The unobtrusive reminder played a loud alarm every minute.",
+        "The unobtrusive reminder repeatedly opened a full-screen window.",
+        "The unobtrusive reminder stayed in a corner without interrupting my work.",
+        "The unobtrusive reminder blocked my screen until I responded.",
+        "The unobtrusive reminder stopped the application after every sentence."
       ],
       "target_word": "unobtrusive",
       "target_variants": [],
@@ -205,11 +205,11 @@
         "yardstick"
       ],
       "choices": [
-        "outcome",
-        "incentive",
-        "strategy",
-        "objective",
-        "yardstick"
+        "calling",
+        "aspiration",
+        "inclination",
+        "yardstick",
+        "conundrum"
       ],
       "target_word": "yardstick",
       "target_variants": [],
@@ -223,11 +223,11 @@
         "aspiration"
       ],
       "choices": [
-        "obligation",
-        "qualification",
-        "expectation",
-        "accomplishment",
-        "aspiration"
+        "conundrum",
+        "scarcity",
+        "fulfilment",
+        "aspiration",
+        "inclination"
       ],
       "target_word": "aspiration",
       "target_variants": [],
@@ -236,16 +236,16 @@
     {
       "id": "c1",
       "section": "collocation",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nSince joining the mentoring scheme, Dan has started taking his studies seriously. His mentor has clearly been a good ___ on him.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "influence"
+        "a good influence on"
       ],
       "choices": [
-        "example",
-        "impression",
-        "incentive",
-        "influence",
-        "motivation"
+        "a good influence of",
+        "a good influence to",
+        "a good influence on",
+        "a good influence at",
+        "a good influence for"
       ],
       "target_word": "influence",
       "target_variants": [],
@@ -254,16 +254,16 @@
     {
       "id": "c2",
       "section": "collocation",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe new ramp is inexpensive, but it allows wheelchair users to enter independently. Even a small change can make a real ___.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "difference"
+        "make a difference"
       ],
       "choices": [
-        "impression",
-        "exception",
-        "contrast",
-        "distinction",
-        "difference"
+        "take a difference",
+        "make a difference",
+        "have a difference",
+        "give a difference",
+        "do a difference"
       ],
       "target_word": "difference",
       "target_variants": [],
@@ -272,16 +272,16 @@
     {
       "id": "c3",
       "section": "collocation",
-      "prompt": "Which phrase is natural in formal English? I volunteer because I enjoy helping neighbours.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "I take pleasure in helping neighbours."
+        "take pleasure in"
       ],
       "choices": [
-        "I take pleasure in helping neighbours.",
-        "I give pleasure in helping neighbours.",
-        "I make pleasure in helping neighbours.",
-        "I take pleasure on helping neighbours.",
-        "I do pleasure in helping neighbours."
+        "take pleasure in",
+        "take pleasure to",
+        "take pleasure with",
+        "take pleasure on",
+        "take pleasure at"
       ],
       "target_word": "pleasure",
       "target_variants": [],
@@ -290,16 +290,16 @@
     {
       "id": "c4",
       "section": "collocation",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nWe had no travel plans that morning, but booked a weekend trip on a ___ after seeing a last-minute offer.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "whim"
+        "on a whim"
       ],
       "choices": [
-        "whim",
-        "chance",
-        "suggestion",
-        "hunch",
-        "purpose"
+        "with a whim",
+        "to a whim",
+        "in a whim",
+        "at a whim",
+        "on a whim"
       ],
       "target_word": "whim",
       "target_variants": [],
@@ -308,16 +308,16 @@
     {
       "id": "c5",
       "section": "collocation",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe price was already competitive. To sweeten the ___, the seller included installation and a year of free repairs.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "deal"
+        "sweeten the deal"
       ],
       "choices": [
-        "purchase",
-        "delivery",
-        "price",
-        "discount",
-        "deal"
+        "sweeten with the deal",
+        "sweetening to the deal",
+        "sweeten on the deal",
+        "sweet the deal",
+        "sweeten the deal"
       ],
       "target_word": "deal",
       "target_variants": [],
@@ -326,16 +326,16 @@
     {
       "id": "c6",
       "section": "collocation",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nWhen the factory closed, local cafés lost customers and suppliers cut staff. Its closure had ___ effects throughout the town.",
+      "prompt": "Which expression is natural in English?",
       "answers": [
-        "ripple"
+        "ripple effects"
       ],
       "choices": [
-        "direct",
-        "lasting",
-        "ripple",
-        "adverse",
-        "immediate"
+        "rippling effects of",
+        "ripple effecting",
+        "ripple affects",
+        "ripple effective",
+        "ripple effects"
       ],
       "target_word": "ripple",
       "target_variants": [],
@@ -469,16 +469,16 @@
     {
       "id": "e215-1",
       "section": "emergent",
-      "prompt": "Which sentence uses janitor accurately?",
+      "prompt": "Which sentence uses “janitor” correctly in meaning and usage?",
       "answers": [
-        "The school janitor cleaned the spill and checked the building after lessons."
+        "The school janitor cleaned the corridor and checked the building after lessons."
       ],
       "choices": [
-        "The school janitor approved the annual curriculum.",
-        "The school janitor treated the pupil’s broken arm.",
-        "The school janitor cleaned the spill and checked the building after lessons.",
-        "The school janitor taught the mathematics lesson.",
-        "The school janitor represented a student in court."
+        "The school janitor approved the national curriculum.",
+        "The school janitor cleaned the corridor and checked the building after lessons.",
+        "The school janitor was appointed to teach advanced mathematics.",
+        "The school janitor was hired to represent pupils in court.",
+        "The school janitor treated the pupil’s broken arm."
       ],
       "target_word": "janitor",
       "target_variants": [],
@@ -489,16 +489,16 @@
     {
       "id": "e215-2",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nRather than ask her supervisor for advice, Mia discussed the problem with a ___ who had the same role and level of responsibility.",
+      "prompt": "Which sentence uses “peer” correctly in meaning and usage?",
       "answers": [
-        "peer"
+        "I asked a peer with the same job level to review my proposal."
       ],
       "choices": [
-        "supervisor",
-        "trainee",
-        "peer",
-        "mentor",
-        "subordinate"
+        "My peer is any customer who visits our shop.",
+        "My peer is the person who owns and controls the company.",
+        "I asked a peer with the same job level to review my proposal.",
+        "My peer is the trainee whose work I supervise.",
+        "My peer is the manager who directly supervises all my work."
       ],
       "target_word": "peer",
       "target_variants": [],
@@ -509,16 +509,16 @@
     {
       "id": "e215-3",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nOur contracts cover forty hours a week. The additional six hours needed to finish the project must be recorded and paid as ___.",
+      "prompt": "Which sentence uses “overtime” correctly in meaning and usage?",
       "answers": [
-        "overtime"
+        "The extra hours beyond my contracted week were paid as overtime."
       ],
       "choices": [
-        "commission",
-        "overtime",
-        "allowance",
-        "salary",
-        "bonus"
+        "My travel expenses were reimbursed as overtime.",
+        "The company gym membership was listed as overtime.",
+        "The extra hours beyond my contracted week were paid as overtime.",
+        "The ordinary hours within my contracted week were paid as overtime.",
+        "I received overtime because I was promoted, although I worked no extra hours."
       ],
       "target_word": "overtime",
       "target_variants": [],
@@ -529,16 +529,16 @@
     {
       "id": "e215-4",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nNew employees meet their team, learn the software and review company procedures during their first week. These activities are part of their ___.",
+      "prompt": "Which sentence uses “onboarding” correctly in meaning and usage?",
       "answers": [
-        "onboarding"
+        "Onboarding helped the new employee learn our systems and meet the team."
       ],
       "choices": [
-        "appraisal",
-        "probation",
-        "onboarding",
-        "recruitment",
-        "promotion"
+        "Onboarding was the payment made when an employee retired.",
+        "Onboarding was the process of dismissing an employee.",
+        "Onboarding helped the new employee learn our systems and meet the team.",
+        "Onboarding was the promotion of a manager to director.",
+        "Onboarding was the advertising campaign used to attract customers."
       ],
       "target_word": "onboarding",
       "target_variants": [],
@@ -549,16 +549,16 @@
     {
       "id": "e215-5",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe salary is fairly average, but free use of the company gym is a ___ that makes the job more attractive.",
+      "prompt": "Which sentence uses “perk” correctly in meaning and usage?",
       "answers": [
-        "perk"
+        "Free gym membership was a perk offered in addition to my salary."
       ],
       "choices": [
-        "perk",
-        "allowance",
-        "salary",
-        "bonus",
-        "commission"
+        "Free gym membership was a perk offered in addition to my salary.",
+        "The fee I had to pay to apply for the job was a perk.",
+        "The warning for repeated lateness was a perk.",
+        "The income tax deducted from my salary was a perk.",
+        "The compulsory unpaid weekend shift was a perk."
       ],
       "target_word": "perk",
       "target_variants": [],
@@ -569,16 +569,16 @@
     {
       "id": "e215-6",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThey have saved a deposit for the flat, but need a ___ to cover the remaining cost. They will repay the bank over twenty years.",
+      "prompt": "Which sentence uses “mortgage” correctly in meaning and usage?",
       "answers": [
-        "mortgage"
+        "They took out a mortgage to buy a flat and will repay the bank over twenty years."
       ],
       "choices": [
-        "rent",
-        "deposit",
-        "instalment",
-        "insurance",
-        "mortgage"
+        "They paid a mortgage to rent a hotel room for one night.",
+        "They paid a mortgage to insure their car against accidents.",
+        "They received a mortgage when the shop returned the price of faulty headphones.",
+        "They took out a mortgage to buy a flat and will repay the bank over twenty years.",
+        "They earned a mortgage by working extra hours on Friday."
       ],
       "target_word": "mortgage",
       "target_variants": [],
@@ -589,16 +589,16 @@
     {
       "id": "e216-1",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe café’s ___ adjusted the grinder and steamed the milk again when a customer said the coffee tasted burnt.",
+      "prompt": "Which sentence uses “barista” correctly in meaning and usage?",
       "answers": [
-        "barista"
+        "The barista adjusted the grinder and prepared the espresso."
       ],
       "choices": [
-        "waiter",
-        "bartender",
-        "cashier",
-        "barista",
-        "caterer"
+        "The barista adjusted the grinder and prepared the espresso.",
+        "The barista approved the restaurant’s annual accounts.",
+        "The barista designed the café’s building as his main job.",
+        "The barista represented the café in court as her main job.",
+        "The barista repaired the café’s plumbing as her main job."
       ],
       "target_word": "barista",
       "target_variants": [],
@@ -609,16 +609,16 @@
     {
       "id": "e216-2",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe headphones stopped working after one day. I returned them to the shop and asked for a ___ rather than a replacement.",
+      "prompt": "Which sentence uses “refund” correctly in meaning and usage?",
       "answers": [
-        "refund"
+        "The shop gave me a refund, returning the money I had paid."
       ],
       "choices": [
-        "deposit",
-        "instalment",
-        "fine",
-        "discount",
-        "refund"
+        "The shop gave me a refund by lending me money to buy a flat.",
+        "The shop gave me a refund by reducing the price before I bought anything.",
+        "The shop gave me a refund by accepting a deposit before the purchase.",
+        "The shop gave me a refund, returning the money I had paid.",
+        "The shop gave me a refund by charging a fee for delivery."
       ],
       "target_word": "refund",
       "target_variants": [],
@@ -629,16 +629,16 @@
     {
       "id": "e216-3",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe argument is logical, but the sentences feel disconnected. Adding suitable pronouns and linking expressions would improve the text’s ___.",
+      "prompt": "Which sentence uses “cohesion” correctly in meaning and usage?",
       "answers": [
-        "cohesion"
+        "Adding clear pronoun references and linking expressions improved the text’s cohesion."
       ],
       "choices": [
-        "fluency",
-        "relevance",
-        "precision",
-        "cohesion",
-        "coherence"
+        "Adding more advanced words automatically ensured cohesion even though no sentences were linked.",
+        "Making the writer’s opinion more original improved cohesion without changing any sentence links.",
+        "Correcting the essay’s contradictory conclusion improved its cohesion, without changing how its sentences were linked.",
+        "Adding clear pronoun references and linking expressions improved the text’s cohesion.",
+        "Printing the essay in a larger font improved its cohesion."
       ],
       "target_word": "cohesion",
       "target_variants": [],
@@ -649,16 +649,16 @@
     {
       "id": "e216-4",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe essay uses plenty of linking words, but its conclusion contradicts its main argument. It needs better ___, not simply more connectors.",
+      "prompt": "Which sentence uses “coherence” correctly in meaning and usage?",
       "answers": [
-        "coherence"
+        "Removing the contradiction between the argument and conclusion improved coherence."
       ],
       "choices": [
-        "formality",
-        "coherence",
-        "cohesion",
-        "complexity",
-        "variety"
+        "Replacing every noun with a pronoun ensured coherence even though the argument remained illogical.",
+        "Adding longer words ensured coherence without correcting the contradictory argument.",
+        "Removing the contradiction between the argument and conclusion improved coherence.",
+        "Increasing the font size improved the argument’s coherence.",
+        "Adding random linking words ensured coherence even though the argument still contradicted itself."
       ],
       "target_word": "coherence",
       "target_variants": [],
@@ -669,16 +669,16 @@
     {
       "id": "e216-5",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nI keep my house key and bike-lock key on the same ___ so that I do not have to search for them separately.",
+      "prompt": "Which sentence uses “keychain” correctly in meaning and usage?",
       "answers": [
-        "keychain"
+        "I attached my house key and bike-lock key to the same keychain."
       ],
       "choices": [
-        "keychain",
-        "keypad",
-        "keynote",
-        "keycard",
-        "keyhole"
+        "I used a keychain to describe the logical organisation of my essay.",
+        "I unlocked the door by turning its keychain with no key.",
+        "I inserted my password into a keychain on the computer screen.",
+        "I booked a keychain to borrow money for the flat.",
+        "I attached my house key and bike-lock key to the same keychain."
       ],
       "target_word": "keychain",
       "target_variants": [],
@@ -689,16 +689,16 @@
     {
       "id": "e216-6",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe watch looked like an expensive original, but the manufacturer confirmed that it was a copy. The seller’s claim that it was ___ was false.",
+      "prompt": "Which sentence uses “genuine” correctly in meaning and usage?",
       "answers": [
-        "genuine"
+        "The manufacturer confirmed that the watch was genuine, not a copy."
       ],
       "choices": [
-        "genuine",
-        "obsolete",
-        "second-hand",
-        "defective",
-        "imported"
+        "The manufacturer confirmed that the watch was genuine, not a copy.",
+        "The watch was genuine because it was cheaper than all the others.",
+        "The manufacturer confirmed that the watch was genuine because it was a convincing fake.",
+        "The watch was genuine because it had been used by two previous owners.",
+        "The watch was genuine because its battery had stopped working."
       ],
       "target_word": "genuine",
       "target_variants": [],
@@ -709,16 +709,16 @@
     {
       "id": "e217-1",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe climb took twelve hours. Keeping the same steady effort until the end required considerable physical ___.",
+      "prompt": "Which sentence uses “endurance” correctly in meaning and usage?",
       "answers": [
-        "endurance"
+        "Maintaining steady effort throughout a twelve-hour climb required endurance."
       ],
       "choices": [
-        "endurance",
-        "courage",
-        "flexibility",
-        "agility",
-        "strength"
+        "Changing direction quickly during one brief movement primarily demonstrated endurance.",
+        "Guessing the answer instantly demonstrated endurance.",
+        "Being willing to speak despite fear, without any sustained effort, primarily demonstrated endurance.",
+        "Remembering one telephone number demonstrated physical endurance.",
+        "Maintaining steady effort throughout a twelve-hour climb required endurance."
       ],
       "target_word": "endurance",
       "target_variants": [],
@@ -729,16 +729,16 @@
     {
       "id": "e217-2",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nShe was afraid of losing her job, but still reported the unsafe working conditions. Speaking up took ___.",
+      "prompt": "Which sentence uses “courage” correctly in meaning and usage?",
       "answers": [
-        "courage"
+        "Reporting unsafe conditions despite fear of losing her job took courage."
       ],
       "choices": [
-        "ambition",
-        "confidence",
-        "optimism",
-        "endurance",
-        "courage"
+        "Feeling no fear because there was no risk demonstrated courage.",
+        "Memorising a long list automatically demonstrated courage.",
+        "Reporting unsafe conditions despite fear of losing her job took courage.",
+        "Staying physically active for twelve hours primarily measured courage.",
+        "Persuading customers to click an empty article primarily measured courage."
       ],
       "target_word": "courage",
       "target_variants": [],
@@ -749,16 +749,16 @@
     {
       "id": "e217-3",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe headline promised an astonishing secret, but the article contained nothing new. Its main purpose was to get people to open the link: it was ___.",
+      "prompt": "Which sentence uses “clickbait” correctly in meaning and usage?",
       "answers": [
-        "clickbait"
+        "The misleading headline was clickbait: its main aim was to make people open the link."
       ],
       "choices": [
-        "clickbait",
-        "satire",
-        "advertising",
-        "reporting",
-        "ragebait"
+        "The misleading headline was clickbait: its main aim was to make people open the link.",
+        "The headline was clickbait because it reported the weather without inviting anyone to open anything.",
+        "The headline was clickbait because it contained no link, content or intended audience.",
+        "The headline was clickbait because it accurately summarised the full article without exaggeration.",
+        "The headline was clickbait because it was printed only in a private paper diary."
       ],
       "target_word": "clickbait",
       "target_variants": [],
@@ -769,16 +769,16 @@
     {
       "id": "e217-4",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe post deliberately insulted its readers to trigger angry replies and arguments. It was ___, designed to turn outrage into engagement.",
+      "prompt": "Which sentence uses “ragebait” correctly in meaning and usage?",
       "answers": [
-        "ragebait"
+        "The insulting post was ragebait designed to provoke angry replies."
       ],
       "choices": [
-        "ragebait",
-        "satire",
-        "criticism",
-        "reporting",
-        "clickbait"
+        "The private shopping list was ragebait with no intended audience.",
+        "The calming post was ragebait designed to prevent angry replies.",
+        "The neutral recipe was ragebait because it listed ingredients accurately.",
+        "The friendly reminder was ragebait because it politely confirmed a meeting.",
+        "The insulting post was ragebait designed to provoke angry replies."
       ],
       "target_word": "ragebait",
       "target_variants": [],
@@ -789,16 +789,16 @@
     {
       "id": "e217-5",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe farmer moved the entire ___ of cattle into another field before the storm arrived.",
+      "prompt": "Which sentence uses “herd” correctly in meaning and usage?",
       "answers": [
-        "herd"
+        "The farmer moved a herd of cattle into the next field."
       ],
       "choices": [
-        "herd",
-        "swarm",
-        "flock",
-        "shoal",
-        "pack"
+        "The farmer moved a herd of cattle into the next field.",
+        "A herd of birds flew south for winter.",
+        "A herd of fish swam past the boat.",
+        "A herd of wolves hunted together in the forest.",
+        "The beekeeper moved a herd of bees into the next hive."
       ],
       "target_word": "herd",
       "target_variants": [],
@@ -809,16 +809,16 @@
     {
       "id": "e217-6",
       "section": "emergent",
-      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nLast year’s team completed the project with half the usual budget. Their performance raised the ___ for every team that followed.",
+      "prompt": "Which sentence uses “bar” correctly in meaning and usage?",
       "answers": [
-        "bar"
+        "The excellent team raised the bar for everyone who followed."
       ],
       "choices": [
-        "benchmark",
-        "limit",
-        "standard",
-        "bar",
-        "level"
+        "The excellent team raised the bar for everyone who followed.",
+        "The excellent team raised with the bar for everyone who followed.",
+        "The excellent team raised a bar for everyone who followed.",
+        "The excellent team raised to the bar for everyone who followed.",
+        "The excellent team raised on the bar for everyone who followed."
       ],
       "target_word": "bar",
       "target_variants": [],

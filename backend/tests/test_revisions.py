@@ -87,6 +87,10 @@ def test_speaking_pairs_follow_readiness_and_stay_within_group(client):
         body={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'Our heritage matters.'}
         assert client.post(path+'/submit',headers=auth,json=body).status_code==200
     first,other,last=credentials
+    for path,auth in [first,other,last]:
+        assert client.post(path+'/oral-ready',headers=auth).status_code==403
+        assert client.post('/learning/revisions/attempts/'+path.rsplit('/',1)[-1]+'/allow-dialogue',headers=auth).status_code in [401,403]
+        assert client.post('/learning/revisions/attempts/'+path.rsplit('/',1)[-1]+'/allow-dialogue',headers=ADMIN).status_code==200
     assert client.post(first[0]+'/oral-ready',headers=first[1]).json()['status']=='waiting'
     assert client.post(other[0]+'/oral-ready',headers=other[1]).json()['status']=='waiting'
     paired=client.post(last[0]+'/oral-ready',headers=last[1]).json()
@@ -237,3 +241,107 @@ def test_teacher_can_withdraw_consent_without_removing_academic_result(client):
     assert result['writing']=='Our heritage matters.' and result['report']['controlled_score']==80
     assert result['report']['research_metrics']=={}
     assert client.get(path,headers=auth).json()['submitted']
+
+def test_individual_and_dialogue_criteria_average(client):
+    identifier,ADMIN=setup(client)
+    started=client.post('/revision-tests/'+identifier+'/start',json={'group':'214','student_name':'Synthetic Learner','research_consent':False}).json()
+    path='/revision-attempts/'+started['attempt_id'];auth={'Authorization':'Bearer '+started['token']}
+    client.post(path+'/begin',headers=auth)
+    client.post(path+'/submit',headers=auth,json={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'An essay.'})
+    marks={'individual_vocabulary':5,'individual_grammar':4,'individual_coherence':4,'individual_content':3,'dialogue_vocabulary':4,'dialogue_grammar':3,'dialogue_coherence':3,'dialogue_strategies':2}
+    response=client.put('/learning/revisions/attempts/'+started['attempt_id']+'/oral-review',headers=ADMIN,json={'score':0,'breakdown':marks})
+    assert response.status_code==200,response.text
+    assert response.json()['oral']['score']==14
+    assert client.get(path,headers=auth).json()['oral_breakdown']==marks
+
+def test_ai_keyboard_mashing_is_zero_without_external_request(monkeypatch):
+    from types import SimpleNamespace
+    from app import revisions
+    monkeypatch.setattr(revisions.settings,'revision_ai_api_key','synthetic-private-key')
+    monkeypatch.setattr(revisions.httpx,'post',lambda *a,**kw: (_ for _ in ()).throw(AssertionError('No external request for obvious garbage')))
+    row=SimpleNamespace(writing='sfsffdsssfsf sfsfsf',report={'writing_score':None},snapshot={})
+    revisions.ai_review(row)
+    assert row.report['writing_score_provisional']==0
+    assert row.report['writing_score'] is None
+    assert row.report['ai_breakdown']=={'content':0,'organisation':0,'grammar':0,'vocabulary':0}
+
+def test_ai_checks_group_targets_and_grammar_with_quoted_evidence(monkeypatch):
+    import json
+    from types import SimpleNamespace
+    from app import revisions
+    monkeypatch.setattr(revisions.settings,'revision_ai_api_key','synthetic-private-key')
+    captured={}
+    essay='Teaching gives me fulfilment. It is my calling. Scarcity limits our resources. If I had more time, I would volunteer.'
+    result={'score':14,'feedback':'Relevant examples.','breakdown':{'content':4,'organisation':3,'grammar':4,'vocabulary':3},'vocabulary_usage':[{'target_word':word,'quality':'correct','context':context,'comment':'Appropriate'} for word,context in [('fulfilment','Teaching gives me fulfilment.'),('calling','It is my calling.'),('scarcity','Scarcity limits our resources.')]]+[{'target_word':'unknown','quality':'correct','context':'It is my calling.','comment':''},{'target_word':'calling','quality':'correct','context':'Invented sentence.','comment':''}], 'grammar_usage':[{'structure':'second conditional','quality':'correct','context':'If I had more time, I would volunteer.','comment':'Correct unreal present.'},{'structure':'inversion','quality':'correct','context':'Never have I volunteered.','comment':'Invented.'}]}
+    def request(*args,**kwargs):
+        captured.update(kwargs['json']);return SimpleNamespace(raise_for_status=lambda:None,json=lambda:{'choices':[{'message':{'content':json.dumps(result)}}]})
+    monkeypatch.setattr(revisions.httpx,'post',request)
+    row=SimpleNamespace(writing=essay,report={'writing_score':None},snapshot={'level':'B2','writing_prompt':'Work','grammar_notes':'Second conditional','items':[{'target_word':w} for w in ['fulfilment','calling','scarcity']]})
+    revisions.ai_review(row)
+    payload=json.loads(captured['messages'][1]['content'])
+    assert payload['target_vocabulary']==['fulfilment','calling','scarcity'] and payload['taught_grammar']=='Second conditional'
+    assert row.report['ai_target_words_correct']==3 and row.report['ai_grammar_units_correct']==1
+    assert len(row.report['ai_vocabulary_usage'])==3 and row.report['writing_score'] is None
+
+def test_group_analytics_excludes_pending_marks_and_unsubmitted_attempts(client):
+    identifier,ADMIN=setup(client)
+    assert client.get('/learning/revisions/analytics').status_code in [401,403]
+    client.post('/revision-tests/'+identifier+'/start',json={'group':'213','student_name':'Synthetic Learner','research_consent':True})
+    started=client.post('/revision-tests/'+identifier+'/start',json={'group':'214','student_name':'Synthetic Learner','research_consent':False}).json()
+    path='/revision-attempts/'+started['attempt_id'];auth={'Authorization':'Bearer '+started['token']}
+    client.post(path+'/begin',headers=auth)
+    client.post(path+'/submit',headers=auth,json={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'An essay.'})
+    result=client.get('/learning/revisions/analytics?test_id='+identifier,headers=ADMIN).json()
+    assert result['overall']['submitted']==1 and result['overall']['unfinished']==1
+    assert result['overall']['rating_mean'] is None
+    essay=next(s for s in result['overall']['sections'] if s['section']=='Essay')
+    assert essay['assessed']==0 and essay['pending']==1 and essay['mean'] is None
+    grammar=next(s for s in result['overall']['sections'] if s['section']=='Grammar')
+    assert grammar['mean']==25 and grammar['assessed']==1
+    assert next(g for g in result['groups'] if g['group']=='214')['submitted']==1
+
+def test_activity_logs_are_academic_not_research_consent(client):
+    identifier,ADMIN=setup(client)
+    started=client.post('/revision-tests/'+identifier+'/start',json={'group':'214','student_name':'Synthetic Learner','research_consent':False}).json()
+    path='/revision-attempts/'+started['attempt_id'];auth={'Authorization':'Bearer '+started['token']}
+    client.post(path+'/begin',headers=auth)
+    body={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'An essay.','integrity_metrics':{'paste_attempts':1,'focus_losses':2,'away_duration_ms':3000,'events':[{'kind':'paste_blocked','at':'2026-10-11T18:00:00Z','phase':'essay'}]}}
+    assert client.put(path,headers=auth,json=body).status_code==200
+    assert client.get(path,headers=auth).json()['integrity_metrics']['paste_attempts']==1
+    client.post(path+'/submit',headers=auth,json=body)
+    row=client.get('/learning/revisions/attempts/'+started['attempt_id'],headers=ADMIN).json()
+    assert row['report']['integrity_metrics']['away_duration_ms']==3000
+    assert row['report']['research_metrics']=={} and not row['research_consent']
+    client.post('/learning/revisions/attempts/'+started['attempt_id']+'/withdraw-research',headers=ADMIN)
+    row=client.get('/learning/revisions/attempts/'+started['attempt_id'],headers=ADMIN).json()
+    assert row['report']['integrity_metrics']['paste_attempts']==1
+
+def test_teacher_pairs_and_shared_reading_timer(client):
+    identifier,ADMIN=setup(client)
+    spec=client.get('/learning/revisions/tests',headers=ADMIN).json()[0]['definition']
+    spec.update(oral_individual=['Discuss identity.'],oral_dialogue=['Student A: preserve traditions. Student B: adapt traditions.'])
+    assert client.put('/learning/revisions/tests/'+identifier,headers=ADMIN,json=spec).status_code==200
+    client.post('/learning/revisions/tests/'+identifier+'/publish',headers=ADMIN)
+    students=[]
+    for group in ['213','213','214']:
+        started=client.post('/revision-tests/'+identifier+'/start',json={'group':group,'student_name':'Synthetic Learner','research_consent':False}).json()
+        path='/revision-attempts/'+started['attempt_id'];auth={'Authorization':'Bearer '+started['token']}
+        client.post(path+'/begin',headers=auth)
+        assert client.post(path+'/submit',headers=auth,json={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'Sample essay.'}).status_code==200
+        students.append((started['attempt_id'],path,auth))
+    a,b,c=students
+    endpoint='/learning/revisions/attempts/'+a[0]+'/pair'
+    assert client.post(a[1]+'/oral-open',headers=a[2]).status_code==403
+    assert client.post(endpoint,headers=a[2],json={'partner_attempt_id':b[0]}).status_code in [401,403]
+    assert client.post(endpoint,headers=ADMIN,json={'partner_attempt_id':c[0]}).status_code==422
+    assert client.post(endpoint,headers=ADMIN,json={'partner_attempt_id':b[0]}).status_code==200
+    first=client.post(a[1]+'/oral-open',headers=a[2]).json()
+    assert first['reading_seconds']==30 and 'reading_started_at' not in first
+    second=client.post(b[1]+'/oral-open',headers=b[2]).json()
+    first=client.get(a[1]+'/oral',headers=a[2]).json()
+    assert first['dialogue_prompt']==second['dialogue_prompt']
+    assert (first['role'],second['role'])==('A','B')
+    assert first['reading_started_at']==second['reading_started_at']
+    assert second['preparation_seconds']==60
+    assert client.post(b[1]+'/oral-open',headers=b[2]).json()['reading_started_at']==second['reading_started_at']
+    assert client.post(endpoint,headers=ADMIN,json={'partner_attempt_id':b[0]}).status_code==409

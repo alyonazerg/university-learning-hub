@@ -26,7 +26,7 @@ for(const screen of ['warmup','question','essay'])test(`research choice is not r
  });
  await page.goto('http://moon.test/revision-test.html?test=test');
  if(screen==='question')await page.locator('#test-answer').fill('New answer');
- if(screen==='essay')await page.locator('#writing-answer').fill('Updated essay');
+ if(screen==='essay'){await page.locator('#writing-answer').fill('Updated essay');const accepted=await page.evaluate(()=>{const data=new DataTransfer();data.setData('text/plain','external generated essay');const event=new ClipboardEvent('paste',{clipboardData:data,bubbles:true,cancelable:true});const accepted=document.getElementById('writing-answer').dispatchEvent(event);window.dispatchEvent(new Event('blur'));window.dispatchEvent(new Event('focus'));return accepted;});assert.equal(accepted,false);assert.equal(await page.locator('#writing-answer').inputValue(),'Updated essay');}
  assert.equal(await page.getByRole('button',{name:'Continue without participating in the research'}).count(),0);assert.equal(withdrawals,0);if(screen==='warmup')await page.getByRole('button',{name:'Start test',exact:true}).click();
  if(screen!=='essay'){
   assert.equal(await page.locator('#test-answer').inputValue(),screen==='question'?'New answer':'Existing answer');
@@ -34,7 +34,7 @@ for(const screen of ['warmup','question','essay'])test(`research choice is not r
  }
  assert.equal(await page.locator('#writing-answer').inputValue(),screen==='essay'?'Updated essay':'Existing essay draft');
  await page.getByRole('button',{name:'Submit test',exact:true}).click();await page.getByRole('heading',{name:'Submitted',exact:true}).waitFor();
- assert(submitted);assert(saved.timing);assert.equal(await page.getByRole('button',{name:'Continue without participating in the research'}).count(),0);
+ assert(submitted);if(screen==='essay'){assert.equal(saved.integrity_metrics.paste_attempts,1);assert(saved.integrity_metrics.focus_losses>=1);}assert(saved.timing);assert.equal(await page.getByRole('button',{name:'Continue without participating in the research'}).count(),0);
  assert.deepEqual(errors,[]);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
 });
 
@@ -103,9 +103,20 @@ test('private return link loads current feedback without reopening a test',async
  });
  await page.goto('http://moon.test/revision-test.html?view=result&attempt=private-attempt#token=private-token');
  await page.getByText('Good argument.',{exact:true}).waitFor();assert.equal(new URL(page.url()).hash,'');
- assert.equal(await page.getByRole('heading',{name:'Rating result: 2.65 / 3'}).count(),1);
+ assert.equal(await page.locator('.revision-result-rating strong').textContent(),'2.65 / 3');
  assert.equal(await page.getByRole('button',{name:'Reveal my individual question'}).count(),0);
  await page.getByRole('button',{name:'Refresh result'}).click();await page.waitForTimeout(100);assert(calls>=2);
  await page.reload();await page.getByText('Clear speech.',{exact:true}).waitFor();assert.deepEqual(errors,[]);
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+});
+
+test('instruction, question and visible options are separate on mobile',async t=>{
+ const browser=await chromium.launch({executablePath:'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());const page=await browser.newPage({viewport:{width:320,height:800}});
+ const prompt='Choose the expression that best fits the meaning and usage in this context.\nThe records trace Omar’s family line. They tell him about his ___.';
+ const state={submitted:false,collect_response_times:false,items:[{id:'one',section:'vocabulary',prompt,choices:['ancestry','heritage','ethnicity','citizenship','identity']}],answers:{},timing:{},writing:'',warmup:[],writing_prompt:'Essay',writing_range:[225,275]};
+ await page.addInitScript(()=>localStorage.setItem('moon-revision-test',JSON.stringify({attempt_id:'attempt',token:'private'})));
+ await page.route('http://moon.test/**',async route=>{const u=new URL(route.request().url());if(u.pathname==='/config.js')return route.fulfill({contentType:'text/javascript',body:"window.MOON_CAMPUS_API_BASE='http://moon.test/api';"});if(u.pathname.startsWith('/api/'))return route.fulfill({contentType:'application/json',body:JSON.stringify(u.pathname.includes('revision-tests/')?{title:'RT1',groups:['213']}:state)});try{return route.fulfill({body:await fs.readFile(path.resolve(__dirname,'../../frontend',u.pathname.slice(1))),contentType:u.pathname.endsWith('.js')?'text/javascript':u.pathname.endsWith('.css')?'text/css':u.pathname.endsWith('.html')?'text/html':'image/svg+xml'});}catch{return route.fulfill({status:404,body:''});}});
+ await page.goto('http://moon.test/revision-test.html?test=test');await page.getByRole('radio',{name:/ancestry/}).waitFor();
+ assert.equal(await page.locator('.revision-task-hint').textContent(),'Choose one best answer.');assert(!(await page.locator('.revision-question-card').textContent()).includes('Choose the expression'));assert.equal(await page.getByRole('radio').count(),5);
+ await page.getByRole('radio',{name:/ancestry/}).check();assert.equal(await page.locator('#test-answer').inputValue(),'ancestry');await page.getByRole('button',{name:'Next',exact:true}).click();await page.waitForTimeout(100);await page.locator('#writing-answer').waitFor();await page.getByRole('button',{name:'Back',exact:true}).click();assert(await page.getByRole('radio',{name:/ancestry/}).isChecked());assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
 });
