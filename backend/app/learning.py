@@ -11,7 +11,7 @@ from sqlalchemy import select, update, delete
 from sqlalchemy.exc import IntegrityError
 from .auth import telegram_user_id
 from .db import SessionLocal
-from .models import Group, Student, LearningSession, CardEditor, VocabularyDeck, VocabularyCard, CardProgress, ReviewEvent
+from .models import Group, Student, GroupInvitation, LearningSession, CardEditor, VocabularyDeck, VocabularyCard, CardProgress, ReviewEvent
 from .settings import settings
 
 router = APIRouter(prefix='/learning', tags=['learning'])
@@ -308,3 +308,13 @@ def review(card_id: str, payload: ReviewInput, actor=Depends(principal), session
         session.rollback()
         raise HTTPException(409, 'Review already recorded')
     return {'due_at': values['due_at'].replace(tzinfo=timezone.utc).isoformat(), 'level': level}
+
+
+@router.post('/groups/{group_id}/invitations', status_code=201, dependencies=[Depends(administrator), Depends(no_store)])
+def create_group_invitation(group_id: int, session=Depends(database)):
+    group_for(group_id, session)
+    token = secrets.token_urlsafe(32)
+    session.add(GroupInvitation(token_hash=hashlib.sha256(token.encode()).hexdigest(),
+                                group_id=group_id, expires_at=now()+timedelta(days=7), used=False))
+    session.commit()
+    return {'invitation_token': token, 'expires_in': 604800}

@@ -42,6 +42,7 @@
     if (!response.ok) {
       let detail; try {detail = (await response.json()).detail;} catch { /* generic message below */ }
       if (response.status === 404 && path === '/plans') return null;
+      if (response.status === 404 && path.endsWith('/invitations')) throw new Error('Update the server to create invitations.');
       if ((response.status === 401 || (path === '/me' && [403, 404].includes(response.status))) && token) clearSession();
       throw new Error(messages[detail] || (response.status === 422 ? 'Check the fields, dates and data format.' : 'Could not complete the action. Try again.'));
     }
@@ -124,7 +125,21 @@
       const none = node('option', 'Teacher only'); none.value = ''; select.append(none);
       for (const student of group.students) {const item = node('option', student.pseudonym); item.value = student.id; select.append(item);}
       select.value = group.editor_student_id || '';
-      article.append(label, select, button('Save editor · ' + group.name, async () => {await request('/groups/' + group.id + '/editor', 'PUT', {student_id: select.value || null}); await refresh(); $('account-status').textContent = 'Group editor saved.';})); $('group-editors').append(article);
+      article.append(label, select, button('Save editor · ' + group.name, async () => {await request('/groups/' + group.id + '/editor', 'PUT', {student_id: select.value || null}); await refresh(); $('account-status').textContent = 'Group editor saved.';}));
+      const invitations = node('details'); invitations.append(node('summary', 'Invite a student'));
+      const result = node('div'); result.setAttribute('aria-live', 'polite');
+      invitations.append(node('p', 'Each link registers one student and expires after 7 days. Create a separate link for each student.', 'muted'));
+      invitations.append(button('Create invitation', async () => {
+        const invitation = await request('/groups/' + group.id + '/invitations', 'POST');
+        const url = 'https://t.me/mooncampusbot?startapp=' + encodeURIComponent(invitation.invitation_token);
+        const link = node('a', 'Open registration in Telegram'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+        const field = node('input'); field.type = 'text'; field.readOnly = true; field.value = url; field.setAttribute('aria-label', 'Student invitation link');
+        result.replaceChildren(link, field, button('Copy invitation', async () => {
+          try {await navigator.clipboard.writeText(url); $('account-status').textContent = 'Invitation copied.';}
+          catch {field.focus(); field.select(); $('account-status').textContent = 'Select and copy the invitation link manually.';}
+        }));
+        $('account-status').textContent = 'Invitation created. Share it with one student.';
+      }), result); article.append(invitations); $('group-editors').append(article);
     }
     if ([...$('connected-group').options].some(option => option.value === previous)) $('connected-group').value = previous;
     if (!groups.length) $('group-editors').append(node('p', 'No groups yet.'));

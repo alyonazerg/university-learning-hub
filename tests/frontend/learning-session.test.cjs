@@ -244,3 +244,15 @@ test('cabinet navigation reduces visible content, supports roles and preserves u
   await section(learner,'connected-coursework');assert(!(await learner.getByText('Create assignment',{exact:true}).count()));
   assert.deepEqual(errors,[]);
 });
+
+test('teacher creates a real single-student Telegram invitation in the group cabinet', async t => {
+  const {pageFor,errors}=await open(t);const page=await pageFor();await teacher(page);await section(page,'connected-groups');
+  const group=page.locator('#group-editors article').first();await group.getByText('Invite a student',{exact:true}).click();
+  await group.getByRole('button',{name:'Create invitation',exact:true}).click();
+  await page.getByText('Invitation created. Share it with one student.',{exact:true}).waitFor();
+  const value=await group.getByLabel('Student invitation link').inputValue();
+  assert.match(value,/^https:\/\/t\.me\/mooncampusbot\?startapp=[A-Za-z0-9_-]+$/);
+  assert.equal(await group.getByRole('link',{name:'Open registration in Telegram'}).getAttribute('href'),value);
+  await page.setViewportSize({width:320,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  assert.deepEqual(errors,[]);
+});

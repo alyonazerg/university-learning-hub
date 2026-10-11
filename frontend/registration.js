@@ -98,6 +98,7 @@
       clearTimeout(expiration);
       submit.textContent = 'Profile created';
       status.textContent = 'Done! Your profile is linked to your learning group.';
+      const link = document.createElement('a'); link.href = 'learning.html'; link.className = 'primary'; link.textContent = 'Open learning hub'; status.after(link);
     } catch (error) {
       reservation = null;
       clearTimeout(expiration);
