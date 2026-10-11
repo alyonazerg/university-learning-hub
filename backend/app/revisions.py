@@ -187,7 +187,7 @@ def oral_review(identifier:str,body:OralReview,session=Depends(database)):
     row.oral={**(row.oral or {}),'score':body.score,'feedback':body.feedback,'reviewed':True};session.commit();return teacher_attempt(row)
 
 def public_attempt(row):
-    if row.submitted_at:return {'submitted':True,'controlled_score':row.report.get('controlled_score'),'writing_pending':row.report.get('writing_score') is None,'oral':public_oral(row)}
+    if row.submitted_at:return {'submitted':True,'collect_response_times':row.research_consent,'controlled_score':row.report.get('controlled_score'),'writing_pending':row.report.get('writing_score') is None,'oral':public_oral(row)}
     spec=row.snapshot
     return {'submitted':False,'collect_response_times':row.research_consent,'title':spec['title'],'student_name':row.student_name,'group':row.group_code,'items':[{k:v for k,v in item.items() if k in ['id','section','prompt','choices']} for item in spec['items']],'writing_prompt':spec['writing_prompt'],'writing_range':[225,275],'warmup':spec['priming'] if row.research_consent and row.condition=='experimental' and not row.begun_at else [],'answers':row.answers,'timing':row.timing,'writing':row.writing}
 @router.post('/revision-attempts/{identifier}/begin')

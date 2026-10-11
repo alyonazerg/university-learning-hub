@@ -1,0 +1,41 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {chromium}=require('playwright');
+const fs=require('node:fs/promises');
+const path=require('node:path');
+for(const screen of ['warmup','question','essay'])test(`research withdrawal during ${screen} preserves academic answers`,async t=>{
+ const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());
+ const page=await browser.newPage({viewport:{width:390,height:844}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ let saved=null,withdrawals=0,submitted=false;
+ const state={submitted:false,collect_response_times:true,items:[{id:'one',section:'emergent',prompt:'Complete the word.'}],timing:{},answers:{one:'Existing answer'},writing:'Existing essay draft',writing_prompt:'Discuss the topic.',writing_range:[225,275],warmup:screen==='warmup'?['Reading sentence.']:[]};
+ await page.addInitScript(({screen})=>localStorage.setItem('moon-revision-test',JSON.stringify({attempt_id:'attempt',token:'secret',index:screen==='essay'?1:0})),{screen});
+ await page.route('http://moon.test/**',async route=>{
+  const u=new URL(route.request().url());let result;
+  if(u.pathname==='/config.js')return route.fulfill({contentType:'text/javascript',body:"window.MOON_CAMPUS_API_BASE='http://moon.test/api';"});
+  if(u.pathname.startsWith('/api/')){
+   if(u.pathname.endsWith('/revision-tests/test'))result={title:'Synthetic revision',coursebook:'Evolve 5',unit:'7',groups:['215']};
+   else if(u.pathname.endsWith('/withdraw-research')){withdrawals++;state.collect_response_times=false;state.timing={};state.warmup=[];result={withdrawn:true};}
+   else if(u.pathname.endsWith('/begin')){state.warmup=[];result=state;}
+   else if(u.pathname.endsWith('/submit')){submitted=true;result={submitted:true,collect_response_times:false,controlled_score:80};}
+   else if(route.request().method()==='PUT'){saved=route.request().postDataJSON();result={saved:true};}
+   else result=state;
+   return route.fulfill({contentType:'application/json',body:JSON.stringify(result)});
+  }
+  const file=path.resolve(__dirname,'../../frontend',u.pathname.slice(1));
+  try{return route.fulfill({body:await fs.readFile(file),contentType:u.pathname.endsWith('.js')?'text/javascript':u.pathname.endsWith('.css')?'text/css':u.pathname.endsWith('.html')?'text/html':'image/svg+xml'});}catch{return route.fulfill({status:404,body:''});}
+ });
+ await page.goto('http://moon.test/revision-test.html?test=test');
+ if(screen==='question')await page.locator('#test-answer').fill('New answer');
+ if(screen==='essay')await page.locator('#writing-answer').fill('Updated essay');
+ await page.getByRole('button',{name:'Continue without participating in the research'}).click();
+ await page.getByText(/Research participation withdrawn|You are taking this test without/).waitFor();
+ assert.equal(withdrawals,1);assert.equal(await page.getByRole('button',{name:'Continue without participating in the research'}).count(),0);
+ if(screen!=='essay'){
+  assert.equal(await page.locator('#test-answer').inputValue(),screen==='question'?'New answer':'Existing answer');
+  await page.getByRole('button',{name:'Next',exact:true}).click();
+ }
+ assert.equal(await page.locator('#writing-answer').inputValue(),screen==='essay'?'Updated essay':'Existing essay draft');
+ await page.getByRole('button',{name:'Submit test',exact:true}).click();await page.getByRole('heading',{name:'Submitted',exact:true}).waitFor();
+ assert(submitted);assert.deepEqual(saved.timing,{});assert.equal(await page.getByRole('button',{name:'Continue without participating in the research'}).count(),0);
+ assert.deepEqual(errors,[]);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+});

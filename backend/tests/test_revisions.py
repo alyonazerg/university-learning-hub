@@ -103,3 +103,47 @@ def test_speaking_pairs_follow_readiness_and_stay_within_group(client):
     report=client.get('/learning/revisions/tests/'+identifier+'/attempts',headers=ADMIN).json()
     withdrawn=next(r for r in report if r['id']==first[0].split('/')[-1]);assert withdrawn['research_consent'] is False
     assert withdrawn['report']['mean_reaction_time_ms'] is None
+
+
+def test_withdrawing_during_test_keeps_answers_and_excludes_research(client):
+    identifier,ADMIN=setup(client)
+    row=client.post('/revision-tests/'+identifier+'/start',json={'group':'213','student_name':'Synthetic Learner','research_consent':True}).json()
+    path='/revision-attempts/'+row['attempt_id'];auth={'Authorization':'Bearer '+row['token']}
+    client.post(path+'/begin',headers=auth)
+    body={'answers':{'vocabulary':'heritage'},'writing':'Draft essay.', 'timing':{'vocabulary':{'item_started_at':'2026-10-11T10:00:00Z','first_input_at':'2026-10-11T10:00:02Z','reaction_time_ms':2000}}}
+    assert client.put(path,headers=auth,json=body).status_code==200
+    assert client.post(path+'/withdraw-research',headers=auth).status_code==200
+    saved=client.get(path,headers=auth).json()
+    assert saved['answers']==body['answers'] and saved['writing']==body['writing']
+    assert saved['collect_response_times'] is False and saved['timing']=={} and saved['warmup']==[]
+    # Even a stale queued save cannot restore response-time collection.
+    assert client.put(path,headers=auth,json=body).status_code==200
+    assert client.get(path,headers=auth).json()['timing']=={}
+    body['answers']={s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']}
+    submitted=client.post(path+'/submit',headers=auth,json=body).json()
+    assert submitted['controlled_score']==80 and submitted['collect_response_times'] is False
+    teacher=client.get('/learning/revisions/tests/'+identifier+'/attempts',headers=ADMIN).json()
+    assert len(teacher)==1 and teacher[0]['condition']=='experimental' and teacher[0]['research_consent'] is False
+    export=client.get('/learning/revisions/tests/'+identifier+'/export',headers=ADMIN).json()
+    assert 'Synthetic Learner' not in base64.b64decode(export['files'][0]['content']).decode('utf-8-sig')
+
+
+def test_unit7_emergent_items_are_unique_to_each_group(client):
+    import json
+    from pathlib import Path
+    ADMIN=admin(client)
+    for level in ['b2','c1']:
+        spec=json.loads((Path(__file__).parents[1]/'revision_materials'/('unit7-'+level+'.json')).read_text())
+        for group in spec['groups']:
+            assert client.put('/learning/revisions/groups/'+group,headers=ADMIN,json={'condition':'control','expected_count':1,'roster':['Synthetic Learner'],'emergent':[]}).status_code==200
+        test=client.post('/learning/revisions/tests',headers=ADMIN,json=spec).json()['id']
+        assert client.post('/learning/revisions/tests/'+test+'/publish',headers=ADMIN).status_code==200
+        itemsets=[]
+        for group in spec['groups']:
+            row=client.post('/revision-tests/'+test+'/start',json={'group':group,'student_name':'Synthetic Learner','research_consent':False}).json()
+            expected={i['id'] for i in spec['items'] if i['section']=='emergent' and group in i.get('groups',[])}
+            actual={i['id'] for i in row['items'] if i['section']=='emergent'}
+            assert actual==expected and len(actual)==6
+            assert len(row['items'])==34
+            itemsets.append(actual)
+        assert all(not a.intersection(b) for i,a in enumerate(itemsets) for b in itemsets[i+1:])
