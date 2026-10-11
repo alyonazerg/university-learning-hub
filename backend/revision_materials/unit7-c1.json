@@ -19,11 +19,17 @@
     {
       "id": "v1",
       "section": "vocabulary",
-      "prompt": "A parish record links Elena to an ___ who left the village in 1820, long before any of her grandparents were born.",
+      "prompt": "Elena discovered that her great-great-grandfather moved abroad in 1820. Which statement describes the discovery accurately?",
       "answers": [
-        "ancestor"
+        "She learned where one of her ancestors had lived."
       ],
-      "choices": [],
+      "choices": [
+        "She identified the parents who had adopted her.",
+        "She learned where one of her ancestors had lived.",
+        "She discovered her present-day citizenship.",
+        "She learned where one of her descendants had lived.",
+        "She discovered who would inherit her possessions."
+      ],
       "target_word": "ancestor",
       "target_variants": [],
       "groups": []
@@ -31,13 +37,17 @@
     {
       "id": "v2",
       "section": "vocabulary",
-      "prompt": "The records trace Omar’s family line through several generations. They tell him about his ___, rather than his present-day citizenship.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe records trace Omar’s family line through several generations. They tell him about his ___, rather than his present-day citizenship.",
       "answers": [
-        "ancestry",
-        "family history",
-        "family origins"
+        "ancestry"
       ],
-      "choices": [],
+      "choices": [
+        "ancestry",
+        "nationality",
+        "heritage",
+        "identity",
+        "ethnicity"
+      ],
       "target_word": "ancestry",
       "target_variants": [],
       "groups": []
@@ -45,11 +55,17 @@
     {
       "id": "v3",
       "section": "vocabulary",
-      "prompt": "Eva checks birth certificates, marriage records and family trees to establish who was related to whom. Her research is in ___, not DNA analysis.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nEva checks birth certificates, marriage records and family trees to establish who was related to whom. Her research is in ___, not DNA analysis.",
       "answers": [
         "genealogy"
       ],
-      "choices": [],
+      "choices": [
+        "genealogy",
+        "archaeology",
+        "ethnography",
+        "genetics",
+        "anthropology"
+      ],
       "target_word": "genealogy",
       "target_variants": [],
       "groups": []
@@ -57,11 +73,17 @@
     {
       "id": "v4",
       "section": "vocabulary",
-      "prompt": "The survey asks respondents how they identify culturally, separately from where they hold citizenship. That question concerns their ___.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe survey asks respondents how they identify culturally, separately from where they hold citizenship. That question concerns their ___.",
       "answers": [
         "ethnicity"
       ],
-      "choices": [],
+      "choices": [
+        "nationality",
+        "ethnicity",
+        "ancestry",
+        "citizenship",
+        "residence"
+      ],
       "target_word": "ethnicity",
       "target_variants": [],
       "groups": []
@@ -69,11 +91,17 @@
     {
       "id": "v5",
       "section": "vocabulary",
-      "prompt": "The community restored its old meeting hall and recorded traditional songs so that younger residents could learn about their cultural ___.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe community restored its old meeting hall and recorded traditional songs so that younger residents could learn about their cultural ___.",
       "answers": [
         "heritage"
       ],
-      "choices": [],
+      "choices": [
+        "genealogy",
+        "ethnicity",
+        "heritage",
+        "ancestry",
+        "nationality"
+      ],
       "target_word": "heritage",
       "target_variants": [],
       "groups": []
@@ -81,11 +109,17 @@
     {
       "id": "v6",
       "section": "vocabulary",
-      "prompt": "After the court completed the legal process, the couple became the child’s ___ parents, with permanent parental rights and responsibilities.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nAfter the court completed the legal process, the couple became the child’s ___ parents, with permanent parental rights and responsibilities.",
       "answers": [
         "adoptive"
       ],
-      "choices": [],
+      "choices": [
+        "surrogate",
+        "adoptive",
+        "biological",
+        "prospective",
+        "foster"
+      ],
       "target_word": "adoptive",
       "target_variants": [],
       "groups": []
@@ -93,14 +127,17 @@
     {
       "id": "v7",
       "section": "vocabulary",
-      "prompt": "Attendance at the annual festival had fallen for years. Organisers invited younger performers to ___ the event and give people a reason to return.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nAttendance at the annual festival had fallen for years. Organisers invited younger performers to ___ the event and give people a reason to return.",
       "answers": [
-        "reinvigorate",
-        "revitalise",
-        "revitalize",
-        "revive"
+        "reinvigorate"
       ],
-      "choices": [],
+      "choices": [
+        "preserve",
+        "replicate",
+        "reinvigorate",
+        "formalise",
+        "commemorate"
+      ],
       "target_word": "reinvigorate",
       "target_variants": [],
       "groups": []
@@ -108,13 +145,17 @@
     {
       "id": "v8",
       "section": "vocabulary",
-      "prompt": "The museum’s most valued ___ from the ancient settlement is a small clay bowl that survived while almost everything else was destroyed.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe museum’s most valued ___ from the ancient settlement is a small clay bowl that survived while almost everything else was destroyed.",
       "answers": [
-        "relic",
-        "artefact",
-        "artifact"
+        "relic"
       ],
-      "choices": [],
+      "choices": [
+        "reconstruction",
+        "souvenir",
+        "replica",
+        "relic",
+        "heirloom"
+      ],
       "target_word": "relic",
       "target_variants": [],
       "groups": []
@@ -122,13 +163,17 @@
     {
       "id": "v9",
       "section": "vocabulary",
-      "prompt": "One sibling wants to sell the inherited house; the other insists on keeping it. Their unresolved disagreement has caused growing ___ between them.",
+      "prompt": "Which word completes this established expression? Disagreements over the inherited house caused ___ between the siblings.",
       "answers": [
-        "friction",
-        "tension",
-        "conflict"
+        "friction"
       ],
-      "choices": [],
+      "choices": [
+        "resentment",
+        "friction",
+        "distance",
+        "rivalry",
+        "pressure"
+      ],
       "target_word": "friction",
       "target_variants": [],
       "groups": []
@@ -136,11 +181,17 @@
     {
       "id": "v10",
       "section": "vocabulary",
-      "prompt": "During a difficult year, the community centre became a ___ of hope: it was somewhere people could find support and imagine a better future.",
+      "prompt": "Which word completes the established expression? During a difficult year, the community centre became a ___ of hope.",
       "answers": [
         "beacon"
       ],
-      "choices": [],
+      "choices": [
+        "beacon",
+        "refuge",
+        "promise",
+        "signal",
+        "pillar"
+      ],
       "target_word": "beacon",
       "target_variants": [],
       "groups": []
@@ -148,11 +199,17 @@
     {
       "id": "v11",
       "section": "vocabulary",
-      "prompt": "After the harvest, every family brought food to the village square. The celebration ended with a ___ that lasted late into the evening.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nAfter the harvest, every family brought food to the village square. The celebration ended with a ___ that lasted late into the evening.",
       "answers": [
         "feast"
       ],
-      "choices": [],
+      "choices": [
+        "rite",
+        "fast",
+        "procession",
+        "feast",
+        "vigil"
+      ],
       "target_word": "feast",
       "target_variants": [],
       "groups": []
@@ -160,13 +217,17 @@
     {
       "id": "v12",
       "section": "vocabulary",
-      "prompt": "As a child, I thought the ceremony was just a chance to dress up. Only later did I understand its deeper ___ for the community.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nAs a child, I thought the ceremony was just a chance to dress up. Only later did I understand its deeper ___ for the community.",
       "answers": [
-        "significance",
-        "meaning",
-        "importance"
+        "significance"
       ],
-      "choices": [],
+      "choices": [
+        "genealogy",
+        "ancestry",
+        "significance",
+        "inheritance",
+        "ethnicity"
+      ],
       "target_word": "significance",
       "target_variants": [],
       "groups": []
@@ -174,11 +235,17 @@
     {
       "id": "c1",
       "section": "collocation",
-      "prompt": "When the speaker described feeling caught between two cultures, many listeners recognised their own experience. Her account struck a ___ with them.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nWhen the speaker described feeling caught between two cultures, many listeners recognised their own experience. Her account struck a ___ with them.",
       "answers": [
         "chord"
       ],
-      "choices": [],
+      "choices": [
+        "harmony",
+        "chord",
+        "rhythm",
+        "tone",
+        "note"
+      ],
       "target_word": "chord",
       "target_variants": [],
       "groups": []
@@ -186,11 +253,17 @@
     {
       "id": "c2",
       "section": "collocation",
-      "prompt": "At the ceremony, the younger members paid ___ to the elders who had preserved the language and taught it to others.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nAt the ceremony, the younger members paid ___ to the elders who had preserved the language and taught it to others.",
       "answers": [
         "tribute"
       ],
-      "choices": [],
+      "choices": [
+        "respect",
+        "tribute",
+        "homage",
+        "attention",
+        "honour"
+      ],
       "target_word": "tribute",
       "target_variants": [],
       "groups": []
@@ -198,11 +271,17 @@
     {
       "id": "c3",
       "section": "collocation",
-      "prompt": "Very few people still knew the traditional songs. By teaching them to local children, the choir hoped to keep the tradition ___.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nVery few people still knew the traditional songs. By teaching them to local children, the choir hoped to keep the tradition ___.",
       "answers": [
         "alive"
       ],
-      "choices": [],
+      "choices": [
+        "unchanged",
+        "lasting",
+        "active",
+        "alive",
+        "intact"
+      ],
       "target_word": "alive",
       "target_variants": [],
       "groups": []
@@ -210,13 +289,17 @@
     {
       "id": "c4",
       "section": "collocation",
-      "prompt": "You cannot infer someone’s beliefs from their surname. Making ___ on that basis may lead you to completely misunderstand them.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nYou cannot infer someone’s beliefs from their surname. Making ___ on that basis may lead you to completely misunderstand them.",
       "answers": [
-        "assumptions",
-        "generalisations",
-        "generalizations"
+        "assumptions"
       ],
-      "choices": [],
+      "choices": [
+        "conclusions",
+        "opinions",
+        "assumptions",
+        "predictions",
+        "judgements"
+      ],
       "target_word": "assumptions",
       "target_variants": [],
       "groups": []
@@ -224,12 +307,17 @@
     {
       "id": "c5",
       "section": "collocation",
-      "prompt": "Her relatives expected her to join the family business, but she chose to forge her own ___ and become a researcher.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nHer relatives expected her to join the family business, but she chose to forge her own ___ and become a researcher.",
       "answers": [
-        "path",
-        "way"
+        "path"
       ],
-      "choices": [],
+      "choices": [
+        "career",
+        "route",
+        "direction",
+        "path",
+        "identity"
+      ],
       "target_word": "path",
       "target_variants": [],
       "groups": []
@@ -237,11 +325,17 @@
     {
       "id": "c6",
       "section": "collocation",
-      "prompt": "The survey estimated support at 51%, with a margin of ___ of three percentage points. The result does not establish a clear majority.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe survey estimated support at 51%, with a margin of ___ of three percentage points. The result does not establish a clear majority.",
       "answers": [
         "error"
       ],
-      "choices": [],
+      "choices": [
+        "inaccuracy",
+        "uncertainty",
+        "deviation",
+        "variation",
+        "error"
+      ],
       "target_word": "error",
       "target_variants": [],
       "groups": []
@@ -375,11 +469,17 @@
     {
       "id": "e213-1",
       "section": "emergent",
-      "prompt": "Leo refuses to open an umbrella indoors because he believes it brings bad luck. Although he knows there is no evidence, he remains ___.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nLeo refuses to open an umbrella indoors because he believes it brings bad luck. Although he knows there is no evidence, he remains ___.",
       "answers": [
         "superstitious"
       ],
-      "choices": [],
+      "choices": [
+        "superstitious",
+        "traditional",
+        "religious",
+        "sceptical",
+        "cautious"
+      ],
       "target_word": "superstitious",
       "target_variants": [],
       "groups": [
@@ -389,11 +489,17 @@
     {
       "id": "e213-2",
       "section": "emergent",
-      "prompt": "The recipe calls for a little freshly grated ___ to add a warm, slightly sweet flavour to the milk. It is the spice often paired with cinnamon.",
+      "prompt": "Which sentence uses nutmeg accurately?",
       "answers": [
-        "nutmeg"
+        "She grated a little nutmeg into the warm milk."
       ],
-      "choices": [],
+      "choices": [
+        "She grated a little nutmeg into the warm milk.",
+        "She used nutmeg to describe her family tree.",
+        "She poured a glass of nutmeg over the salad.",
+        "She booked a nutmeg to celebrate the festival.",
+        "She wore a nutmeg to protect her hands."
+      ],
       "target_word": "nutmeg",
       "target_variants": [],
       "groups": [
@@ -403,11 +509,17 @@
     {
       "id": "e213-3",
       "section": "emergent",
-      "prompt": "In our local tradition, celebrations continue until ___ on 6 January, when the visit of the Magi is commemorated.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nIn our local tradition, celebrations continue until ___ on 6 January, when the visit of the Magi is commemorated.",
       "answers": [
         "Epiphany"
       ],
-      "choices": [],
+      "choices": [
+        "Pentecost",
+        "Easter",
+        "Christmas",
+        "Advent",
+        "Epiphany"
+      ],
       "target_word": "Epiphany",
       "target_variants": [],
       "groups": [
@@ -417,11 +529,17 @@
     {
       "id": "e213-4",
       "section": "emergent",
-      "prompt": "The family gathered at the church for the child’s ___. During the ceremony, the priest poured water over the child’s head.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe family gathered at the church for the child’s ___. During the ceremony, the priest poured water over the child’s head.",
       "answers": [
         "baptism"
       ],
-      "choices": [],
+      "choices": [
+        "confirmation",
+        "communion",
+        "wedding",
+        "ordination",
+        "baptism"
+      ],
       "target_word": "baptism",
       "target_variants": [],
       "groups": [
@@ -431,12 +549,17 @@
     {
       "id": "e213-5",
       "section": "emergent",
-      "prompt": "Several relatives have the same condition, so she may have a genetic ___ to develop it. That increases the risk but does not make it inevitable.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nSeveral relatives have the same condition, so she may have a genetic ___ to develop it. That increases the risk but does not make it inevitable.",
       "answers": [
-        "predisposition",
-        "susceptibility"
+        "predisposition"
       ],
-      "choices": [],
+      "choices": [
+        "symptom",
+        "immunity",
+        "predisposition",
+        "inheritance",
+        "diagnosis"
+      ],
       "target_word": "predisposition",
       "target_variants": [],
       "groups": [
@@ -446,11 +569,17 @@
     {
       "id": "e213-6",
       "section": "emergent",
-      "prompt": "When his father refused to buy the toy, the child threw a ___: he screamed, stamped his feet and refused to leave the shop.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nWhen his father refused to buy the toy, the child threw a ___: he screamed, stamped his feet and refused to leave the shop.",
       "answers": [
         "tantrum"
       ],
-      "choices": [],
+      "choices": [
+        "tantrum",
+        "protest",
+        "argument",
+        "outburst",
+        "complaint"
+      ],
       "target_word": "tantrum",
       "target_variants": [],
       "groups": [
@@ -460,11 +589,17 @@
     {
       "id": "e214-1",
       "section": "emergent",
-      "prompt": "We stayed outside after midnight to watch a ___. For almost an hour, bright streaks appeared repeatedly across the sky.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nWe stayed outside after midnight to watch a ___. For almost an hour, bright streaks appeared repeatedly across the sky.",
       "answers": [
         "meteor shower"
       ],
-      "choices": [],
+      "choices": [
+        "comet",
+        "eclipse",
+        "aurora",
+        "shooting star",
+        "meteor shower"
+      ],
       "target_word": "meteor shower",
       "target_variants": [],
       "groups": [
@@ -474,11 +609,17 @@
     {
       "id": "e214-2",
       "section": "emergent",
-      "prompt": "You have your grandmother’s eyes and smile. In those features, you ___ her more than either of your parents.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nYou have your grandmother’s eyes and smile. In those features, you ___ her more than either of your parents.",
       "answers": [
         "resemble"
       ],
-      "choices": [],
+      "choices": [
+        "reflect",
+        "represent",
+        "inherit",
+        "imitate",
+        "resemble"
+      ],
       "target_word": "resemble",
       "target_variants": [],
       "groups": [
@@ -488,11 +629,17 @@
     {
       "id": "e214-3",
       "section": "emergent",
-      "prompt": "The children stayed with ___ while the authorities assessed whether they could return home. The placement did not make those adults their permanent legal parents.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe children stayed with ___ while the authorities assessed whether they could return home. The placement did not make those adults their permanent legal parents.",
       "answers": [
         "foster parents"
       ],
-      "choices": [],
+      "choices": [
+        "foster parents",
+        "godparents",
+        "ancestors",
+        "biological parents",
+        "adoptive parents"
+      ],
       "target_word": "foster parents",
       "target_variants": [],
       "groups": [
@@ -502,12 +649,17 @@
     {
       "id": "e214-4",
       "section": "emergent",
-      "prompt": "Having relatives with the condition may indicate a genetic ___, but lifestyle and environment also affect whether it develops.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nHaving relatives with the condition may indicate a genetic ___, but lifestyle and environment also affect whether it develops.",
       "answers": [
-        "predisposition",
-        "susceptibility"
+        "predisposition"
       ],
-      "choices": [],
+      "choices": [
+        "inheritance",
+        "immunity",
+        "predisposition",
+        "symptom",
+        "diagnosis"
+      ],
       "target_word": "predisposition",
       "target_variants": [],
       "groups": [
@@ -517,12 +669,17 @@
     {
       "id": "e214-5",
       "section": "emergent",
-      "prompt": "The manager gave the difficult task to someone else, assuming I could not cope with it. I had to prove that she should not ___ my abilities.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nThe manager gave the difficult task to someone else, assuming I could not cope with it. I had to prove that she should not ___ my abilities.",
       "answers": [
-        "underestimate",
-        "undervalue"
+        "underestimate"
       ],
-      "choices": [],
+      "choices": [
+        "inherit",
+        "imitate",
+        "resemble",
+        "underestimate",
+        "overestimate"
+      ],
       "target_word": "underestimate",
       "target_variants": [],
       "groups": [
@@ -532,12 +689,17 @@
     {
       "id": "e214-6",
       "section": "emergent",
-      "prompt": "He shaved both sides of his head and left a narrow strip of hair running down the centre. The resulting hairstyle was a ___.",
+      "prompt": "Choose the expression that best fits the meaning and usage in this context.\nHe shaved both sides of his head and left a narrow strip of hair running down the centre. The resulting hairstyle was a ___.",
       "answers": [
-        "mohawk",
-        "Mohawk"
+        "mohawk"
       ],
-      "choices": [],
+      "choices": [
+        "crew cut",
+        "mohawk",
+        "ponytail",
+        "buzz cut",
+        "undercut"
+      ],
       "target_word": "mohawk",
       "target_variants": [],
       "groups": [

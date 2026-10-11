@@ -39,3 +39,7 @@ The student learning hub has **My results**. Its list is stored on the current b
 Essay grading uses Content, Organisation, Grammar, Vocabulary (each 0–5). Speaking uses Task fulfilment/interaction, Fluency/coherence, Vocabulary, Grammar, Pronunciation (each 0–4). The server validates complete breakdowns and derives the total; old total-only marks remain readable without invented criterion scores. Criteria are included in private student results and exports.
 
 RT1 covers Unit 7, RT2 Unit 8 (first assessment), RT3 Unit 9, Final RT Units 7–9 (second assessment), each worth up to 3 rating points. Choosing a semester stage in the draft editor fills the unit and title. No future questions or fixed dates are fabricated. Migration 012 labels the untouched default Unit 7 tests RT1; custom titles and existing attempts are preserved.
+
+## RT1 contextual recognition update
+
+All vocabulary, collocation and group-specific vocabulary items now provide five options, testing context, meaning or natural usage rather than unsupported recall. Website grammar items retain their format. Paper versions use 20 A–E questions with eight lexical/collocation, eight grammar and four group-specific items, plus a separate essay. The fixed ZipGrade answer sheet is unchanged. Both printable archives contain the updated papers and password-protected teacher keys. Previously begun attempts retain their material snapshot; untouched old defaults in copied tests and unbegun attempts are updated by migration 014. Separate administration formats must still be retained for analysis.

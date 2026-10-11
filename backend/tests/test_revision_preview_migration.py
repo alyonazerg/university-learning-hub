@@ -83,3 +83,22 @@ def test_repair_copied_previews_only_before_begin(level,monkeypatch):
         assert session.get(RevisionTest,'copied').definition==current
         assert session.get(RevisionAttempt,ids[0]).snapshot==current
         assert session.get(RevisionAttempt,ids[1]).snapshot==previous
+
+@pytest.mark.parametrize('level',['b2','c1'])
+def test_recognition_migration_and_group_choices(level,monkeypatch):
+    folder=Path(__file__).parents[1]
+    spec=importlib.util.spec_from_file_location('recognition',folder/'alembic/versions/014_recognition_vocabulary.py')
+    migration=importlib.util.module_from_spec(spec);spec.loader.exec_module(migration)
+    current=json.loads((folder/'revision_materials'/f'unit7-{level}.json').read_text())
+    previous={**current,'items':[migration.OLD[level].get(i['id'],i) for i in current['items']]}
+    for item in current['items']:
+        if item['section']!='grammar':
+            assert len(item['choices'])==5 and len(set(item['choices']))==5
+            assert item['answers'][0] in item['choices']
+    groups=['213','214'] if level=='c1' else ['215','216','217']
+    for group in groups:assert len([i for i in current['items'] if not i.get('groups') or group in i['groups']])==34
+    with SessionLocal() as session:
+        session.add(RevisionTest(id='copy',definition=previous,published=True));session.commit()
+    with engine.begin() as connection:
+        monkeypatch.setattr(migration.op,'get_bind',lambda:connection);migration.upgrade();migration.upgrade()
+    with SessionLocal() as session:assert session.get(RevisionTest,'copy').definition==current
