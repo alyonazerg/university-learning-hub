@@ -176,3 +176,8 @@ body:has(.revision-public) .brand {font-weight:700;color:#7652ad;}
 #connected-revisions .revision-review-panel > form.revision-pair-review {max-width:none;}
 .revision-pair-review > button {justify-self:start;}
 @media(max-width:680px){.revision-pair-controls {grid-template-columns:1fr;gap:8px;}.revision-pair-controls label,.revision-pair-controls select {grid-row:auto;}}
+
+.revision-pairing {padding:16px;border:1px solid #e3dced;border-radius:12px;margin:16px 0 24px;}
+.revision-pairing > p {margin:12px 0;}
+.revision-pairing > button {margin-top:16px;margin-bottom:4px;}
+.revision-pair-review {margin-top:16px;}

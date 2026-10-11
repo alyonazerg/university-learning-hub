@@ -228,7 +228,9 @@ def public_oral(row):
     allowed=(row.oral or {}).get('dialogue_allowed',(row.oral or {}).get('status')=='paired')
     values={key:value for key,value in (row.oral or {}).items() if allowed and key in ['status','partner_name','dialogue_prompt','paired_at','reading_seconds','reading_started_at','opened_at','preparation_seconds','role']}
     if 'dialogue_prompt' in values:values['dialogue_prompt']=role_dialogue(values['dialogue_prompt'],values.get('role',''))
-    return {'individual_question':question,'dialogue_allowed':allowed,**values}
+    parts=speaking_parts((row.oral or {}).get('breakdown',{}))
+    completed=parts['individual_score'] is not None or bool((row.oral or {}).get('individual_completed_at')) or (row.oral or {}).get('score') is not None or bool((row.oral or {}).get('reviewed'))
+    return {'individual_question':'' if completed else question,'individual_completed':completed,'dialogue_completed':parts['dialogue_score'] is not None or (row.oral or {}).get('score') is not None or bool((row.oral or {}).get('reviewed')),'dialogue_allowed':allowed,**values}
 
 class OralReview(StrictModel):
     observations:dict[str,Observation]=Field(default_factory=dict,max_length=3)
@@ -277,6 +279,7 @@ def assign_pair(identifier:str,body:PairSelection,session=Depends(database)):
     partner=session.get(RevisionAttempt,body.partner_attempt_id)
     if partner is None or not partner.submitted_at or partner.id==row.id or partner.test_id!=row.test_id or partner.group_code!=row.group_code:raise HTTPException(422,'Choose a different submitted student in the same group and test')
     if any((person.oral or {}).get('status')=='paired' for person in [row,partner]):raise HTTPException(409,'One of these students already has a dialogue partner')
+    if any(speaking_parts((person.oral or {}).get('breakdown',{}))['individual_score'] is None for person in [row,partner]):raise HTTPException(409,'Save all four individual-answer criteria for both students before assigning a dialogue')
     prompts=row.snapshot.get('oral_dialogue',[])
     if not prompts:raise HTTPException(409,'Add dialogue situations first')
     timestamp=now().isoformat()+'Z';prompt=prompts[int(uuid.UUID(row.id))%len(prompts)]
@@ -301,12 +304,14 @@ def open_dialogue(identifier:str,authorization:str | None=Header(default=None),s
 def allow_dialogue(identifier:str,session=Depends(database)):
     row=session.scalar(select(RevisionAttempt).where(RevisionAttempt.id==identifier).with_for_update())
     if row is None or not row.submitted_at:raise HTTPException(404,'Submitted attempt not found')
+    if speaking_parts((row.oral or {}).get('breakdown',{}))['individual_score'] is None:raise HTTPException(409,'Save all four individual-answer criteria before unlocking the dialogue')
     row.oral={**(row.oral or {}),'dialogue_allowed':True,'individual_completed_at':(row.oral or {}).get('individual_completed_at',now().isoformat()+'Z')}
     session.commit();return teacher_attempt(row)
 @router.post('/learning/revisions/attempts/{identifier}/oral-with-teacher',dependencies=[Depends(administrator)])
 def oral_with_teacher(identifier:str,session=Depends(database)):
     row=session.scalar(select(RevisionAttempt).where(RevisionAttempt.id==identifier).with_for_update())
     if row is None or not row.submitted_at:raise HTTPException(404,'Submitted attempt not found')
+    if speaking_parts((row.oral or {}).get('breakdown',{}))['individual_score'] is None:raise HTTPException(409,'Save all four individual-answer criteria before unlocking the dialogue')
     if (row.oral or {}).get('status')=='paired':raise HTTPException(409,'This student already has a partner')
     prompts=row.snapshot.get('oral_dialogue',[])
     if not prompts:raise HTTPException(409,'Add dialogue tasks first')

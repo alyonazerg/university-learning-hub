@@ -90,6 +90,7 @@ def test_speaking_pairs_follow_readiness_and_stay_within_group(client):
     for path,auth in [first,other,last]:
         assert client.post(path+'/oral-ready',headers=auth).status_code==403
         assert client.post('/learning/revisions/attempts/'+path.rsplit('/',1)[-1]+'/allow-dialogue',headers=auth).status_code in [401,403]
+        assert client.put('/learning/revisions/attempts/'+path.rsplit('/',1)[-1]+'/oral-review',headers=ADMIN,json={'score':16,'breakdown':{key:4 for key in ['individual_vocabulary','individual_grammar','individual_coherence','individual_content']}}).status_code==200
         assert client.post('/learning/revisions/attempts/'+path.rsplit('/',1)[-1]+'/allow-dialogue',headers=ADMIN).status_code==200
     assert client.post(first[0]+'/oral-ready',headers=first[1]).json()['status']=='waiting'
     assert client.post(other[0]+'/oral-ready',headers=other[1]).json()['status']=='waiting'
@@ -334,6 +335,11 @@ def test_teacher_pairs_and_shared_reading_timer(client):
     assert client.post(a[1]+'/oral-open',headers=a[2]).status_code==403
     assert client.post(endpoint,headers=a[2],json={'partner_attempt_id':b[0]}).status_code in [401,403]
     assert client.post(endpoint,headers=ADMIN,json={'partner_attempt_id':c[0]}).status_code==422
+    assert client.post(endpoint,headers=ADMIN,json={'partner_attempt_id':b[0]}).status_code==409
+    individual={key:4 for key in ['individual_vocabulary','individual_grammar','individual_coherence','individual_content']}
+    for person in [a,b]:assert client.put('/learning/revisions/attempts/'+person[0]+'/oral-review',headers=ADMIN,json={'score':16,'breakdown':individual}).status_code==200
+    completed=client.get(a[1]+'/oral',headers=a[2]).json()
+    assert completed['individual_completed'] is True and completed['individual_question']=='' and completed['dialogue_completed'] is False
     assert client.post(endpoint,headers=ADMIN,json={'partner_attempt_id':b[0]}).status_code==200
     first=client.post(a[1]+'/oral-open',headers=a[2]).json()
     assert first['reading_seconds']==30 and 'reading_started_at' not in first
@@ -346,8 +352,6 @@ def test_teacher_pairs_and_shared_reading_timer(client):
     assert second['preparation_seconds']==60
     assert client.post(b[1]+'/oral-open',headers=b[2]).json()['reading_started_at']==second['reading_started_at']
     assert client.post(endpoint,headers=ADMIN,json={'partner_attempt_id':b[0]}).status_code==409
-    individual={key:4 for key in ['individual_vocabulary','individual_grammar','individual_coherence','individual_content']}
-    for person in [a,b]:assert client.put('/learning/revisions/attempts/'+person[0]+'/oral-review',headers=ADMIN,json={'score':16,'breakdown':individual}).status_code==200
     def mark(value):return {'score':0,'breakdown':{key:value for key in ['dialogue_vocabulary','dialogue_grammar','dialogue_coherence','dialogue_strategies']}}
     review='/learning/revisions/attempts/'+a[0]+'/pair-review'
     assert client.put(review,headers=a[2],json={'students':{a[0]:mark(3),b[0]:mark(5)}}).status_code in [401,403]
