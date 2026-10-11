@@ -147,3 +147,15 @@ def test_unit7_emergent_items_are_unique_to_each_group(client):
             assert len(row['items'])==34
             itemsets.append(actual)
         assert all(not a.intersection(b) for i,a in enumerate(itemsets) for b in itemsets[i+1:])
+
+
+def test_common_student_link_lists_only_published_tests_without_private_data(client):
+    identifier,ADMIN=setup(client)
+    spec=client.get('/learning/revisions/tests',headers=ADMIN).json()[0]['definition']
+    draft=client.post('/learning/revisions/tests',headers=ADMIN,json={**spec,'title':'Private draft'}).json()['id']
+    public=client.get('/revision-tests')
+    assert public.status_code==200
+    assert public.json()==[{'id':identifier,'title':spec['title'],'unit':'7','groups':['213','214']}]
+    assert draft not in str(public.json()) and 'Synthetic Learner' not in str(public.json()) and 'answers' not in str(public.json())
+    client.put('/learning/revisions/tests/'+identifier,headers=ADMIN,json=spec)
+    assert client.get('/revision-tests').json()==[]

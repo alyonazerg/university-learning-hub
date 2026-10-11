@@ -39,3 +39,30 @@ for(const screen of ['warmup','question','essay'])test(`research withdrawal duri
  assert(submitted);assert.deepEqual(saved.timing,{});assert.equal(await page.getByRole('button',{name:'Continue without participating in the research'}).count(),0);
  assert.deepEqual(errors,[]);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
 });
+
+test('one shared student link routes each group to its test and aligns consent labels',async t=>{
+ const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});t.after(()=>browser.close());
+ for(const [group,id] of [['213','c1'],['216','b2']]){
+  const page=await browser.newPage({viewport:{width:390,height:844}});
+  await page.route('http://moon.test/**',async route=>{
+   const u=new URL(route.request().url());
+   if(u.pathname==='/config.js')return route.fulfill({contentType:'text/javascript',body:"window.MOON_CAMPUS_API_BASE='http://moon.test/api';"});
+   if(u.pathname.startsWith('/api/')){
+    const tests=[{id:'c1',title:'Evolve 6 Unit 7',groups:['213','214'],unit:'7'},{id:'b2',title:'Evolve 5 Unit 7',groups:['215','216','217'],unit:'7'},{id:'b2u8',title:'Evolve 5 Unit 8',groups:['215','216','217'],unit:'8'}];
+    const response=u.pathname==='/api/revision-tests'?tests:{...tests.find(x=>x.id===u.pathname.split('/').at(-1)),coursebook:id==='c1'?'Evolve 6':'Evolve 5'};
+    return route.fulfill({contentType:'application/json',body:JSON.stringify(response)});
+   }
+   try{return route.fulfill({body:await fs.readFile(path.resolve(__dirname,'../../frontend',u.pathname.slice(1))),contentType:u.pathname.endsWith('.js')?'text/javascript':u.pathname.endsWith('.css')?'text/css':u.pathname.endsWith('.html')?'text/html':'image/svg+xml'});}catch{return route.fulfill({status:404,body:''});}
+  });
+  await page.goto('http://moon.test/revision-test.html');await page.locator('#choose-group').selectOption(group);
+  assert.equal(await page.locator('#choose-test').inputValue(),id);
+  if(group==='216'){assert.equal(await page.locator('#choose-test option').count(),2);await page.locator('#choose-test').selectOption('b2u8');}
+  await page.getByRole('button',{name:'Continue',exact:true}).click();
+  await page.getByPlaceholder('Ivan Ivanov').waitFor();assert.equal(await page.locator('#public-test-group').inputValue(),group);
+  const options=page.locator('.revision-consent-option');assert.equal(await options.count(),2);assert.equal(await page.locator('input[name="research-consent"]:checked').count(),0);
+  await options.last().click();assert.equal(await page.locator('input[name="research-consent"]:checked').inputValue(),'no');
+  const row=await options.last().boundingBox(),radio=await options.last().locator('input').boundingBox(),text=await options.last().locator('span').boundingBox();
+  assert(Math.abs(radio.y-text.y)<8);assert(text.x>radio.x);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await page.close();
+ }
+});

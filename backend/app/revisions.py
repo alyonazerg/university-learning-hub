@@ -115,6 +115,10 @@ def publish(identifier:str,session=Depends(database)):
         if not {'vocabulary','grammar','emergent'}<=sections:raise HTTPException(422,'Each group needs vocabulary, grammar and emergent items')
         if group.condition=='experimental' and len(spec.priming) not in [4,5]:raise HTTPException(422,'Experimental groups need 4–5 warm-up sentences')
     row.published=True;session.commit();return test_view(row)
+@router.get('/revision-tests')
+def public_tests(session=Depends(database)):
+    rows=session.scalars(select(RevisionTest).where(RevisionTest.published.is_(True)).order_by(RevisionTest.created_at.desc()))
+    return [{'id':row.id,'title':row.definition['title'],'unit':row.definition['unit'],'groups':row.definition['groups']} for row in rows]
 @router.get('/revision-tests/{identifier}')
 def public_test(identifier:str,session=Depends(database)):
     row=get_test(identifier,session)
