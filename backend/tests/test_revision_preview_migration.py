@@ -59,3 +59,27 @@ def test_contextual_tasks_preserve_question_edits_and_started_attempts(level,mon
         assert updated.definition['items'][1]['answers']==['Teacher-added answer']
         assert updated.definition['items'][2]==template['items'][2]
         assert session.get(RevisionAttempt,attempt_id).snapshot==previous
+
+@pytest.mark.parametrize('level',['b2','c1'])
+def test_repair_copied_previews_only_before_begin(level,monkeypatch):
+    from datetime import datetime
+    folder=Path(__file__).parents[1]
+    def module(name):
+        spec=importlib.util.spec_from_file_location(name,folder/'alembic/versions'/name)
+        result=importlib.util.module_from_spec(spec);spec.loader.exec_module(result);return result
+    old=module('009_reading_previews.py');repair=module('013_repair_reading_previews.py')
+    current=json.loads((folder/'revision_materials'/f'unit7-{level}.json').read_text())
+    previous={**current,'priming':old.OLD[level]}
+    with SessionLocal() as session:
+        session.add(RevisionTest(id='copied',definition=previous,published=True))
+        rows=[]
+        for begun in [None,datetime.utcnow()]:
+            row=RevisionAttempt(test_id='copied',snapshot=previous,research_consent=True,consent_version='synthetic',token_hash='synthetic',student_id='synthetic',student_name='Synthetic Learner',group_code='213' if level=='c1' else '215',condition='experimental',begun_at=begun)
+            session.add(row);rows.append(row)
+        session.commit();ids=[row.id for row in rows]
+    with engine.begin() as connection:
+        monkeypatch.setattr(repair.op,'get_bind',lambda:connection);repair.upgrade();repair.upgrade()
+    with SessionLocal() as session:
+        assert session.get(RevisionTest,'copied').definition==current
+        assert session.get(RevisionAttempt,ids[0]).snapshot==current
+        assert session.get(RevisionAttempt,ids[1]).snapshot==previous
