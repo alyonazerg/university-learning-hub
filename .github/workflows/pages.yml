@@ -63,6 +63,8 @@ jobs:
           if [ "$DEPLOY_BRANCH" != main ]; then
             sed 's|<head>|<head><base href="preview/">|' frontend/index.html > "$RUNNER_TEMP/moon-campus-pages/join.html"
           fi
+          if [ "$DEPLOY_BRANCH" = main ]; then cp frontend/favicon.svg "$RUNNER_TEMP/moon-campus-pages/";
+          else cp frontend/favicon.svg "$RUNNER_TEMP/moon-campus-pages/preview/"; fi
           touch "$RUNNER_TEMP/moon-campus-pages/.nojekyll"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

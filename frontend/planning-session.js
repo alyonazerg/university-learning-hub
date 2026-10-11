@@ -26,7 +26,8 @@
     if(plans===null) {timetable.append(n('p',profile.role==='admin'?'Update the server to use this section. The rest of the hub remains available.':'The schedule is not available yet.','muted'));return;}
     const done=async message=>{await refresh();document.getElementById('account-status').textContent=message;};
     if(profile.role==='admin') {
-      window.MoonSemesterSchedule?.render(timetable,{request,run,refresh});
+      if(window.MoonSemesterSchedule)window.MoonSemesterSchedule.render(timetable,{request,run,refresh});
+      else timetable.append(n('p','The schedule importer did not load. Reload this page to get the latest version.','muted'));
       if(!groups.length){timetable.append(n('p','Create a group in Groups first.'));planning.append(n('p','Teaching plans belong to a group.'));return;}
       if(!groups.some(group=>String(group.id)===selectedGroup))selectedGroup=String(groups[0].id);
       const picker=n('div',undefined,'planning-toolbar');const group=select(picker,'Group','planning-group-filter',groups.map(item=>[item.id,item.name]),selectedGroup);

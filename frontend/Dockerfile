@@ -11,3 +11,5 @@ COPY --chmod=644 index.html styles.css config.js registration.js admin.html admi
 COPY --from=ocr-assets /build/ocr /usr/share/nginx/html/ocr
 
 COPY --chmod=644 calendars /usr/share/nginx/html/calendars
+
+COPY --chmod=644 favicon.svg /usr/share/nginx/html/favicon.svg
