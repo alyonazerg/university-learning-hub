@@ -372,3 +372,36 @@ def test_whole_marks_partial_speaking_and_deletion(client):
     assert client.delete(endpoint,headers=ADMIN).json()=={'deleted':True}
     assert client.get(path,headers=auth).status_code==401
     assert client.get('/learning/revisions/tests/'+identifier+'/attempts',headers=ADMIN).json()==[]
+
+def test_preview_observations_are_private_snapshot_bound_and_preserved(client):
+    identifier,ADMIN=setup(client)
+    spec=client.get('/learning/revisions/tests',headers=ADMIN).json()[0]['definition']
+    spec['priming']=['Our heritage matters; she enjoyed baking.','Sentence two.','Sentence three.','Sentence four.']
+    spec['priming_grammar']=[{'id':'gerund','label':'Gerund after a verb','example':'enjoyed baking'}]
+    assert client.put('/learning/revisions/tests/'+identifier,headers=ADMIN,json=spec).status_code==200
+    client.post('/learning/revisions/tests/'+identifier+'/publish',headers=ADMIN)
+    for group,consent in [('213',True),('214',True),('213',False)]:
+        started=client.post('/revision-tests/'+identifier+'/start',json={'group':group,'student_name':'Synthetic Learner','research_consent':consent}).json()
+        path='/revision-attempts/'+started['attempt_id'];auth={'Authorization':'Bearer '+started['token']}
+        client.post(path+'/begin',headers=auth)
+        client.post(path+'/submit',headers=auth,json={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'Our heritage is precious. I enjoy baking.'})
+        endpoint='/learning/revisions/attempts/'+started['attempt_id']
+        observations={'essay':{'vocabulary':['heritage'],'grammar':['gerund'],'notes':'Used independently.'},'individual':{'vocabulary':[],'grammar':[]}}
+        assert client.put(endpoint+'/observations',headers=auth,json={'observations':observations}).status_code in [401,403]
+        saved=client.put(endpoint+'/observations',headers=ADMIN,json={'observations':observations})
+        if not consent:
+            assert saved.status_code==409;continue
+        assert saved.status_code==200,saved.text
+        catalog=saved.json()['priming_catalog']
+        assert catalog['vocabulary']==['heritage'] and catalog['exposed']==(group=='213')
+        assert saved.json()['report']['writing_score'] is None
+        assert saved.json()['report']['priming_observations']['individual']['reviewed'] is True
+        assert 'dialogue' not in saved.json()['report']['priming_observations']
+        assert client.put(endpoint+'/observations',headers=ADMIN,json={'observations':{'dialogue':{'vocabulary':['unknown']}}}).status_code==422
+        assert client.post('/learning/revisions/tests/'+identifier+'/regrade',headers=ADMIN).status_code==200
+        assert client.get(endpoint,headers=ADMIN).json()['report']['priming_observations']['essay']['grammar']==['gerund']
+        assert 'priming_observations' not in client.get(path,headers=auth).json()
+        fractional={'content':3.5,'organisation':3,'grammar':3,'vocabulary':3}
+        assert client.put(endpoint+'/review',headers=ADMIN,json={'writing_score':0,'breakdown':fractional}).status_code==422
+        assert client.post(path+'/withdraw-research',headers=auth).status_code==200
+        assert client.get(endpoint,headers=ADMIN).json()['report']['priming_observations']=={}
