@@ -272,8 +272,9 @@ def test_ai_checks_group_targets_and_grammar_with_quoted_evidence(monkeypatch):
     from app import revisions
     monkeypatch.setattr(revisions.settings,'revision_ai_api_key','synthetic-private-key')
     captured={}
-    essay='Teaching gives me fulfilment. It is my calling. Scarcity limits our resources. If I had more time, I would volunteer.'
+    essay='Teaching gives me fulfilment. It is my calling. Scarcity limits our resources. If I had more time, I would volunteer. I am agree with this idea.'
     result={'score':14,'feedback':'Relevant examples.','breakdown':{'content':4,'organisation':3,'grammar':4,'vocabulary':3},'vocabulary_usage':[{'target_word':word,'quality':'correct','context':context,'comment':'Appropriate'} for word,context in [('fulfilment','Teaching gives me fulfilment.'),('calling','It is my calling.'),('scarcity','Scarcity limits our resources.')]]+[{'target_word':'unknown','quality':'correct','context':'It is my calling.','comment':''},{'target_word':'calling','quality':'correct','context':'Invented sentence.','comment':''}], 'grammar_usage':[{'structure':'second conditional','quality':'correct','context':'If I had more time, I would volunteer.','comment':'Correct unreal present.'},{'structure':'inversion','quality':'correct','context':'Never have I volunteered.','comment':'Invented.'}]}
+    result['language_errors']=[{'original':'I am agree','correction':'I agree','explanation':'Agree is a verb.'},{'original':'She go yesterday','correction':'She went yesterday','explanation':'Invented example.'}]
     def request(*args,**kwargs):
         captured.update(kwargs['json']);return SimpleNamespace(raise_for_status=lambda:None,json=lambda:{'choices':[{'message':{'content':json.dumps(result)}}]})
     monkeypatch.setattr(revisions.httpx,'post',request)
@@ -283,6 +284,9 @@ def test_ai_checks_group_targets_and_grammar_with_quoted_evidence(monkeypatch):
     assert payload['target_vocabulary']==['fulfilment','calling','scarcity'] and payload['taught_grammar']=='Second conditional'
     assert row.report['ai_target_words_correct']==3 and row.report['ai_grammar_units_correct']==1
     assert len(row.report['ai_vocabulary_usage'])==3 and row.report['writing_score'] is None
+    assert len(row.report['ai_language_errors'])==1
+    assert '(I am agree → I agree — Agree is a verb.)' in row.report['ai_feedback'] and 'She go yesterday' not in row.report['ai_feedback']
+    assert 'moderately generous classroom assessment' in captured['messages'][0]['content'] and 'Do not deduct twice' in captured['messages'][0]['content']
 
 def test_group_analytics_excludes_pending_marks_and_unsubmitted_attempts(client):
     identifier,ADMIN=setup(client)
