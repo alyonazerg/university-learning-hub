@@ -174,3 +174,19 @@ def test_chord_meaning_migration_preserves_edits_and_begun_attempts(monkeypatch)
         assert session.get(RevisionTest,'edited').definition==edited
         assert session.get(RevisionAttempt,ids[0]).snapshot==current
         assert session.get(RevisionAttempt,ids[1]).snapshot==previous
+
+
+@pytest.mark.parametrize('level',['b2','c1'])
+def test_material_audit_updates_only_untouched_unbegun_snapshots(level,monkeypatch):
+    from datetime import datetime
+    folder=Path(__file__).parents[1];spec=importlib.util.spec_from_file_location('audit',folder/'alembic/versions/018_material_audit.py');migration=importlib.util.module_from_spec(spec);spec.loader.exec_module(migration)
+    current=json.loads((folder/'revision_materials'/f'unit7-{level}.json').read_text());previous={**current,'items':[migration.OLD[level].get(item['id'],item) for item in current['items']]};edited=json.loads(json.dumps(previous));target=next(i for i in edited['items'] if i['id'] in migration.OLD[level]);target['prompt']='Teacher-customised task.';target_id=target['id']
+    with SessionLocal() as session:
+        session.add_all([RevisionTest(id='audit',definition=previous,published=True),RevisionTest(id='custom',definition=edited,published=True)]);session.commit();ids=[]
+        for begun in [False,True]:
+            row=RevisionAttempt(test_id='audit',snapshot=previous,research_consent=False,consent_version='synthetic',token_hash='synthetic',student_id='synthetic',student_name='Synthetic Learner',group_code='213' if level=='c1' else '215',condition='control',begun_at=datetime.now() if begun else None);session.add(row);session.commit();ids.append(row.id)
+    with engine.begin() as connection:monkeypatch.setattr(migration.op,'get_bind',lambda:connection);migration.upgrade();migration.upgrade()
+    with SessionLocal() as session:
+        assert session.get(RevisionTest,'audit').definition==current
+        assert next(i for i in session.get(RevisionTest,'custom').definition['items'] if i['id']==target_id)['prompt']=='Teacher-customised task.'
+        assert session.get(RevisionAttempt,ids[0]).snapshot==current and session.get(RevisionAttempt,ids[1]).snapshot==previous

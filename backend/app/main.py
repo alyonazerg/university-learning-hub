@@ -15,7 +15,7 @@ from .pseudonyms import choose_pseudonym
 from .schemas import GroupCreate, PseudonymView, StudentView, TelegramAuthentication, TelegramRegistration
 
 app = FastAPI(title='University Learning Hub API', version=settings.app_version)
-app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=['POST', 'GET', 'PUT'], allow_headers=['Content-Type', 'X-Admin-Token', 'Authorization'])
+app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=['POST', 'GET', 'PUT', 'DELETE'], allow_headers=['Content-Type', 'X-Admin-Token', 'Authorization'])
 
 
 def now():

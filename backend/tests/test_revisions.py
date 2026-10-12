@@ -439,3 +439,19 @@ def test_start_requires_identity_explicit_boolean_and_deleted_status_is_revoked(
         assert client.get(path+suffix,headers=auth).status_code==401
     assert client.post(path+'/begin',headers=auth).status_code==401
     assert client.put(path,headers=auth,json={'answers':{},'writing':''}).status_code==401
+
+
+def test_regrade_corrects_same_question_but_retains_old_material_versions(client):
+    identifier,ADMIN=setup(client)
+    started=client.post('/revision-tests/'+identifier+'/start',json={'group':'213','student_name':'Synthetic Learner','research_consent':False}).json();path='/revision-attempts/'+started['attempt_id'];auth={'Authorization':'Bearer '+started['token']}
+    client.post(path+'/begin',headers=auth)
+    assert client.post(path+'/submit',headers=auth,json={'answers':{s:'heritage' for s in ['vocabulary','collocation','grammar','emergent']},'writing':'Sample essay.'}).status_code==200
+    spec=next(t for t in client.get('/learning/revisions/tests',headers=ADMIN).json() if t['id']==identifier)['definition']
+    for item in spec['items']:
+        if item['id']=='vocabulary':item.update(prompt='A completely different question.',answers=['ancestry'])
+        if item['id']=='grammar':item['answers']=['corrected key']
+    assert client.put('/learning/revisions/tests/'+identifier,headers=ADMIN,json=spec).status_code==200
+    assert client.post('/learning/revisions/tests/'+identifier+'/regrade',headers=ADMIN).status_code==200
+    row=client.get('/learning/revisions/attempts/'+started['attempt_id'],headers=ADMIN).json();items={i['item_id']:i for i in row['report']['items']}
+    assert items['vocabulary']['is_correct'] is True and items['vocabulary']['correct_answer']==['heritage']
+    assert items['grammar']['is_correct'] is False and items['grammar']['correct_answer']==['corrected key']

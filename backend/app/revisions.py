@@ -598,9 +598,9 @@ def teacher_ai_review(identifier:str,session=Depends(database)):
 
 @router.post('/learning/revisions/tests/{identifier}/regrade',dependencies=[Depends(administrator)])
 def regrade(identifier:str,session=Depends(database)):
-    test=get_test(identifier,session);keys={item['id']:item['answers'] for item in test.definition['items']};count=0
+    test=get_test(identifier,session);current={item['id']:item for item in test.definition['items']};count=0
     for row in session.scalars(select(RevisionAttempt).where(RevisionAttempt.test_id==identifier,RevisionAttempt.submitted_at.is_not(None))):
-        row.snapshot={**row.snapshot,'items':[{**item,'answers':keys.get(item['id'],item['answers'])} for item in row.snapshot['items']]};grade(row);count+=1
+        row.snapshot={**row.snapshot,'items':[{**item,'answers':current[item['id']]['answers']} if item['id'] in current and all(item.get(key)==current[item['id']].get(key) for key in ['prompt','choices','groups']) else item for item in row.snapshot['items']]};grade(row);count+=1
     session.commit();return {'updated':count}
 
 @router.get('/learning/revisions/tests/{identifier}/export',dependencies=[Depends(administrator)])

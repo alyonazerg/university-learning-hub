@@ -300,9 +300,12 @@ test('reviewed autumn semester imports eight groups, honors week exceptions and 
   assert.match(await assessment.textContent(),/20 Oct 2026, 12:40/);
   await assessment.getByRole('button',{name:'Mark as taught',exact:true}).click();await page.getByText('Teaching plan updated.',{exact:true}).waitFor();
   assert(await assessment.locator('.taught-badge').isVisible());assert.match(await assessment.getAttribute('class'),/plan-taught/);
-  await page.locator('#refresh-account').click();assert(await assessment.locator('.taught-badge').isVisible());
+  await page.locator('#refresh-account').click();await page.waitForFunction(()=>!document.querySelector('#refresh-account').disabled);await assessment.locator('.taught-badge').waitFor();assert(await assessment.locator('.taught-badge').isVisible());
   for(const width of [320,390,1280]){await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-    const gap=await assessment.locator('.planning-actions').evaluate(el=>{const [first,second]=[...el.children].map(x=>x.getBoundingClientRect());return Math.max(second.left-first.right,second.top-first.bottom);});assert(gap>=11);
+    await page.evaluate(()=>document.fonts.ready);
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    const spacing=await assessment.locator('.planning-actions').evaluate(el=>{const [first,second]=[...el.children].map(x=>x.getBoundingClientRect());return {gap:Math.max(second.left-first.right,second.top-first.bottom),first:first.toJSON(),second:second.toJSON(),width:innerWidth};});assert(spacing.gap>=11,JSON.stringify(spacing));
+
   }
   for(const width of [320,390,1280]){await page.setViewportSize({width,height:900});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
   assert.deepEqual(errors,[]);
@@ -346,7 +349,7 @@ test('teacher attaches a hosted second-year Revision Test and students can open 
 
 test('public Revision Test respects voluntary consent, resumes answers and excludes withdrawals from research exports',async t=>{
   const {pageFor,errors,restart}=await open(t);const teacherPage=await pageFor();await teacher(teacherPage);await section(teacherPage,'connected-revisions');
-  await teacherPage.locator('#connected-revisions h2').waitFor();
+  await teacherPage.getByRole('heading',{name:'Revision Tests',exact:true}).waitFor();
   const fixture=await teacherPage.evaluate(async()=>{
     const base=window.MOON_CAMPUS_API_BASE;
     const login=await (await fetch(base+'/learning/login/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:'synthetic-browser-admin'})})).json();
@@ -354,27 +357,26 @@ test('public Revision Test respects voluntary consent, resumes answers and exclu
     const tests=await (await fetch(base+'/learning/revisions/tests',{headers:auth})).json();
     const spec=tests.find(t=>t.definition.level==='C1');
     const response=await fetch(base+'/learning/revisions/tests/'+spec.id+'/publish',{method:'POST',headers:auth});if(!response.ok)throw Error(await response.text());
-    return {id:spec.id,answers:Object.fromEntries(spec.definition.items.filter(i=>!i.groups.length||i.groups.includes('213')).map(i=>[i.prompt,i.answers[0]])),admin:auth};
+    return {id:spec.id,answers:spec.definition.items.filter(i=>!i.groups.length||i.groups.includes('213')).map(i=>i.answers[0]),admin:auth};
   });
   const publicPage=await pageFor();await publicPage.goto(new URL('revision-test.html?test='+fixture.id,teacherPage.url()).href);
-  await publicPage.getByLabel('Your name',{exact:true}).fill('Synthetic Learner');await publicPage.getByLabel('Group',{exact:true}).selectOption('213');
+  await publicPage.getByLabel('Your name · first name and surname',{exact:true}).fill('Synthetic Learner');await publicPage.getByLabel('Group',{exact:true}).selectOption('213');
   assert.equal(await publicPage.locator('input[name=research-consent]:checked').count(),0);
   await publicPage.getByRole('button',{name:'Open test',exact:true}).click();assert.equal(await publicPage.locator('#test-answer').count(),0);
   await publicPage.getByLabel('I want to take the test without participating in the research.',{exact:true}).check();
-  await publicPage.getByRole('button',{name:'Open test',exact:true}).click();await publicPage.locator('#test-answer').waitFor();
+  await publicPage.getByRole('button',{name:'Open test',exact:true}).click();await publicPage.locator('#test-answer').waitFor({state:'attached'});
   assert.equal(await publicPage.getByText('Reading preview',{exact:true}).count(),0);
-  await publicPage.locator('#test-answer').fill('ancestor');await publicPage.getByText('Progress saved.',{exact:true}).waitFor();await restart();await publicPage.reload();await publicPage.getByRole('button',{name:'Continue my saved attempt'}).click();await publicPage.locator('#test-answer').waitFor();assert.equal(await publicPage.locator('#test-answer').inputValue(),'ancestor');
+  const answerQuestion=async answer=>{const radios=publicPage.locator('input[name=answer-choice]');if(await radios.count()){const at=await radios.evaluateAll((items,value)=>items.findIndex(item=>item.value===value),answer);assert(at>=0);await radios.nth(at).check();}else await publicPage.locator('#test-answer').fill(answer);};await answerQuestion(fixture.answers[0]);await publicPage.getByText('Progress saved on the server.',{exact:true}).waitFor();await restart();await publicPage.reload();await publicPage.getByRole('button',{name:'Continue my saved attempt'}).click();await publicPage.locator('#test-answer').waitFor({state:'attached'});assert.equal(await publicPage.locator('#test-answer').inputValue(),fixture.answers[0]);
   for(let i=0;i<40;i++){
     if(await publicPage.locator('#writing-answer').count())break;
-    const prompt=await publicPage.locator('#test-body h2').textContent();const answer=fixture.answers[prompt];assert(answer,prompt);
-    const control=publicPage.locator('#test-answer');if(await control.evaluate(e=>e.tagName==='SELECT'))await control.selectOption(answer);else await control.fill(answer);
-    await publicPage.getByRole('button',{name:'Next',exact:true}).click();await publicPage.waitForFunction(old=>document.querySelector('#test-body h2')?.textContent!==old,prompt);
+    const prompt=await publicPage.locator('.revision-question-card').textContent();await answerQuestion(fixture.answers[i]);await publicPage.getByRole('button',{name:'Next',exact:true}).click();await publicPage.waitForFunction(old=>document.querySelector('.revision-question-card')?.textContent!==old,prompt);
   }
+  await publicPage.locator('#essay-topic').selectOption({index:1});
   await publicPage.locator('#writing-answer').fill('Our heritage matters. Traditions help families share memories, but people should be free to forge their own path.');await publicPage.getByRole('button',{name:'Submit test',exact:true}).click();await publicPage.getByRole('heading',{name:'Submitted',exact:true}).waitFor();
-  await publicPage.getByRole('button',{name:'Reveal individual speaking question',exact:true}).click();await publicPage.getByRole('button',{name:'Individual answer finished · ready for dialogue',exact:true}).click();await publicPage.getByText('Waiting for the next classmate who finishes.',{exact:true}).waitFor();
+  await publicPage.getByRole('button',{name:'Reveal my individual question',exact:true}).click();
   const attemptId=await publicPage.evaluate(id=>JSON.parse(localStorage.getItem('moon-revision-'+id)).attempt_id,fixture.id);
-  await teacherPage.evaluate(async ({fixture,attemptId})=>{const response=await fetch(window.MOON_CAMPUS_API_BASE+'/learning/revisions/attempts/'+attemptId+'/oral-with-teacher',{method:'POST',headers:fixture.admin});if(!response.ok)throw Error(await response.text());},{fixture,attemptId});
-  await publicPage.getByText('Partner: Teacher',{exact:true}).waitFor();await publicPage.getByText('Your role: Student A.',{exact:true}).waitFor();
+  await teacherPage.evaluate(async ({fixture,attemptId})=>{const endpoint=window.MOON_CAMPUS_API_BASE+'/learning/revisions/attempts/'+attemptId;let response=await fetch(endpoint+'/oral-review',{method:'PUT',headers:fixture.admin,body:JSON.stringify({score:16,breakdown:Object.fromEntries(['individual_vocabulary','individual_grammar','individual_coherence','individual_content'].map(key=>[key,4]))})});if(!response.ok)throw Error(await response.text());response=await fetch(endpoint+'/oral-with-teacher',{method:'POST',headers:fixture.admin});if(!response.ok)throw Error(await response.text());},{fixture,attemptId});
+  await publicPage.reload();await publicPage.getByRole('button',{name:'Continue my saved attempt'}).click();await publicPage.getByText('Individual answer completed · no need to answer again.',{exact:true}).waitFor();await publicPage.getByRole('button',{name:'Open dialogue',exact:true}).click();await publicPage.getByText('Partner: Teacher · Your role: Student A',{exact:true}).waitFor();
   const count=await teacherPage.evaluate(async fixture=>{const response=await fetch(window.MOON_CAMPUS_API_BASE+'/learning/revisions/tests/'+fixture.id+'/export',{headers:fixture.admin});const files=(await response.json()).files;return atob(files[0].content).includes('Synthetic Learner');},fixture);assert.equal(count,false);
   for(const width of [320,390,1280]){await publicPage.setViewportSize({width,height:900});assert(await publicPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
   assert.deepEqual(errors,[]);

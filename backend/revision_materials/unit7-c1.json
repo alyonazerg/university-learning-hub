@@ -253,16 +253,16 @@
     {
       "id": "c2",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "At the memorial, former students described how their teacher had shaped their lives and publicly expressed their respect and gratitude. Which expression describes what the students did?",
       "answers": [
         "paid tribute to"
       ],
       "choices": [
-        "paid tribute on",
-        "paid tribute at",
         "paid tribute to",
-        "paid tribute with",
-        "paid tribute of"
+        "made assumptions about",
+        "forged their own path",
+        "kept a tradition alive",
+        "allowed a margin of error"
       ],
       "target_word": "tribute",
       "target_variants": [],
@@ -271,16 +271,16 @@
     {
       "id": "c3",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "Only two older residents still knew the traditional songs. They taught them to local children, who began performing them at the annual festival. What were the residents trying to do?",
       "answers": [
         "keep the tradition alive"
       ],
       "choices": [
         "keep the tradition alive",
-        "keep the tradition live",
-        "keep the tradition living",
-        "keep the tradition life",
-        "keep the tradition lively"
+        "forge their own path",
+        "make assumptions about",
+        "pay tribute to",
+        "allow a margin of error"
       ],
       "target_word": "alive",
       "target_variants": [],
@@ -289,16 +289,16 @@
     {
       "id": "c4",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "Before meeting the new student, the organiser decided that she must speak a particular language solely because of her surname. Which expression describes this unsupported judgement?",
       "answers": [
         "make assumptions about"
       ],
       "choices": [
         "make assumptions about",
-        "have assumptions to",
-        "take assumptions about",
-        "give assumptions about",
-        "do assumptions about"
+        "trace the ancestry of",
+        "pay tribute to",
+        "keep the tradition alive",
+        "recognise the significance of"
       ],
       "target_word": "assumptions",
       "target_variants": [],
@@ -307,16 +307,16 @@
     {
       "id": "c5",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "Her relatives expected her to join the family business, but she chose a different profession and developed a career without following their plan. Which expression describes her choice?",
       "answers": [
         "forge her own path"
       ],
       "choices": [
-        "forge with her own path",
-        "forge at her own path",
         "forge her own path",
-        "forge her own pathway to of",
-        "forge on her own path"
+        "keep the tradition alive",
+        "pay tribute to her ancestors",
+        "trace her ancestry",
+        "make assumptions about her relatives"
       ],
       "target_word": "path",
       "target_variants": [],
@@ -325,16 +325,16 @@
     {
       "id": "c6",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "The estimate puts the number of visitors at 10,000, but the researchers allow a small range above or below that figure because the counting method is imperfect. What expression describes this allowance?",
       "answers": [
         "a margin of error"
       ],
       "choices": [
         "a margin of error",
-        "a margin to error",
-        "a margin with error",
-        "a margin on error",
-        "a margin in error"
+        "a beacon of hope",
+        "a source of friction",
+        "a shared heritage",
+        "a family relic"
       ],
       "target_word": "error",
       "target_variants": [],
@@ -343,7 +343,7 @@
     {
       "id": "g1",
       "section": "grammar",
-      "prompt": "Complete the whole gap using SEE. The speaker is describing their experience up to now.\nNever ___ such a detailed family tree.",
+      "prompt": "Complete the whole gap using SEE. The speaker is describing their experience up to now. Use I as the subject.\nNever ___ such a detailed family tree.",
       "answers": [
         "have I seen"
       ],
@@ -355,7 +355,7 @@
     {
       "id": "g2",
       "section": "grammar",
-      "prompt": "Complete the whole gap using REALISE in the past simple.\nOnly after the ceremony ___ its significance.",
+      "prompt": "Complete the whole gap using REALISE in the past simple. Use WE as the subject.\nOnly after the ceremony ___ its significance.",
       "answers": [
         "did we realise",
         "did we realize"
@@ -368,7 +368,7 @@
     {
       "id": "g3",
       "section": "grammar",
-      "prompt": "Complete the whole gap using DISCOVER in the past simple.\nNot until the documents arrived ___ the missing branch of her family tree.",
+      "prompt": "Complete the whole gap using DISCOVER in the past simple. Use SHE as the subject.\nNot until the documents arrived ___ the missing branch of her family tree.",
       "answers": [
         "did she discover"
       ],
@@ -380,7 +380,7 @@
     {
       "id": "g4",
       "section": "grammar",
-      "prompt": "Complete the whole gap using SPEAK in the present simple.\nRarely ___ about his childhood nowadays.",
+      "prompt": "Complete the whole gap using SPEAK in the present simple. Use HE as the subject.\nRarely ___ about his childhood nowadays.",
       "answers": [
         "does he speak"
       ],
@@ -392,7 +392,7 @@
     {
       "id": "g5",
       "section": "grammar",
-      "prompt": "Complete the whole gap using BE in the present simple.\nUnder no circumstances ___ allowed to share these records.",
+      "prompt": "Complete the whole gap using BE in the present simple. Use YOU as the subject.\nUnder no circumstances ___ allowed to share these records.",
       "answers": [
         "are you"
       ],
@@ -404,7 +404,7 @@
     {
       "id": "g6",
       "section": "grammar",
-      "prompt": "Complete the whole gap using KNOW in the past simple.\nLittle ___ at the time how much would change.",
+      "prompt": "Complete the whole gap using KNOW in the past simple. Use THEY as the subject.\nLittle ___ at the time how much would change.",
       "answers": [
         "did they know"
       ],
@@ -614,11 +614,11 @@
         "She resembles her grandmother in her eyes and smile."
       ],
       "choices": [
-        "She resembles with her grandmother in her eyes and smile.",
-        "She resembles at her grandmother in her eyes and smile.",
         "She resembles her grandmother in her eyes and smile.",
-        "She resembles of her grandmother in her eyes and smile.",
-        "She resembles to her grandmother in her eyes and smile."
+        "She resembles her grandmother, which means she legally adopts her.",
+        "She resembles her grandmother, which means she researches her family records.",
+        "She resembles her grandmother, which means she inherits all of her possessions.",
+        "She resembles her grandmother, which means she cares for her temporarily."
       ],
       "target_word": "resemble",
       "target_variants": [],

@@ -236,16 +236,16 @@
     {
       "id": "c1",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "A trainee began checking facts carefully and treating customers more patiently after working with an experienced colleague who modelled these habits. Which expression describes the colleague’s role?",
       "answers": [
         "a good influence on"
       ],
       "choices": [
-        "a good influence of",
-        "a good influence to",
         "a good influence on",
-        "a good influence at",
-        "a good influence for"
+        "a yardstick for",
+        "a calling to",
+        "a ripple effect of",
+        "a scarcity of"
       ],
       "target_word": "influence",
       "target_variants": [],
@@ -254,16 +254,16 @@
     {
       "id": "c2",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "A small change to the bus timetable meant that dozens of workers could finally reach their shifts on time. Which expression describes the practical impact of the change?",
       "answers": [
         "make a difference"
       ],
       "choices": [
-        "take a difference",
         "make a difference",
-        "have a difference",
-        "give a difference",
-        "do a difference"
+        "take pleasure in",
+        "act on a whim",
+        "sweeten the deal",
+        "find a calling"
       ],
       "target_word": "difference",
       "target_variants": [],
@@ -272,16 +272,16 @@
     {
       "id": "c3",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "Even when nobody pays her, Lina enjoys restoring old furniture and feels happy while doing it. Which expression describes this enjoyment?",
       "answers": [
         "take pleasure in"
       ],
       "choices": [
         "take pleasure in",
-        "take pleasure to",
-        "take pleasure with",
-        "take pleasure on",
-        "take pleasure at"
+        "make a difference",
+        "sweeten the deal",
+        "set a yardstick",
+        "create ripple effects"
       ],
       "target_word": "pleasure",
       "target_variants": [],
@@ -290,16 +290,16 @@
     {
       "id": "c4",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "Paul had no plan to travel, but saw a cheap ticket and bought it immediately without considering the consequences. Which expression describes how he made the decision?",
       "answers": [
         "on a whim"
       ],
       "choices": [
-        "with a whim",
-        "to a whim",
-        "in a whim",
-        "at a whim",
-        "on a whim"
+        "on a whim",
+        "as a yardstick",
+        "as a calling",
+        "through shadowing",
+        "because of scarcity"
       ],
       "target_word": "whim",
       "target_variants": [],
@@ -308,16 +308,16 @@
     {
       "id": "c5",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "A buyer was unsure about accepting the offer. The seller added free delivery and a longer warranty to make that same offer more attractive. What was the seller trying to do?",
       "answers": [
         "sweeten the deal"
       ],
       "choices": [
-        "sweeten with the deal",
-        "sweetening to the deal",
-        "sweeten on the deal",
-        "sweet the deal",
-        "sweeten the deal"
+        "sweeten the deal",
+        "raise the bar",
+        "make a difference",
+        "follow a calling",
+        "take pleasure in"
       ],
       "target_word": "deal",
       "target_variants": [],
@@ -326,16 +326,16 @@
     {
       "id": "c6",
       "section": "collocation",
-      "prompt": "Which expression is natural in English?",
+      "prompt": "A factory closure first cost employees their jobs. Local shops then lost customers, and suppliers later had to reduce production. What expression describes these indirect consequences spreading beyond the factory?",
       "answers": [
         "ripple effects"
       ],
       "choices": [
-        "rippling effects of",
-        "ripple effecting",
-        "ripple affects",
-        "ripple effective",
-        "ripple effects"
+        "ripple effects",
+        "entrepreneurial skills",
+        "long-term aspirations",
+        "impulsive decisions",
+        "unobtrusive nudges"
       ],
       "target_word": "ripple",
       "target_variants": [],
@@ -809,16 +809,16 @@
     {
       "id": "e217-6",
       "section": "emergent",
-      "prompt": "Which sentence uses “bar” correctly in meaning and usage?",
+      "prompt": "The team’s exceptionally thorough report made work that used to be acceptable seem inadequate. Future teams were now expected to meet a higher standard. Which expression describes what the team did?",
       "answers": [
-        "The excellent team raised the bar for everyone who followed."
+        "raised the bar"
       ],
       "choices": [
-        "The excellent team raised the bar for everyone who followed.",
-        "The excellent team raised with the bar for everyone who followed.",
-        "The excellent team raised a bar for everyone who followed.",
-        "The excellent team raised to the bar for everyone who followed.",
-        "The excellent team raised on the bar for everyone who followed."
+        "raised the bar",
+        "followed the herd",
+        "acted with courage",
+        "built physical endurance",
+        "created clickbait"
       ],
       "target_word": "bar",
       "target_variants": [],

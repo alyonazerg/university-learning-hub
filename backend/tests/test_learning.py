@@ -108,6 +108,10 @@ def test_daily_xp_and_streak_use_server_clock(client,authentication,monkeypatch)
     card_id = deck(client,elevated,a['group_id'])['cards'][0]['id']
     current = now().replace(hour=12,minute=0,second=0,microsecond=0)
     monkeypatch.setattr(learning,'now',lambda:current)
+    # Noon may be beyond a session created early in the morning.
+    with SessionLocal() as session:
+        session.query(LearningSession).filter_by(role='student').update({'expires_at':current+timedelta(hours=8)})
+        session.commit()
     assert client.post(f'/learning/cards/{card_id}/review',headers=first,json={'rating':'again','student_id':22}).status_code == 422
     assert client.post(f'/learning/cards/{card_id}/review',headers=first,json={'rating':'again'}).status_code == 200
     current += timedelta(minutes=10)
