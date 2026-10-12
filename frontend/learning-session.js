@@ -58,9 +58,9 @@
   }
   async function run(action) {
     if (busy) return;
-    busy = true; updateControls(); $('account-status').textContent = '';
-    try {await action();} catch (error) {$('account-status').textContent = error instanceof TypeError ? 'Could not reach the learning server. Check your connection and try again.' : error.message;}
-    finally {busy = false; updateControls();}
+    busy = true; const feedback=window.MoonActionFeedback?.begin(); let succeeded=false; updateControls(); $('account-status').textContent = '';
+    try {await action();succeeded=true;} catch (error) {$('account-status').textContent = error instanceof TypeError ? 'Could not reach the learning server. Check your connection and try again.' : error.message;}
+    finally {busy = false; updateControls();feedback?.(succeeded,$('account-status').textContent);}
   }
   function button(text, action) {const element = node('button', text, 'secondary'); element.type = 'button'; element.addEventListener('click', () => run(action)); return element;}
   const sessionKey='moon-learning-session:'+base;
