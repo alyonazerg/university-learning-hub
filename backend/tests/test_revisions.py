@@ -285,7 +285,9 @@ def test_ai_checks_group_targets_and_grammar_with_quoted_evidence(monkeypatch):
     assert row.report['ai_target_words_correct']==3 and row.report['ai_grammar_units_correct']==1
     assert len(row.report['ai_vocabulary_usage'])==3 and row.report['writing_score'] is None
     assert len(row.report['ai_language_errors'])==1
-    assert '(I am agree → I agree — Agree is a verb.)' in row.report['ai_feedback'] and 'She go yesterday' not in row.report['ai_feedback']
+    assert row.report['ai_language_errors'][0]['original']=='I am agree' and row.report['ai_language_errors'][0]['correction']=='I agree'
+    assert 'I am agree' not in row.report['ai_feedback'] and 'She go yesterday' not in row.report['ai_feedback']
+    assert len(row.report['ai_feedback'].split())<=100
     assert 'moderately generous classroom assessment' in captured['messages'][0]['content'] and 'Do not deduct twice' in captured['messages'][0]['content']
 
 def test_group_analytics_excludes_pending_marks_and_unsubmitted_attempts(client):

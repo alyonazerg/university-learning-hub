@@ -168,3 +168,6 @@ app.include_router(midcheck_router)
 
 from .revisions import router as revisions_router
 app.include_router(revisions_router)
+
+from .revision_audio import router as revision_audio_router
+app.include_router(revision_audio_router)

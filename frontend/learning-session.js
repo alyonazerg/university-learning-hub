@@ -51,6 +51,10 @@
     }
     return response.status === 204 ? null : response.json();
   }
+  async function audioRequest(path,{method='GET',body,headers={},blob=false}={}){
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),180000);
+    try{const response=await fetch(base+'/learning'+path,{method,body,signal:controller.signal,cache:'no-store',headers:{...headers,Authorization:'Bearer '+token}});if(!response.ok){let detail;try{detail=(await response.json()).detail;}catch{}if(response.status===401)clearSession();const error=Error(typeof detail==='string'?detail:'Audio request failed');error.status=response.status;throw error;}return blob?response.blob():response.json();}finally{clearTimeout(timer);}
+  }
   function updateControls() {
     document.querySelectorAll('button, input, textarea, select').forEach(element => {element.disabled = busy || !base || element.dataset.unavailable === 'true';});
     $('telegram-sign-in').disabled = busy || !base || !initData();
@@ -66,6 +70,7 @@
   const sessionKey='moon-learning-session:'+base;
   function storeSession(result){try{sessionStorage.setItem(sessionKey,JSON.stringify({token:result.access_token,expires_at:Date.now()+result.expires_in*1000}));}catch{}}
   function clearSession() {
+    window.MoonSpeakingAudio?.stopAll();
     try{sessionStorage.removeItem(sessionKey);}catch{}generation++; token = null; profile = null; $('workspace').hidden = true; $('sign-in').hidden = false;
     $('connected-decks').replaceChildren(); $('connected-study').replaceChildren(); $('group-editors').replaceChildren(); $('connected-group').replaceChildren();
     $('connected-deck-form').reset(); $('connected-group-form').reset(); $('admin-key').value = ''; $('account-name').textContent = 'Learning hub';
@@ -116,7 +121,7 @@
     $('connected-study').hidden = me.role !== 'student';
     if (me.role === 'student') renderStudy(extra);
     MoonCoursework.render(coursework, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});
-    MoonRevisions.render(revisions, {profile: me, request, run, refresh});
+    MoonRevisions.render(revisions, {profile: me, request, audioRequest, run, refresh});
     MoonPlanning.render(plans, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});
     $('connection-info').hidden = true;
     showSection(activeSection || location.hash.slice(1) || (me.role === 'admin' && !extra.length ? 'connected-groups' : 'connected-schedule'));

@@ -131,7 +131,7 @@ test('real API enforces editor assignment and teacher approval in the browser',a
   const {pageFor,errors}=await open(t);const adminPage=await pageFor();await teacher(adminPage);
   const page=await pageFor(11);await student(page);await vocabulary(page);
   await page.locator('#connected-title').fill('Rich student draft');await page.locator('#connected-words').fill(JSON.stringify([{term:'moonlit',meaning:'лунный',definition:'Lit by the moon.'}]));
-  await page.locator('#connected-save').click();await page.getByText('Only the assigned editor can prepare full cards. You can suggest a simple word list.',{exact:true}).waitFor();
+  await page.locator('#connected-save').click();await page.locator('#account-status').filter({hasText:'Only the assigned editor can prepare full cards. You can suggest a simple word list.'}).waitFor();
   await section(adminPage,'connected-groups');await adminPage.locator('#editor-1').selectOption({label:'Silver Fern'});await adminPage.getByRole('button',{name:'Save editor · Synthetic speech',exact:true}).click();await adminPage.getByText('Group editor saved.',{exact:true}).waitFor();
   await page.locator('#refresh-account').click();await page.getByText(/You are your group’s vocabulary editor/).waitFor();
   await page.locator('#connected-save').click();await page.getByText('List saved and awaiting review.',{exact:true}).waitFor();assert.match(await page.locator('.learning-progress').textContent(),/of 0/);

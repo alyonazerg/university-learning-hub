@@ -1,6 +1,6 @@
 from datetime import datetime
 import uuid
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String, Text, JSON, UniqueConstraint, CheckConstraint
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String, Text, JSON, UniqueConstraint, CheckConstraint, LargeBinary
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .db import Base
 class Group(Base):
@@ -227,3 +227,24 @@ class RevisionAttempt(Base):
     begun_at: Mapped[datetime | None] = mapped_column(DateTime,nullable=True)
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime,nullable=True)
     teacher_status: Mapped[str] = mapped_column(String(16),default='pending')
+
+
+class RevisionAudio(Base):
+    __tablename__='revision_audio'
+    __table_args__=(UniqueConstraint('owner_id','part',name='uq_revision_audio_part'),)
+    id: Mapped[str] = mapped_column(String(36),primary_key=True,default=lambda:str(uuid.uuid4()))
+    owner_id: Mapped[str] = mapped_column(ForeignKey('revision_attempts.id'),index=True)
+    part: Mapped[str] = mapped_column(String(12))
+    participants: Mapped[list] = mapped_column(JSON)
+    first_speaker: Mapped[str] = mapped_column(String(36))
+    mime: Mapped[str] = mapped_column(String(80))
+    audio: Mapped[bytes] = mapped_column(LargeBinary)
+    byte_count: Mapped[int] = mapped_column(default=0)
+    status: Mapped[str] = mapped_column(String(20),default='uploaded')
+    transcript: Mapped[dict] = mapped_column(JSON,default=dict)
+    confirmations: Mapped[dict] = mapped_column(JSON,default=dict)
+    analysis: Mapped[dict] = mapped_column(JSON,default=dict)
+    suggestions: Mapped[dict] = mapped_column(JSON,default=dict)
+    version: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
