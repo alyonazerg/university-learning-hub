@@ -6,7 +6,7 @@ import csv
 import io
 from pydantic import Field
 from sqlalchemy import select
-from .learning import StrictModel,administrator,database,no_store,now
+from .learning import StrictModel,administrator,principal,database,no_store,now
 from .models import LearningSession
 from .models import ImtIdiomCollection
 from .settings import settings
@@ -94,6 +94,11 @@ async def student_material_preview(token:str,file:UploadFile=File(...),session=D
     raw=await file.read()
     if len(raw)>10*1024*1024: raise HTTPException(413,'File must be 10 MB or smaller')
     return {'filename':file.filename,'rows':parse_uploaded_material(file.filename or '',raw),'requires_student_confirmation':True}
+
+@router.get('/learning/imt/my')
+def my_collection(actor=Depends(principal),session=Depends(database)):
+    row=session.scalar(select(ImtIdiomCollection).where(ImtIdiomCollection.student_id==actor.student_id).order_by(ImtIdiomCollection.updated_at.desc()))
+    return public(row) if row else {'status':'not_started','entries':[],'attempt':{},'result':{}}
 @router.post('/learning/imt/collections',dependencies=[Depends(pilot_admin)])
 def create(body:dict,session=Depends(database)):
     name=str(body.get('student_name','')).strip();book=str(body.get('coursebook','Evolve 5'));unit=str(body.get('unit','7'));group=str(body.get('group',''))

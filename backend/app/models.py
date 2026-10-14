@@ -253,6 +253,7 @@ class ImtIdiomCollection(Base):
     __tablename__='imt_idiom_collections'
     id: Mapped[str] = mapped_column(String(36),primary_key=True,default=lambda:str(uuid.uuid4()))
     student_name: Mapped[str] = mapped_column(String(100))
+    student_id: Mapped[int|None] = mapped_column(ForeignKey('students.id'),nullable=True,index=True)
     group_code: Mapped[str] = mapped_column(String(3),default='')
     coursebook: Mapped[str] = mapped_column(String(30),default='Evolve 5')
     unit: Mapped[str] = mapped_column(String(20),default='7')
