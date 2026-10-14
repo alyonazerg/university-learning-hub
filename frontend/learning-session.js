@@ -86,7 +86,8 @@
     'connected-attendance': ['connected-attendance'],
     'connected-revisions': ['connected-revisions'],
     'connected-my-imt': ['connected-my-imt'],
-    'connected-imt': ['connected-imt']
+    'connected-imt': ['connected-imt'],
+    'connected-bugs': ['connected-bugs']
   };
   let activeSection = '';
   function showSection(id, focus = false) {
@@ -119,6 +120,10 @@
     $('connected-editor-hint').textContent = me.role === 'admin' ? 'Choose a group. The list will be saved and shared with its students.' : me.is_card_editor ? 'You are your group’s vocabulary editor. Prepare full cards as JSON; your teacher publishes them.' : 'Suggest words with meanings and examples. Your teacher will review them before publishing.';
     $('connected-save').textContent = me.role === 'admin' ? 'Save for group' : 'Submit for review';
     if (me.role === 'admin') {
+      window.MoonBugs?.render({request,audioRequest,run});
+      if(!document.querySelector('.dashboard-links a[href="#connected-bugs"]')){
+        const link=node('a','Bug reports');link.href='#connected-bugs';link.onclick=e=>{e.preventDefault();history.replaceState(null,'',link.hash);showSection('connected-bugs',true)};document.querySelector('#workspace .dashboard-links').append(link);
+      }
       renderGroups(extra);
       let imt=$('connected-imt');if(!imt){imt=node('section',undefined,'members-panel');imt.id='connected-imt';$('workspace').append(imt);const link=node('a','IMT');link.href='#connected-imt';document.querySelector('#workspace .dashboard-links').append(link)}
       imt.replaceChildren(node('h2','IMT results'),node('p','Student materials, submissions and teacher review.','muted'));
