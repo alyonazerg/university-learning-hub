@@ -37,7 +37,7 @@ def actor(token,session):
     if not row: raise HTTPException(401,'Invalid private IMT link')
     return row
 def public(row):
-    return {'id':row.id,'student_name':row.student_name,'group':row.group_code,'coursebook':row.coursebook,'unit':row.unit,'status':row.status,'entries':row.entries,'attempt':row.attempt if row.status in ['assessment','submitted','reviewed'] else {},'result':row.result if row.status=='reviewed' else {k:v for k,v in row.result.items() if k in ['ai_review','review_status','source_filename']}}
+    return {'id':row.id,'student_name':row.student_name,'group':row.group_code,'coursebook':row.coursebook,'unit':row.unit,'status':row.status,'entries':row.entries,'attempt':row.attempt if row.status in ['assessment','submitted','reviewed'] else {},'result':row.result if row.status=='reviewed' else {k:v for k,v in row.result.items() if k in ['ai_review','practice_report','review_status','source_filename']}}
 
 def parse_uploaded_material(filename:str, raw:bytes):
     """Return editable idiom rows from CSV/XLSX/PDF; never auto-publishes OCR."""
@@ -221,7 +221,7 @@ def start_my(actor=Depends(principal),session=Depends(database)):
     if not row.result.get('ai_review'): raise HTTPException(409,'Check your material first')
     from .imt_ai import recall_situations
     recall=recall_situations(row.entries)
-    reuse=[{'stage':'reuse','expression':e['expression'],'prompt':'Use this expression in a new situation. Write an original example and make the context clear.'} for e in row.entries]
+    reuse=recall_situations(row.entries,stage='reuse')
     row.attempt={'stage':'recall','index':0,'responses':{},'questions':recall+reuse,'recall_count':len(recall)};row.status='assessment';session.commit();return public(row)
 @router.put('/learning/imt/my/answer')
 def answer_my(body:AnswerBody,actor=Depends(principal),session=Depends(database)):
@@ -231,6 +231,15 @@ def answer_my(body:AnswerBody,actor=Depends(principal),session=Depends(database)
     if a.get('recall_count') and a['index']>=a['recall_count']: a['stage']='reuse'
     if a['index']>=len(a['questions']): row.status='submitted';row.result={**row.result,'review_status':'answers_pending'}
     row.updated_at=now();session.commit();return public(row)
+
+@router.post('/learning/imt/my/results')
+def my_practice_results(actor=Depends(principal),session=Depends(database)):
+    from .imt_ai import practice_report
+    row=own_collection(actor,session)
+    if row.status not in ['submitted','reviewed'] or not row.attempt.get('questions') or len(row.attempt.get('responses',{}))!=len(row.attempt['questions']):raise HTTPException(409,'Complete both practice stages first')
+    if row.result.get('practice_report'):return public(row)
+    report=practice_report(row.entries,row.attempt)
+    row.result={**row.result,'practice_report':report};row.updated_at=now();session.commit();return public(row)
 
 @router.post('/learning/imt/my/check-ai')
 def check_my_ai(actor=Depends(principal),session=Depends(database)):

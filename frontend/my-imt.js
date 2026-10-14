@@ -16,7 +16,12 @@
     if (!rows.length || rows.length > 200) throw Error('Enter between 1 and 200 expressions.');
     return rows.map(values => ({expression: values[0].replace(/^\*+|\*+$/g, '').replace(/^\d+[.)]\s*/, '').replace(/\\$/, '').trim(), meaning: values[1] || '', example: values.slice(2).join(delimiter)}));
   }
-  window.MoonMyImt = {parseList, async render({request, audioRequest}) {
+  window.MoonMyImt = {parseList, renderTeacherReport(container,row) {
+    const report=row.result?.practice_report;if(!report)return;
+    container.append(node('h3','Practice results'),node('p',report.summary));
+    for(const [title,values] of [['Strengths',report.strengths],['Revision recommendations',report.next_steps]]){container.append(node('h4',title));const list=node('ul');(values||[]).forEach(value=>list.append(node('li',value)));container.append(list)}
+    for(const item of report.items||[]){container.append(node('h4',`${item.stage==='recall'?'Retrieval':'Contextual use'} · ${item.expression}`),node('p',row.attempt.responses[String(item.index)]?.response||''),node('p',item.feedback));if(item.correction)container.append(node('p',`${item.original} → ${item.correction}`))}
+  }, async render({request, audioRequest}) {
     let area = document.getElementById('connected-my-imt');
     if (!area) { area = node('section', undefined, 'members-panel'); area.id = 'connected-my-imt'; document.getElementById('workspace').append(area); }
     let busy = false;
@@ -68,16 +73,30 @@
         const {index, questions, recall_count} = state.attempt, question = questions[index];
         const reuse = question.stage === 'reuse';
         if (index === 0) area.append(node('p', 'Your material is ready. Let’s practise!', 'imt-ready'));
-        area.append(node('p', `${reuse ? 'Reuse' : 'Retrieve from memory'} · ${reuse ? index - recall_count + 1 : index + 1} of ${recall_count || questions.length}`, 'muted'));
-        if (reuse) area.append(node('h3', question.expression));
+        area.append(node('p', `${reuse ? 'Use in context' : 'Retrieve from memory'} · ${reuse ? index - recall_count + 1 : index + 1} of ${recall_count || questions.length}`, 'muted'));
+        if (reuse) area.append(node('p', 'Choose an expression from your material and use it naturally in your answer.', 'muted'));
         else area.append(node('p', 'Read the situation and recall the expression from your list. Write it from memory.', 'muted'));
         area.append(node('p', question.prompt));
         const form = node('form'), label = node('label', 'Your answer'), answer = node('textarea'), key = `moon-imt:${state.id}:${index}`; answer.required = true; answer.rows = 6; answer.value = localStorage.getItem(key) || ''; answer.oninput = () => localStorage.setItem(key, answer.value); label.append(answer);
         const save = node('button', index + 1 === questions.length ? 'Submit answers' : 'Next task', 'primary'); save.type = 'submit'; form.append(label, save);
-        form.onsubmit = e => { e.preventDefault(); action(async () => { const next = await request('/imt/my/answer', 'PUT', {response: answer.value}); localStorage.removeItem(key); return next; }); }; area.append(form);
+        form.onsubmit = e => { e.preventDefault(); action(async () => {
+          const next = await request('/imt/my/answer', 'PUT', {response: answer.value}); localStorage.removeItem(key);
+          if (next.status === 'submitted') { try { return await request('/imt/my/results', 'POST'); } catch (error) { show(next); throw error; } }
+          return next;
+        }); }; area.append(form);
       } else {
         if (['submitted','approved'].includes(state.status) && !Object.keys(state.attempt || {}).length) area.append(node('p', 'Your material is saved. Continue to practice.'), button('Continue to Recall', () => beginPractice(state), true));
-        else area.append(node('p', 'All done! Your answers are saved. Thank you for taking part.'));
+        else {
+          area.append(node('h3', 'Your results'));
+          const report=state.result?.practice_report;
+          if (report) {
+            area.append(node('p',report.summary));
+            for (const [title,values] of [['What went well',report.strengths],['What to practise next',report.next_steps]]) { area.append(node('h4',title)); const list=node('ul'); (values||[]).forEach(value=>list.append(node('li',value))); area.append(list); }
+            const details=node('details');details.append(node('summary','See your answers and tips'));
+            for (const item of report.items||[]) { details.append(node('h4',`${item.stage==='recall'?'Retrieve from memory':'Use in context'} · ${item.expression}`),node('p',state.attempt.responses[String(item.index)]?.response||''),node('p',item.feedback)); if(item.correction)details.append(node('p',`${item.original} → ${item.correction}`)); }
+            area.append(details);
+          } else area.append(node('p','Your answers are saved.'),button('Get your results',()=>request('/imt/my/results','POST'),true));
+        }
         if (['submitted', 'approved'].includes(state.status) && !Object.keys(state.attempt || {}).length) area.append(button('Edit material', () => request('/imt/my/revise', 'POST')));
         if (state.result?.approved_grade !== undefined) area.append(node('h3', `Result: ${state.result.approved_grade} / 3`));
         if (state.result?.teacher_feedback) area.append(node('p', state.result.teacher_feedback));
