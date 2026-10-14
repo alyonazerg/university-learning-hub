@@ -7,7 +7,7 @@ import io
 from pydantic import Field
 from sqlalchemy import select
 from .learning import StrictModel,administrator,principal,database,no_store,now
-from .models import LearningSession
+from .models import LearningSession,Student
 from .models import ImtIdiomCollection
 from .settings import settings
 
@@ -99,6 +99,18 @@ async def student_material_preview(token:str,file:UploadFile=File(...),session=D
 def my_collection(actor=Depends(principal),session=Depends(database)):
     row=session.scalar(select(ImtIdiomCollection).where(ImtIdiomCollection.student_id==actor.student_id).order_by(ImtIdiomCollection.updated_at.desc()))
     return public(row) if row else {'status':'not_started','entries':[],'attempt':{},'result':{}}
+
+@router.post('/learning/imt/my/upload')
+async def upload_my_material(file:UploadFile=File(...),actor=Depends(principal),session=Depends(database)):
+    if actor.role!='student': raise HTTPException(403,'Student access required')
+    raw=await file.read()
+    if len(raw)>10*1024*1024: raise HTTPException(413,'File must be 10 MB or smaller')
+    entries=parse_uploaded_material(file.filename or '',raw)
+    student=session.get(Student,actor.student_id)
+    row=session.scalar(select(ImtIdiomCollection).where(ImtIdiomCollection.student_id==student.id).order_by(ImtIdiomCollection.updated_at.desc()))
+    if not row:
+        row=ImtIdiomCollection(student_id=student.id,student_name=student.pseudonym,group_code=str(student.group_id or ''),coursebook='Evolve 5',unit='7',token_hash=sha(secrets.token_urlsafe(32)),entries=[],attempt={},result={});session.add(row)
+    row.entries=[{'expression':x['expression'],'meaning':x.get('meaning',''),'example':x.get('example',''),'topic':'Student IMT'} for x in entries];row.status='submitted';row.result={'review_status':'pending','source_filename':file.filename};row.updated_at=now();session.commit();return public(row)
 @router.post('/learning/imt/collections',dependencies=[Depends(pilot_admin)])
 def create(body:dict,session=Depends(database)):
     name=str(body.get('student_name','')).strip();book=str(body.get('coursebook','Evolve 5'));unit=str(body.get('unit','7'));group=str(body.get('group',''))
