@@ -114,3 +114,5 @@ body{background:linear-gradient(140deg,#f5f2fb,#f0f7fa);background-attachment:fi
 .invitation-results th,.invitation-results td{padding:12px;border:1px solid #ded9ed;text-align:left}
 .invitation-results>button{margin:0 12px 12px 0}
 @media(max-width:600px){.invitation-fields{grid-template-columns:1fr;gap:16px}.invitation-actions{flex-direction:column}.invitation-actions button{width:100%}}
+
+.invitation-results table{table-layout:fixed;min-width:500px}.invitation-results th:nth-child(1){width:22%}.invitation-results th:nth-child(2){width:22%}.invitation-results th:nth-child(3){width:56%}.invitation-results td input{display:block;width:100%;min-width:0;margin:0;font-size:13px}.invitation-results td{overflow-wrap:anywhere}.invitation-results details{margin:14px 0}#connected-imt pre{max-height:320px;overflow:auto;padding:16px;background:#f6f3fb}

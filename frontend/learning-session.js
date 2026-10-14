@@ -116,10 +116,21 @@
     $('connected-editor-title').textContent = me.role === 'admin' ? 'Prepare target vocabulary' : 'Suggest emergent vocabulary';
     $('connected-editor-hint').textContent = me.role === 'admin' ? 'Choose a group. The list will be saved and shared with its students.' : me.is_card_editor ? 'You are your group’s vocabulary editor. Prepare full cards as JSON; your teacher publishes them.' : 'Suggest words with meanings and examples. Your teacher will review them before publishing.';
     $('connected-save').textContent = me.role === 'admin' ? 'Save for group' : 'Submit for review';
-    if (me.role === 'admin') renderGroups(extra);
+    if (me.role === 'admin') {
+      renderGroups(extra);
+      let imt=$('connected-imt');if(!imt){imt=node('section',undefined,'members-panel');imt.id='connected-imt';$('workspace').append(imt);const link=node('a','IMT');link.href='#connected-imt';document.querySelector('#workspace .dashboard-links').append(link)}
+      imt.replaceChildren(node('h2','IMT results'),node('p','Student materials, submissions and teacher review.','muted'));
+      const output=node('div',undefined,'invitation-results');imt.append(button('Refresh IMT results',async()=>{const rows=await request('/imt/collections');output.replaceChildren();if(!rows.length){output.append(node('p','No IMT submissions yet.'));return}const table=node('table');const head=node('tr');['Student','Group','Status','Result'].forEach(x=>head.append(node('th',x)));table.append(head);for(const row of rows){const tr=node('tr');[row.student_name,row.group,row.status,row.result?.approved_grade??'Pending'].forEach(x=>tr.append(node('td',String(x))));table.append(tr);const details=node('details');details.append(node('summary',row.student_name+' · material and answers'));const text=node('pre',JSON.stringify({material:row.entries,answers:row.attempt?.responses||{},result:row.result},null,2));text.style.whiteSpace='pre-wrap';details.append(text);output.append(details)}output.prepend(table)}),output);
+    }
     renderDecks(decks);
     $('connected-study').hidden = me.role !== 'student';
-    if (me.role === 'student') renderStudy(extra);
+    if (me.role === 'student') {
+      renderStudy(extra);
+      let tg=$('telegram-link-panel');if(!tg){tg=node('section',undefined,'members-panel');tg.id='telegram-link-panel';$('workspace').append(tg)}
+      tg.replaceChildren(node('h2','Connect Telegram'),node('p','Connect your Telegram account to sign in with it later.','muted'));
+      window.moonLinkTelegram=data=>run(async()=>{await request('/account/link-telegram','POST',{telegram_data:Object.fromEntries(Object.entries(data).map(([k,v])=>[k,String(v)]))});tg.replaceChildren(node('h2','Telegram connected'),node('p','You can now use Telegram to sign in to this profile.'))});
+      const script=document.createElement('script');script.async=true;script.src='https://telegram.org/js/telegram-widget.js?22';script.dataset.telegramLogin='mooncampusbot';script.dataset.size='large';script.dataset.onauth='moonLinkTelegram(user)';tg.append(script);
+    }
     MoonCoursework.render(coursework, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});
     MoonRevisions.render(revisions, {profile: me, request, audioRequest, run, refresh});
     MoonPlanning.render(plans, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});

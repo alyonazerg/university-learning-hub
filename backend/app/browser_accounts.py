@@ -5,7 +5,7 @@ from fastapi import APIRouter,Depends,HTTPException
 from pydantic import Field
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from .learning import StrictModel,database,administrator,no_store,now,group_for,issue_session
+from .learning import StrictModel,database,administrator,principal,no_store,now,group_for,issue_session
 from .models import BrowserAccount,BrowserInvitation,Student
 router=APIRouter(prefix='/learning',dependencies=[Depends(no_store)])
 def digest(value): return hashlib.sha256(value.encode()).hexdigest()
@@ -57,3 +57,21 @@ def login(body:Credentials,session=Depends(database)):
     student=session.get(Student,account.student_id)
     if not student or not student.is_active: raise HTTPException(403,'Student unavailable')
     group_for(student.group_id,session);return issue_session('student',student.id,session)
+
+class TelegramLink(StrictModel):
+    telegram_data:dict[str,str]=Field(default_factory=dict)
+    init_data:str=Field(default='',max_length=16384)
+@router.post('/account/link-telegram')
+def link_telegram(body:TelegramLink,actor=Depends(principal),session=Depends(database)):
+    from .auth import telegram_user_id
+    from .settings import settings
+    if actor.role!='student': raise HTTPException(403,'Student access required')
+    if not settings.telegram_bot_token: raise HTTPException(503,'Telegram is not configured')
+    user_id=telegram_user_id(body.telegram_data,body.init_data,settings.telegram_bot_token)
+    if not user_id: raise HTTPException(401,'Invalid Telegram authentication')
+    student=session.get(Student,actor.student_id)
+    student.telegram_user_id=user_id
+    try:session.commit()
+    except IntegrityError:
+        session.rollback();raise HTTPException(409,'This Telegram account is already linked to another profile')
+    return {'linked':True}
