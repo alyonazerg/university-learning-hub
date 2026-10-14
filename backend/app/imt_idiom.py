@@ -11,7 +11,7 @@ from .settings import settings
 
 router=APIRouter(dependencies=[Depends(no_store)])
 def pilot_admin(x_admin_token: str|None=Header(default=None),authorization: str|None=Header(default=None),session=Depends(database)):
-    if settings.admin_token and x_admin_token and secrets.compare_digest(x_admin_token,settings.admin_token): return True
+    if settings.admin_token and x_admin_token and secrets.compare_digest(x_admin_token.encode('utf-8'),settings.admin_token.encode('utf-8')): return True
     if authorization and authorization.startswith('Bearer '):
         record=session.get(LearningSession,sha(authorization[7:]))
         if record and record.role=='admin' and record.expires_at>now(): return True
