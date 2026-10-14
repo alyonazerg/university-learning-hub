@@ -235,3 +235,13 @@ def check_my_ai(actor=Depends(principal),session=Depends(database)):
     if row.status not in ['submitted','approved'] or row.attempt:raise HTTPException(409,'Confirm your material before AI review; started tasks remain unchanged')
     analysis=review(row.entries,row.material_snapshot)
     row.result={**row.result,'ai_review':analysis};row.updated_at=now();session.commit();return public(row)
+
+@router.put('/learning/imt/my/list')
+def save_my_list(body:MyEntries,actor=Depends(principal),session=Depends(database)):
+    if actor.role!='student':raise HTTPException(403,'Student access required')
+    row=session.scalar(select(ImtIdiomCollection).where(ImtIdiomCollection.student_id==actor.student_id).order_by(ImtIdiomCollection.updated_at.desc()))
+    if row and row.status not in ['draft','changes_requested']:raise HTTPException(409,'Your submitted material is locked for review')
+    if not row:
+        student=session.get(Student,actor.student_id)
+        row=ImtIdiomCollection(student_id=student.id,student_name=student.pseudonym,group_code='',token_hash=sha(secrets.token_urlsafe(32)),entries=[],attempt={},result={});session.add(row)
+    row.entries=[e.model_dump() for e in body.entries];row.status='draft';row.result={'review_status':'preview','source_filename':'Pasted list'};row.updated_at=now();session.commit();return public(row)
