@@ -75,3 +75,25 @@ def link_telegram(body:TelegramLink,actor=Depends(principal),session=Depends(dat
     except IntegrityError:
         session.rollback();raise HTTPException(409,'This Telegram account is already linked to another profile')
     return {'linked':True}
+
+class TelegramRegistration(TelegramLink):
+    invitation:str=Field(min_length=1,max_length=128)
+    alias:str=Field(min_length=3,max_length=80)
+@router.post('/register/invited-telegram')
+def register_telegram(body:TelegramRegistration,session=Depends(database)):
+    from .auth import telegram_user_id
+    from .settings import settings
+    if not settings.telegram_bot_token: raise HTTPException(503,'Telegram is not configured')
+    user_id=telegram_user_id(body.telegram_data,body.init_data,settings.telegram_bot_token)
+    if not user_id: raise HTTPException(401,'Invalid or expired Telegram authentication')
+    invitation=session.scalar(select(BrowserInvitation).where(BrowserInvitation.token_hash==digest(body.invitation)).with_for_update())
+    if not invitation or invitation.student_id or invitation.expires_at<=now(): raise HTTPException(410,'Invitation expired or already used')
+    group_for(invitation.group_id,session)
+    if session.scalar(select(Student).where(Student.telegram_user_id==user_id)): raise HTTPException(409,'This Telegram account already has a profile. Sign in instead.')
+    student=Student(pseudonym=body.alias,group_id=invitation.group_id,telegram_user_id=user_id)
+    session.add(student)
+    try:
+        session.flush();invitation.student_id=student.id;session.commit()
+    except IntegrityError:
+        session.rollback();raise HTTPException(409,'This alias is already taken. Generate another alias.')
+    return issue_session('student',student.id,session)
