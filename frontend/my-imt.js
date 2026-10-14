@@ -16,9 +16,31 @@
     if (!rows.length || rows.length > 200) throw Error('Enter between 1 and 200 expressions.');
     return rows.map(values => ({expression: values[0].replace(/^\*+|\*+$/g, '').replace(/^\d+[.)]\s*/, '').replace(/\\$/, '').trim(), meaning: values[1] || '', example: values.slice(2).join(delimiter)}));
   }
+  function resultCharts(report) {
+    const items=report.items||[],recall=items.filter(x=>x.stage==='recall'),reuse=items.filter(x=>x.stage==='reuse');
+    const box=node('section',undefined,'imt-results-viz');box.setAttribute('aria-label','Practice statistics');
+    const cards=node('div',undefined,'imt-result-cards');
+    for(const [label,rows,cls] of [['Multiple choice',recall,'imt-recall-chart'],['Use in context',reuse,'imt-reuse-chart']]){
+      const correct=rows.filter(x=>x.successful).length,percent=rows.length?Math.round(correct/rows.length*100):0;
+      const card=node('article',undefined,cls);card.append(node('span',label),node('strong',`${correct} / ${rows.length}`),node('p',rows.length?`${percent}% successful`:'Not attempted','muted'));
+      const bar=node('progress');bar.max=rows.length||1;bar.value=correct;bar.setAttribute('aria-label',`${label}: ${correct} successful out of ${rows.length}`);card.append(bar);cards.append(card);
+    }
+    const missed=new Set(recall.filter(x=>!x.successful).map(x=>x.expression));
+    const recovered=new Set(reuse.filter(x=>x.successful&&missed.has(x.expression)).map(x=>x.expression));
+    const remaining=new Set(reuse.filter(x=>!x.successful).map(x=>x.expression));
+    box.append(cards);
+    if(missed.size)box.append(node('p',`${recovered.size} of ${missed.size} expressions missed in the quiz were used successfully in context.`, 'imt-recovery'));
+    box.append(node('p',`${remaining.size} expression${remaining.size===1?'':'s'} to revisit after contextual practice.`, 'muted'));
+    const details=node('details');details.append(node('summary','Progress by expression'));
+    const scroll=node('div',undefined,'imt-table-scroll'),table=node('table',undefined,'imt-expression-results'),head=node('tr');['Expression','Quiz','In context'].forEach(x=>head.append(node('th',x)));table.append(head);
+    for(const expression of new Set(items.map(x=>x.expression))){const tr=node('tr');tr.append(node('td',expression));for(const stage of ['recall','reuse']){const item=items.find(x=>x.expression===expression&&x.stage===stage);tr.append(node('td',!item?'Not practised':item.successful?'✓ Successful':'↻ Revisit',!item?'muted':item.successful?'imt-result-pass':'imt-result-review'))}table.append(tr)}
+    scroll.append(table);details.append(scroll);box.append(details);
+    box.append(node('p','Contextual-use results reflect the automated feedback on this practice.','muted'));
+    return box;
+  }
   window.MoonMyImt = {parseList, renderTeacherReport(container,row) {
     const report=row.result?.practice_report;if(!report)return;
-    container.append(node('h3','Practice results'),node('p',report.summary));
+    container.append(node('h3','Practice results'),resultCharts(report),node('p',report.summary));
     for(const [title,values] of [['Strengths',report.strengths],['Revision recommendations',report.next_steps]]){container.append(node('h4',title));const list=node('ul');(values||[]).forEach(value=>list.append(node('li',value)));container.append(list)}
     for(const item of report.items||[]){container.append(node('h4',`${item.stage==='recall'?'Retrieval':'Contextual use'} · ${item.expression}`),node('p',row.attempt.responses[String(item.index)]?.response||''),node('p',item.feedback));if(item.correction)container.append(node('p',`${item.original} → ${item.correction}`))}
   }, async render({request, audioRequest, initialState}) {
@@ -106,6 +128,7 @@
           area.append(node('h3', 'Your results'));
           const report=state.result?.practice_report;
           if (report) {
+            area.append(resultCharts(report));
             area.append(node('p',report.summary));
             for (const [title,values] of [['What went well',report.strengths],['What to practise next',report.next_steps]]) { area.append(node('h4',title)); const list=node('ul'); (values||[]).forEach(value=>list.append(node('li',value))); area.append(list); }
             const details=node('details');details.append(node('summary','See your answers and tips'));
