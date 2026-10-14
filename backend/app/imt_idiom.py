@@ -246,6 +246,12 @@ def save_my_list(body:MyEntries,actor=Depends(principal),session=Depends(databas
         row=ImtIdiomCollection(student_id=student.id,student_name=student.pseudonym,group_code='',token_hash=sha(secrets.token_urlsafe(32)),entries=[],attempt={},result={});session.add(row)
     row.entries=[e.model_dump() for e in body.entries];row.status='draft';row.result={'review_status':'preview','source_filename':'Pasted list'};row.updated_at=now();session.commit();return public(row)
 
+@router.post('/learning/imt/my/reset')
+def reset_my_material(actor=Depends(principal),session=Depends(database)):
+    row=own_collection(actor,session)
+    if row.attempt or 'approved_grade' in row.result: raise HTTPException(409,'Started or graded work cannot be reset')
+    row.entries=[];row.status='draft';row.result={'review_status':'preview'};row.updated_at=now();session.commit();return public(row)
+
 @router.post('/learning/imt/my/revise')
 def revise_my(actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)

@@ -127,6 +127,7 @@
     if (me.role === 'student') {
       renderStudy(extra);
       window.MoonMyImt.render({request,audioRequest:(path,opts)=>audioRequest(path.replace(/^\/learning/,''),opts),run});
+      const imtArea=document.querySelector('#connected-my-imt');if(imtArea&&!imtArea.querySelector('[data-imt-reset]')){const reset=node('button','Start over');reset.type='button';reset.dataset.imtReset='';reset.className='secondary';reset.onclick=()=>run(async()=>{await request('/imt/my/reset','POST');await refresh()});imtArea.querySelector('h2')?.after(reset)}
       let tg=$('telegram-link-panel');if(!tg){tg=node('section',undefined,'members-panel');tg.id='telegram-link-panel';$('workspace').append(tg)}
       tg.replaceChildren(node('h2','Connect Telegram'),node('p','Connect your Telegram account to sign in with it later.','muted'));
       window.moonLinkTelegram=data=>run(async()=>{await request('/account/link-telegram','POST',{telegram_data:Object.fromEntries(Object.entries(data).map(([k,v])=>[k,String(v)]))});tg.replaceChildren(node('h2','Telegram connected'),node('p','You can now use Telegram to sign in to this profile.'))});
