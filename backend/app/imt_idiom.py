@@ -243,6 +243,7 @@ def make_adaptive_practice(entries):
 def answer_my(body:AnswerBody,actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
     if row.status!='assessment': raise HTTPException(409,'Tasks are not active')
+    if row.attempt.get('last_feedback',{}).get('question_index') is not None:raise HTTPException(409,'Continue after checking your answer first')
     a=dict(row.attempt);index=a['index'];responses=dict(a.get('responses',{}));question=a['questions'][index]
     feedback=None
     if question.get('type')=='multiple_choice':
@@ -261,16 +262,39 @@ def answer_my(body:AnswerBody,actor=Depends(principal),session=Depends(database)
         missed=[q['entry_index'] for i,q in enumerate(a['questions'][:a['recall_count']]) if not responses[str(i)].get('correct')]
         selected=missed or random.sample(list(range(len(row.entries))),min(5,len(row.entries)))
         random.shuffle(selected)
-        practice=[{'stage':'reuse','type':'production','entry_index':i,'expression':row.entries[i]['expression'],'prompt':'Write an original sentence using this expression. Make its meaning clear through the context.'} for i in selected]
+        practice=make_context_practice(row.entries,selected)
         a['questions']=a['questions'][:a['recall_count']]+practice
         a['practice_reason']='mistakes' if missed else 'all_correct'
     a['responses']=responses;a['index']=index+1
-    if feedback:a['last_feedback']=feedback
+    if feedback:a['last_feedback']={**feedback,'question_index':index}
     else:a.pop('last_feedback',None)
     row.attempt=a
     if a.get('recall_count') and a['index']>=a['recall_count']: a['stage']='reuse'
     if a['index']>=len(a['questions']): row.status='submitted';row.result={**row.result,'review_status':'answers_pending'}
     row.updated_at=now();session.commit();return public(row)
+
+@router.post('/learning/imt/my/continue')
+def continue_after_feedback(actor=Depends(principal),session=Depends(database)):
+    row=own_collection(actor,session)
+    attempt=dict(row.attempt);attempt.pop('last_feedback',None)
+    row.attempt=attempt;row.updated_at=now();session.commit();return public(row)
+
+def make_context_practice(entries,indices):
+    from .imt_ai import recall_situations
+    questions=recall_situations([entries[i] for i in indices],stage='reuse')
+    return [{**q,'type':'production','entry_index':indices[q['entry_index']],'expression':entries[indices[q['entry_index']]]['expression']} for q in questions]
+
+@router.post('/learning/imt/my/context-tasks')
+def update_generic_contexts(actor=Depends(principal),session=Depends(database)):
+    row=own_collection(actor,session)
+    if row.status!='assessment' or 'approved_grade' in row.result:raise HTTPException(409,'Completed practice remains unchanged')
+    attempt=dict(row.attempt);questions=list(attempt['questions'])
+    positions=[i for i,q in enumerate(questions) if i>=attempt['index'] and q.get('stage')=='reuse' and q.get('prompt')=='Write an original sentence using this expression. Make its meaning clear through the context.' and str(i) not in attempt.get('responses',{})]
+    if positions:
+        replacement=make_context_practice(row.entries,[questions[i]['entry_index'] for i in positions])
+        for position,question in zip(positions,replacement):questions[position]=question
+        attempt['questions']=questions;row.attempt=attempt;row.updated_at=now();session.commit()
+    return public(row)
 
 @router.post('/learning/imt/my/results')
 def my_practice_results(actor=Depends(principal),session=Depends(database)):

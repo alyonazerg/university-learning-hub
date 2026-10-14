@@ -41,6 +41,16 @@
     function show(state) {
       area.replaceChildren(node('h2', 'My IMT'));
       const status = node('p', '', 'imt-status'); status.setAttribute('role', 'status');
+      const checked=state.attempt?.last_feedback;
+      if(checked?.question_index!==undefined){
+        const q=state.attempt.questions[checked.question_index],response=state.attempt.responses[String(checked.question_index)];
+        area.append(node('p',`Answer checked · ${checked.question_index+1}`,'muted'),node('p',q.prompt));
+        if(q.options){const options=node('div',undefined,'imt-choices');for(const option of q.options){const line=node('p',option,option===checked.answer?'imt-correct':option===response.response?'imt-incorrect':'muted');if(option===response.response)line.append(node('span',' · Your answer'));options.append(line)}area.append(options)}else area.append(node('p',response.response));
+        area.append(node('p',checked.correct?'Correct!':checked.stage==='recall'?`Not quite. The correct expression is: ${checked.answer}`:'Almost — here is a small adjustment.',checked.correct?'imt-correct':'imt-incorrect'));
+        if(checked.feedback)area.append(node('p',checked.feedback));if(checked.correction)area.append(node('p',checked.correction));
+        area.append(button(state.status==='submitted'?'Get your results':state.attempt.index===state.attempt.recall_count?'Continue to sentence practice':'Next question',async()=>{const next=await request('/imt/my/continue','POST');if(next.status==='submitted')return request('/imt/my/results','POST');return next},true),status);
+        return;
+      }
       const editable = ['not_started', 'draft', 'changes_requested'].includes(state.status);
       if (editable) {
         if (!state.entries?.length) {
@@ -72,11 +82,9 @@
       } else if (state.status === 'assessment') {
         const {index, questions, recall_count} = state.attempt, question = questions[index];
         const reuse = question.stage === 'reuse', multiple = question.type === 'multiple_choice';
-        const feedback=state.attempt.last_feedback;
-        if(feedback){area.append(node('p',feedback.stage==='reuse'?(feedback.correct?'Good use!':'Almost — try this adjustment:'):(feedback.correct?'Correct!':`Not quite. The correct expression is: ${feedback.answer}`),feedback.correct?'imt-correct':'imt-incorrect'));if(feedback.feedback)area.append(node('p',feedback.feedback));if(feedback.correction)area.append(node('p',feedback.correction));}
         if (index === 0) area.append(node('p', 'Your material is ready. Let’s practise!', 'imt-ready'));
-        area.append(node('p', `${reuse ? 'Sentence practice' : multiple ? 'Choose the expression' : 'Retrieve from memory'} · ${reuse ? index - recall_count + 1 : index + 1} of ${reuse ? questions.length-recall_count : recall_count || questions.length}`, 'muted'));
-        if (reuse) {area.append(node('h3',question.expression),node('p',state.attempt.practice_reason==='all_correct'?'You got every answer right! Practise five expressions in your own sentences.':'Practise the expressions you missed in your own sentences.','muted'));}
+        area.append(node('p', `${reuse ? 'Use in context' : multiple ? 'Choose the expression' : 'Retrieve from memory'} · ${reuse ? index - recall_count + 1 : index + 1} of ${reuse ? questions.length-recall_count : recall_count || questions.length}`, 'muted'));
+        if (reuse) {area.append(node('h3',question.expression),node('p','Read the situation. Write a comment of 2–3 sentences using this expression.','muted'));}
         else area.append(node('p',multiple?'Read the situation and choose the expression that fits best.':'Read the situation and recall the expression from your list. Write it from memory.','muted'));
         area.append(node('p', question.prompt));
         const form = node('form'), label = node('label', 'Your answer'), answer = node('textarea'), key = `moon-imt:${state.id}:${index}`; answer.required = true; answer.rows = 6; answer.value = localStorage.getItem(key) ?? state.attempt.responses?.[String(index)]?.response ?? ''; answer.oninput = () => localStorage.setItem(key, answer.value);
@@ -88,7 +96,7 @@
         save.textContent=multiple?'Check answer':save.textContent;actions.append(save);if(!multiple)form.append(label);form.append(actions);
         form.onsubmit = e => { e.preventDefault(); action(async () => {
           const next = await request('/imt/my/answer', 'PUT', {response: answer.value}); localStorage.removeItem(key);
-          if (next.status === 'submitted') { try { return await request('/imt/my/results', 'POST'); } catch (error) { show(next); throw error; } }
+          if (next.status === 'submitted' && next.attempt.last_feedback?.question_index===undefined) { try { return await request('/imt/my/results', 'POST'); } catch (error) { show(next); throw error; } }
           return next;
         }); }; area.append(form);
       } else {
@@ -113,6 +121,9 @@
     area.replaceChildren(node('h2', 'My IMT'), node('p', 'Loading your material…'));
     try {
       let state = await request('/imt/my');
+      if(state.status==='assessment'&&state.attempt.questions?.some((q,i)=>i>=state.attempt.index&&q.stage==='reuse'&&q.prompt==='Write an original sentence using this expression. Make its meaning clear through the context.')){
+        try{state=await request('/imt/my/context-tasks','POST')}catch(error){show(state);area.querySelector('[role=status]').textContent=error.message;return}
+      }
       const oldPrompts=['What does this expression mean? Explain it in your own words.','Explain this expression in your own words and give a new example.'];
       if(state.status==='assessment'&&state.attempt.version!=='adaptive_mcq_1') {
         try {state=await request('/imt/my/refresh-tasks','POST');}catch(error){show(state);area.querySelector('[role=status]').textContent=error.message;return;}
