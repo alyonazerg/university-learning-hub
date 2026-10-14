@@ -7,7 +7,7 @@ import io
 from pydantic import Field
 from sqlalchemy import select
 from .learning import StrictModel,administrator,principal,database,no_store,now
-from .models import LearningSession,Student
+from .models import LearningSession,Student,Group
 from .models import ImtIdiomCollection
 from .settings import settings
 
@@ -97,6 +97,7 @@ async def student_material_preview(token:str,file:UploadFile=File(...),session=D
 
 @router.get('/learning/imt/my')
 def my_collection(actor=Depends(principal),session=Depends(database)):
+    if actor.role!='student': raise HTTPException(403,'Student access required')
     row=session.scalar(select(ImtIdiomCollection).where(ImtIdiomCollection.student_id==actor.student_id).order_by(ImtIdiomCollection.updated_at.desc()))
     return public(row) if row else {'status':'not_started','entries':[],'attempt':{},'result':{}}
 
@@ -109,8 +110,9 @@ async def upload_my_material(file:UploadFile=File(...),actor=Depends(principal),
     student=session.get(Student,actor.student_id)
     row=session.scalar(select(ImtIdiomCollection).where(ImtIdiomCollection.student_id==student.id).order_by(ImtIdiomCollection.updated_at.desc()))
     if not row:
-        row=ImtIdiomCollection(student_id=student.id,student_name=student.pseudonym,group_code=str(student.group_id or ''),coursebook='Evolve 5',unit='7',token_hash=sha(secrets.token_urlsafe(32)),entries=[],attempt={},result={});session.add(row)
-    row.entries=[{'expression':x['expression'],'meaning':x.get('meaning',''),'example':x.get('example',''),'topic':'Student IMT'} for x in entries];row.status='submitted';row.result={'review_status':'pending','source_filename':file.filename};row.updated_at=now();session.commit();return public(row)
+        row=ImtIdiomCollection(student_id=student.id,student_name=student.pseudonym,group_code=(re.search(r'\b\d{3}\b',session.get(Group,student.group_id).name).group() if student.group_id and re.search(r'\b\d{3}\b',session.get(Group,student.group_id).name) else ''),coursebook='Evolve 5',unit='7',token_hash=sha(secrets.token_urlsafe(32)),entries=[],attempt={},result={});session.add(row)
+    if row.status not in ['draft','changes_requested']: raise HTTPException(409,'Your submitted material is locked for review')
+    row.entries=[{'expression':x['expression'],'meaning':x.get('meaning',''),'example':x.get('example',''),'topic':'Student IMT'} for x in entries];row.status='draft';row.result={'review_status':'preview','source_filename':file.filename};row.updated_at=now();session.commit();return public(row)
 @router.post('/learning/imt/collections',dependencies=[Depends(pilot_admin)])
 def create(body:dict,session=Depends(database)):
     name=str(body.get('student_name','')).strip();book=str(body.get('coursebook','Evolve 5'));unit=str(body.get('unit','7'));group=str(body.get('group',''))
@@ -188,3 +190,33 @@ def grade(identifier:str,body:dict,session=Depends(database)):
     value=body.get('approved_grade');reason=str(body.get('reason','')).strip()
     if type(value) not in [int,float] or value<0 or value>3 or value!=int(value) or not reason: raise HTTPException(422,'Use an integer 0–3 and give an override reason')
     row.result={**row.result,'approved_grade':int(value),'teacher_feedback':str(body.get('feedback',''))[:2000],'override_reason':reason,'review_status':'approved'};row.status='reviewed';session.commit();return public(row)
+
+class MyEntry(StrictModel):
+    expression:str=Field(min_length=1,max_length=180)
+    meaning:str=Field(default='',max_length=800)
+    example:str=Field(default='',max_length=1000)
+    topic:str=Field(default='Student IMT',max_length=160)
+class MyEntries(StrictModel):
+    entries:list[MyEntry]=Field(min_length=1,max_length=200)
+def own_collection(actor,session):
+    if actor.role!='student': raise HTTPException(403,'Student access required')
+    row=session.scalar(select(ImtIdiomCollection).where(ImtIdiomCollection.student_id==actor.student_id).order_by(ImtIdiomCollection.updated_at.desc()))
+    if not row: raise HTTPException(404,'Upload your IMT first')
+    return row
+@router.put('/learning/imt/my/confirm')
+def confirm_my(body:MyEntries,actor=Depends(principal),session=Depends(database)):
+    row=own_collection(actor,session)
+    if row.status not in ['draft','changes_requested']: raise HTTPException(409,'Material already submitted')
+    row.entries=[e.model_dump() for e in body.entries];row.status='submitted';row.result={**row.result,'review_status':'pending'};row.updated_at=now();session.commit();return public(row)
+@router.post('/learning/imt/my/start')
+def start_my(actor=Depends(principal),session=Depends(database)):
+    row=own_collection(actor,session)
+    if row.status!='approved': raise HTTPException(409,'Wait for your teacher to approve the material')
+    row.attempt={'stage':'retrieval','index':0,'responses':{},'questions':[{'expression':e['expression'],'prompt':'Explain this expression in your own words and give a new example.'} for e in row.entries]};row.status='assessment';session.commit();return public(row)
+@router.put('/learning/imt/my/answer')
+def answer_my(body:AnswerBody,actor=Depends(principal),session=Depends(database)):
+    row=own_collection(actor,session)
+    if row.status!='assessment': raise HTTPException(409,'Tasks are not active')
+    a=dict(row.attempt);index=a['index'];responses=dict(a.get('responses',{}));responses[str(index)]={'response':body.response};a['responses']=responses;a['index']=index+1;row.attempt=a
+    if a['index']>=len(a['questions']): row.status='submitted';row.result={**row.result,'review_status':'answers_pending'}
+    row.updated_at=now();session.commit();return public(row)
