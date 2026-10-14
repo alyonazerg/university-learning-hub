@@ -84,7 +84,7 @@
         const reuse = question.stage === 'reuse', multiple = question.type === 'multiple_choice';
         if (index === 0) area.append(node('p', 'Your material is ready. Let’s practise!', 'imt-ready'));
         area.append(node('p', `${reuse ? 'Use in context' : multiple ? 'Choose the expression' : 'Retrieve from memory'} · ${reuse ? index - recall_count + 1 : index + 1} of ${reuse ? questions.length-recall_count : recall_count || questions.length}`, 'muted'));
-        if (reuse) {area.append(node('h3',question.expression),node('p','Read the situation. Write a comment of 2–3 sentences using this expression.','muted'));}
+        if (reuse) {area.append(node('p','Read the situation. Write a comment of 2–3 sentences using an appropriate expression from your material.','muted'));}
         else area.append(node('p',multiple?'Read the situation and choose the expression that fits best.':'Read the situation and recall the expression from your list. Write it from memory.','muted'));
         area.append(node('p', question.prompt));
         const form = node('form'), label = node('label', 'Your answer'), answer = node('textarea'), key = `moon-imt:${state.id}:${index}`; answer.required = true; answer.rows = 6; answer.value = localStorage.getItem(key) ?? state.attempt.responses?.[String(index)]?.response ?? ''; answer.oninput = () => localStorage.setItem(key, answer.value);
