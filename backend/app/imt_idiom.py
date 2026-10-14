@@ -213,7 +213,7 @@ def own_collection(actor,session):
 def confirm_my(body:MyEntries,actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
     if row.status not in ['draft','changes_requested']: raise HTTPException(409,'Material already submitted')
-    row.entries=[e.model_dump() for e in body.entries];row.status='submitted';row.result={**row.result,'review_status':'pending'};row.updated_at=now();session.commit();return public(row)
+    row.entries=[e.model_dump() for e in body.entries];row.status='submitted';row.result={k:v for k,v in row.result.items() if k!='ai_review'};row.result={**row.result,'review_status':'pending'};row.updated_at=now();session.commit();return public(row)
 @router.post('/learning/imt/my/start')
 def start_my(actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
@@ -245,3 +245,14 @@ def save_my_list(body:MyEntries,actor=Depends(principal),session=Depends(databas
         student=session.get(Student,actor.student_id)
         row=ImtIdiomCollection(student_id=student.id,student_name=student.pseudonym,group_code='',token_hash=sha(secrets.token_urlsafe(32)),entries=[],attempt={},result={});session.add(row)
     row.entries=[e.model_dump() for e in body.entries];row.status='draft';row.result={'review_status':'preview','source_filename':'Pasted list'};row.updated_at=now();session.commit();return public(row)
+
+@router.post('/learning/imt/my/revise')
+def revise_my(actor=Depends(principal),session=Depends(database)):
+    row=own_collection(actor,session)
+    if row.status not in ['submitted','approved','changes_requested'] or row.attempt or 'approved_grade' in row.result:
+        raise HTTPException(409,'Started tasks and graded work cannot be changed')
+    previous=dict(row.result)
+    history=list(previous.get('material_revisions',[]))
+    history.append({'entries':row.entries,'ai_review':previous.get('ai_review'),'revised_at':now().isoformat()})
+    row.result={**previous,'material_revisions':history,'review_status':'preview'}
+    row.status='changes_requested';row.updated_at=now();session.commit();return public(row)
