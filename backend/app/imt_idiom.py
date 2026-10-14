@@ -217,14 +217,17 @@ def confirm_my(body:MyEntries,actor=Depends(principal),session=Depends(database)
 @router.post('/learning/imt/my/start')
 def start_my(actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
-    if row.status!='approved': raise HTTPException(409,'Wait for your teacher to approve the material')
-    questions=row.result.get('ai_review',{}).get('tasks') or [{'expression':e['expression'],'prompt':'Explain this expression in your own words and give a new example.'} for e in row.entries]
-    row.attempt={'stage':'retrieval','index':0,'responses':{},'questions':questions};row.status='assessment';session.commit();return public(row)
+    if row.status not in ['approved','submitted'] or row.attempt: raise HTTPException(409,'Tasks have already started or material is not submitted')
+    if not row.result.get('ai_review'): raise HTTPException(409,'Check your material first')
+    recall=[{'stage':'recall','expression':e['expression'],'prompt':'What does this expression mean? Explain it in your own words.'} for e in row.entries]
+    reuse=[{'stage':'reuse','expression':e['expression'],'prompt':'Use this expression in a new situation. Write an original example and make the context clear.'} for e in row.entries]
+    row.attempt={'stage':'recall','index':0,'responses':{},'questions':recall+reuse,'recall_count':len(recall)};row.status='assessment';session.commit();return public(row)
 @router.put('/learning/imt/my/answer')
 def answer_my(body:AnswerBody,actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
     if row.status!='assessment': raise HTTPException(409,'Tasks are not active')
     a=dict(row.attempt);index=a['index'];responses=dict(a.get('responses',{}));responses[str(index)]={'response':body.response};a['responses']=responses;a['index']=index+1;row.attempt=a
+    if a.get('recall_count') and a['index']>=a['recall_count']: a['stage']='reuse'
     if a['index']>=len(a['questions']): row.status='submitted';row.result={**row.result,'review_status':'answers_pending'}
     row.updated_at=now();session.commit();return public(row)
 

@@ -29,6 +29,10 @@
       finally { busy = false; area.querySelectorAll('button').forEach(b => b.disabled = false); }
     }
     const button = (text, task, primary = false) => { const b = node('button', text, primary ? 'primary' : 'secondary'); b.type = 'button'; b.onclick = () => action(task); return b; };
+    async function beginPractice(state) {
+      if (!state.result?.ai_review) await request('/imt/my/check-ai', 'POST');
+      return request('/imt/my/start', 'POST');
+    }
     function show(state) {
       area.replaceChildren(node('h2', 'My IMT'));
       const status = node('p', '', 'imt-status'); status.setAttribute('role', 'status');
@@ -55,19 +59,22 @@
           const scroll = node('div', undefined, 'imt-table-scroll'); scroll.append(table); form.append(scroll);
           const actions = node('div', undefined, 'imt-actions'), submit = node('button', 'Submit material', 'primary'); submit.type = 'submit';
           actions.append(submit, button('Replace list', async () => { if (!confirm('Replace this draft with a new file or list?')) return null; return request('/imt/my/reset', 'POST'); })); form.append(actions);
-          form.onsubmit = event => { event.preventDefault(); action(() => request('/imt/my/confirm', 'PUT', {entries: fields.map(row => Object.fromEntries(Object.entries(row).map(([key, input]) => [key, input.value])))})); }; area.append(form);
+          form.onsubmit = event => { event.preventDefault(); action(async () => {
+            const saved = await request('/imt/my/confirm', 'PUT', {entries: fields.map(row => Object.fromEntries(Object.entries(row).map(([key, input]) => [key, input.value])))});
+            try { return await beginPractice(saved); } catch (error) { show(saved); throw error; }
+          }); }; area.append(form);
         }
       } else if (state.status === 'assessment') {
-        const {index, questions} = state.attempt, question = questions[index]; area.append(node('p', `Task ${index + 1} of ${questions.length}`, 'muted'), node('h3', question.expression), node('p', question.prompt));
+        const {index, questions, recall_count} = state.attempt, question = questions[index];
+        const reuse = question.stage === 'reuse';
+        if (index === 0) area.append(node('p', 'Your material is ready. Let’s practise!', 'imt-ready'));
+        area.append(node('p', `${reuse ? 'Reuse' : 'Recall'} · ${reuse ? index - recall_count + 1 : index + 1} of ${recall_count || questions.length}`, 'muted'), node('h3', question.expression), node('p', question.prompt));
         const form = node('form'), label = node('label', 'Your answer'), answer = node('textarea'), key = `moon-imt:${state.id}:${index}`; answer.required = true; answer.rows = 6; answer.value = localStorage.getItem(key) || ''; answer.oninput = () => localStorage.setItem(key, answer.value); label.append(answer);
         const save = node('button', index + 1 === questions.length ? 'Submit answers' : 'Next task', 'primary'); save.type = 'submit'; form.append(label, save);
         form.onsubmit = e => { e.preventDefault(); action(async () => { const next = await request('/imt/my/answer', 'PUT', {response: answer.value}); localStorage.removeItem(key); return next; }); }; area.append(form);
       } else {
-        const review = state.result?.ai_review;
-        if (review) { area.append(node('h3', 'AI feedback'), node('p', review.feedback)); for (const item of review.items || []) { area.append(node('strong', state.entries[item.index]?.expression || 'Expression'), node('p', item.feedback)); if (item.correction) area.append(node('p', 'Suggested: ' + item.correction)); } }
-        if (state.status === 'approved') area.append(node('p', 'Your material is approved.'), button('Start tasks', () => request('/imt/my/start', 'POST'), true));
-        else if (state.status === 'submitted' && !Object.keys(state.attempt || {}).length) area.append(node('p', 'Material submitted. AI feedback is a suggestion for your teacher.'), button(review ? 'Check again with AI' : 'Check with AI', () => request('/imt/my/check-ai', 'POST'), true));
-        else area.append(node('p', state.status === 'reviewed' ? 'Your IMT has been reviewed.' : 'Answers submitted. Your teacher will review them.'));
+        if (['submitted','approved'].includes(state.status) && !Object.keys(state.attempt || {}).length) area.append(node('p', 'Your material is saved. Continue to practice.'), button('Continue to Recall', () => beginPractice(state), true));
+        else area.append(node('p', 'All done! Your answers are saved. Thank you for taking part.'));
         if (['submitted', 'approved'].includes(state.status) && !Object.keys(state.attempt || {}).length) area.append(button('Edit material', () => request('/imt/my/revise', 'POST')));
         if (state.result?.approved_grade !== undefined) area.append(node('h3', `Result: ${state.result.approved_grade} / 3`));
         if (state.result?.teacher_feedback) area.append(node('p', state.result.teacher_feedback));
@@ -75,6 +82,11 @@
       area.append(status);
     }
     area.replaceChildren(node('h2', 'My IMT'), node('p', 'Loading your material…'));
-    try { show(await request('/imt/my')); } catch (error) { area.replaceChildren(node('h2', 'My IMT'), node('p', error.message)); }
+    try {
+      const state = await request('/imt/my');
+      if (['submitted','approved'].includes(state.status) && !Object.keys(state.attempt || {}).length) {
+        try { show(await beginPractice(state)); } catch (error) { show(state); area.querySelector('[role=status]').textContent = error.message; }
+      } else show(state);
+    } catch (error) { area.replaceChildren(node('h2', 'My IMT'), node('p', error.message)); }
   }};
 })();
