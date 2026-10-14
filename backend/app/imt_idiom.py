@@ -1,5 +1,5 @@
 """Private single-student MVP for the IMT idiom assessment."""
-import hashlib,json,re,secrets
+import hashlib,json,re,secrets,random
 from pathlib import Path
 from fastapi import APIRouter,Depends,HTTPException,Header,UploadFile,File
 import csv
@@ -37,7 +37,9 @@ def actor(token,session):
     if not row: raise HTTPException(401,'Invalid private IMT link')
     return row
 def public(row):
-    return {'id':row.id,'student_name':row.student_name,'group':row.group_code,'coursebook':row.coursebook,'unit':row.unit,'status':row.status,'entries':row.entries,'attempt':row.attempt if row.status in ['assessment','submitted','reviewed'] else {},'result':row.result if row.status=='reviewed' else {k:v for k,v in row.result.items() if k in ['ai_review','practice_report','review_status','source_filename']}}
+    attempt=dict(row.attempt) if row.status in ['assessment','submitted','reviewed'] else {}
+    if attempt.get('questions'):attempt['questions']=[{k:v for k,v in q.items() if k!='answer'} for q in attempt['questions']]
+    return {'id':row.id,'student_name':row.student_name,'group':row.group_code,'coursebook':row.coursebook,'unit':row.unit,'status':row.status,'entries':row.entries,'attempt':attempt,'result':row.result if row.status=='reviewed' else {k:v for k,v in row.result.items() if k in ['ai_review','practice_report','review_status','source_filename']}}
 
 def parse_uploaded_material(filename:str, raw:bytes):
     """Return editable idiom rows from CSV/XLSX/PDF; never auto-publishes OCR."""
@@ -219,15 +221,53 @@ def start_my(actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
     if row.status not in ['approved','submitted'] or row.attempt: raise HTTPException(409,'Tasks have already started or material is not submitted')
     if not row.result.get('ai_review'): raise HTTPException(409,'Check your material first')
-    from .imt_ai import recall_situations
-    recall=recall_situations(row.entries)
-    reuse=recall_situations(row.entries,stage='reuse')
-    row.attempt={'stage':'recall','index':0,'responses':{},'questions':recall+reuse,'recall_count':len(recall)};row.status='assessment';session.commit();return public(row)
+    row.attempt=make_adaptive_practice(row.entries);row.status='assessment';session.commit();return public(row)
+
+def make_adaptive_practice(entries):
+    from .imt_ai import recall_situations,completion
+    recall=recall_situations(entries)
+    expressions=list(dict.fromkeys(e['expression'] for e in entries))
+    for q in recall:
+        target=entries[q['entry_index']]['expression']
+        others=[value for value in expressions if value!=target]
+        if not others:
+            generated=completion('Return JSON {alternatives:[string,string,string]}. Supply three real idioms with different meanings from the given expression. No instructions or explanations.',target)
+            others=[str(value)[:180] for value in generated.get('alternatives',[]) if str(value)!=target][:3]
+        if not others:raise HTTPException(502,'Could not create answer choices. Please retry.')
+        options=random.sample(others,min(3,len(others)))+[target];random.shuffle(options)
+        q.update({'type':'multiple_choice','options':options,'answer':target})
+    random.shuffle(recall)
+    if len(recall)>1 and [q['entry_index'] for q in recall]==list(range(len(entries))):recall=recall[1:]+recall[:1]
+    return {'version':'adaptive_mcq_1','stage':'recall','index':0,'responses':{},'questions':recall,'recall_count':len(recall)}
 @router.put('/learning/imt/my/answer')
 def answer_my(body:AnswerBody,actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
     if row.status!='assessment': raise HTTPException(409,'Tasks are not active')
-    a=dict(row.attempt);index=a['index'];responses=dict(a.get('responses',{}));responses[str(index)]={'response':body.response};a['responses']=responses;a['index']=index+1;row.attempt=a
+    a=dict(row.attempt);index=a['index'];responses=dict(a.get('responses',{}));question=a['questions'][index]
+    feedback=None
+    if question.get('type')=='multiple_choice':
+        if body.response not in question['options']:raise HTTPException(422,'Choose one of the expressions')
+        correct=body.response==question['answer'];feedback={'correct':correct,'answer':question['answer'],'stage':'recall'}
+        responses[str(index)]={'response':body.response,'correct':correct}
+    else:
+        responses[str(index)]={'response':body.response}
+        if a.get('version')=='adaptive_mcq_1':
+            if not body.response.strip():raise HTTPException(422,'Write a sentence first')
+            from .imt_ai import practice_report
+            checked=practice_report(row.entries,{'questions':[question],'responses':{'0':{'response':body.response}}})['items'][0]
+            feedback={'correct':checked['successful'],'answer':question['expression'],'stage':'reuse','feedback':checked['feedback'],'correction':checked['correction']}
+            responses[str(index)].update({'correct':checked['successful'],'feedback':checked['feedback'],'correction':checked['correction']})
+    if a.get('version')=='adaptive_mcq_1' and index+1==a['recall_count']:
+        missed=[q['entry_index'] for i,q in enumerate(a['questions'][:a['recall_count']]) if not responses[str(i)].get('correct')]
+        selected=missed or random.sample(list(range(len(row.entries))),min(5,len(row.entries)))
+        random.shuffle(selected)
+        practice=[{'stage':'reuse','type':'production','entry_index':i,'expression':row.entries[i]['expression'],'prompt':'Write an original sentence using this expression. Make its meaning clear through the context.'} for i in selected]
+        a['questions']=a['questions'][:a['recall_count']]+practice
+        a['practice_reason']='mistakes' if missed else 'all_correct'
+    a['responses']=responses;a['index']=index+1
+    if feedback:a['last_feedback']=feedback
+    else:a.pop('last_feedback',None)
+    row.attempt=a
     if a.get('recall_count') and a['index']>=a['recall_count']: a['stage']='reuse'
     if a['index']>=len(a['questions']): row.status='submitted';row.result={**row.result,'review_status':'answers_pending'}
     row.updated_at=now();session.commit();return public(row)
@@ -282,14 +322,13 @@ def refresh_unused_tasks(actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
     if row.status!='assessment' or 'approved_grade' in row.result:raise HTTPException(409,'Graded tasks cannot be regenerated')
     legacy_prompts={'What does this expression mean? Explain it in your own words.','Explain this expression in your own words and give a new example.'}
-    legacy=any(q.get('prompt','').strip() in legacy_prompts for q in row.attempt.get('questions',[]))
+    legacy=row.attempt.get('version')!='adaptive_mcq_1'
     if row.attempt.get('responses') and not legacy:raise HTTPException(409,'Answered current tasks cannot be regenerated')
-    from .imt_ai import recall_situations
-    recall=recall_situations(row.entries);reuse=recall_situations(row.entries,stage='reuse')
+    replacement=make_adaptive_practice(row.entries)
     history=list(row.result.get('previous_practice_attempts',[]))
     history.append({'attempt':row.attempt,'replaced_at':now().isoformat(),'reason':'Upgrade legacy definition tasks to situation-based retrieval'})
     row.result={**row.result,'previous_practice_attempts':history}
-    row.attempt={'stage':'recall','index':0,'responses':{},'questions':recall+reuse,'recall_count':len(recall)}
+    row.attempt=replacement
     row.updated_at=now();session.commit();return public(row)
 
 @router.post('/learning/imt/my/back')

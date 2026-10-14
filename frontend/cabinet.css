@@ -148,3 +148,4 @@ body{background:linear-gradient(140deg,#f5f2fb,#f0f7fa);background-attachment:fi
 .my-imt-preview td:nth-child(2) textarea{border-color:#afd4cc;background:#fdfffe}
 .my-imt-preview td:nth-child(3) textarea{border-color:#e6ce9f;background:#fffefa}
 .my-imt-preview textarea:focus-visible{outline:2px solid #6f5790;outline-offset:2px}
+.imt-choices{display:grid;gap:10px;margin:18px 0;border:0;padding:0}.imt-choices label{display:flex;gap:12px;align-items:center;padding:14px;border:1px solid #d9cde8;border-radius:10px;background:#faf8fd;cursor:pointer}.imt-choices input[type=radio]{width:18px;min-width:18px;height:18px;margin:0;accent-color:#7950ae}.imt-correct,.imt-incorrect{padding:14px;border-radius:10px;margin:18px 0}.imt-correct{background:#eaf6ed;color:#28673d}.imt-incorrect{background:#fff1dd;color:#815718}

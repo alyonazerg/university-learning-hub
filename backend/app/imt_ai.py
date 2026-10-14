@@ -68,7 +68,10 @@ def practice_report(entries,attempt):
         if type(i)!=int or not 0<=i<len(evidence) or type(item.get('successful'))!=bool:continue
         original=str(item.get('original',''))[:300]
         correction=str(item.get('correction',''))[:400] if original and original in evidence[i]['response'] else ''
-        items[i]={'index':i,'stage':evidence[i]['stage'],'expression':evidence[i]['target'],'successful':item['successful'],'feedback':str(item.get('feedback',''))[:400],'original':original if correction else '', 'correction':correction}
+        stored=attempt.get('responses',{}).get(str(i),{})
+        successful=stored.get('correct',item['successful']) if attempt['questions'][i].get('type')=='multiple_choice' else item['successful']
+        if attempt['questions'][i].get('type')=='multiple_choice':correction=''
+        items[i]={'index':i,'stage':evidence[i]['stage'],'expression':evidence[i]['target'],'successful':successful,'feedback':str(item.get('feedback',''))[:400],'original':original if correction else '', 'correction':correction}
     if len(items)!=len(evidence):raise HTTPException(502,'Could not prepare the complete report. Your answers are saved; please retry.')
     ordered=[items[i] for i in range(len(evidence))]
     return {'summary':str(result.get('summary',''))[:800],'strengths':[str(x)[:300] for x in result.get('strengths',[])[:3]],'next_steps':[str(x)[:300] for x in result.get('next_steps',[])[:3]],'items':ordered,'recall_successful':sum(x['successful'] for x in ordered if x['stage']=='recall'),'reuse_successful':sum(x['successful'] for x in ordered if x['stage']=='reuse'),'provisional':True}
