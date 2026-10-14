@@ -11,7 +11,7 @@
   <script src="config.js" defer></script>
   <script src="registration.js?v=20261012-05" defer></script>
 </head>
-<body>
+<body><script>if(!new URLSearchParams(location.search).has('register'))document.documentElement.classList.add('landing-only');</script>
   <main aria-labelledby="page-title">
     <div class="mark" aria-hidden="true">✦</div>
     <div class="eyebrow">Your learning universe</div>
