@@ -87,6 +87,13 @@ async def preview_material(file:UploadFile=File(...)):
     raw=await file.read()
     if len(raw)>10*1024*1024: raise HTTPException(413,'File must be 10 MB or smaller')
     return {'filename':file.filename,'rows':parse_uploaded_material(file.filename or '',raw),'requires_teacher_confirmation':True}
+
+@router.post('/imt/idiom/material-preview')
+async def student_material_preview(token:str,file:UploadFile=File(...),session=Depends(database)):
+    actor(token,session)
+    raw=await file.read()
+    if len(raw)>10*1024*1024: raise HTTPException(413,'File must be 10 MB or smaller')
+    return {'filename':file.filename,'rows':parse_uploaded_material(file.filename or '',raw),'requires_student_confirmation':True}
 @router.post('/learning/imt/collections',dependencies=[Depends(pilot_admin)])
 def create(body:dict,session=Depends(database)):
     name=str(body.get('student_name','')).strip();book=str(body.get('coursebook','Evolve 5'));unit=str(body.get('unit','7'));group=str(body.get('group',''))
