@@ -84,14 +84,16 @@
     'connected-vocabulary-editor': ['connected-decks', 'connected-study', 'connected-vocabulary-editor'],
     'connected-coursework': ['connected-coursework'],
     'connected-attendance': ['connected-attendance'],
-    'connected-revisions': ['connected-revisions']
+    'connected-revisions': ['connected-revisions'],
+    'connected-my-imt': ['connected-my-imt'],
+    'connected-imt': ['connected-imt']
   };
   let activeSection = '';
   function showSection(id, focus = false) {
     if (!cabinetSections[id] || (id === 'connected-groups' && profile?.role !== 'admin')) id = 'connected-schedule';
     activeSection = id;
     const visible = cabinetSections[id];
-    for (const section of Object.values(cabinetSections).flat()) $(section).classList.toggle('cabinet-inactive', !visible.includes(section));
+    for (const section of Object.values(cabinetSections).flat()) $(section)?.classList.toggle('cabinet-inactive', !visible.includes(section));
     document.querySelectorAll('.dashboard-links a').forEach(link => {
       const selected = link.hash === '#' + id;
       if (selected) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
@@ -127,11 +129,12 @@
     if (me.role === 'student') {
       renderStudy(extra);
       window.MoonMyImt.render({request,audioRequest:(path,opts)=>audioRequest(path.replace(/^\/learning/,''),opts),run});
-      const imtArea=document.querySelector('#connected-my-imt');if(imtArea&&!imtArea.querySelector('[data-imt-reset]')){const reset=node('button','Start over');reset.type='button';reset.dataset.imtReset='';reset.className='secondary';reset.onclick=()=>run(async()=>{await request('/imt/my/reset','POST');await refresh()});imtArea.querySelector('h2')?.after(reset)}
-      let tg=$('telegram-link-panel');if(!tg){tg=node('section',undefined,'members-panel');tg.id='telegram-link-panel';$('workspace').append(tg)}
-      tg.replaceChildren(node('h2','Connect Telegram'),node('p','Connect your Telegram account to sign in with it later.','muted'));
-      window.moonLinkTelegram=data=>run(async()=>{await request('/account/link-telegram','POST',{telegram_data:Object.fromEntries(Object.entries(data).map(([k,v])=>[k,String(v)]))});tg.replaceChildren(node('h2','Telegram connected'),node('p','You can now use Telegram to sign in to this profile.'))});
-      const script=document.createElement('script');script.async=true;script.src='https://telegram.org/js/telegram-widget.js?22';script.dataset.telegramLogin='mooncampusbot';script.dataset.size='large';script.dataset.onauth='moonLinkTelegram(user)';tg.append(script);
+      if (!document.querySelector('.dashboard-links a[href="#connected-my-imt"]')) {
+        const link=node('a','My IMT');link.href='#connected-my-imt';
+        link.onclick=event=>{event.preventDefault();history.replaceState(null,'',link.hash);showSection('connected-my-imt',true)};
+        document.querySelector('#workspace .dashboard-links').append(link);
+      }
+      $('telegram-link-panel')?.remove();
     }
     MoonCoursework.render(coursework, {profile: me, groups: me.role === 'admin' ? extra : [], request, run, refresh});
     MoonRevisions.render(revisions, {profile: me, request, audioRequest, run, refresh});

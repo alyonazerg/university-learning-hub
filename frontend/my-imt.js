@@ -1,1 +1,80 @@
-(()=>{const n=(t,x)=>{const e=document.createElement(t);if(x!==undefined)e.textContent=x;return e};window.MoonMyImt={render({request,audioRequest,run}){let a=document.getElementById('connected-my-imt');if(!a){a=n('section');a.id='connected-my-imt';a.className='members-panel';document.getElementById('workspace').append(a)}const show=s=>{a.replaceChildren(n('h2','My IMT'));if(['not_started','draft','changes_requested'].includes(s.status)){a.append(n('p','Upload a file or paste idioms below. Then check the preview before submitting.'));const f=n('input');f.type='file';f.accept='.pdf,.csv,.xlsx,.xlsm,.png,.jpg,.jpeg,.webp';const u=n('button','Upload material');u.type='button';u.className='primary';u.onclick=()=>run(async()=>{if(!f.files[0])throw Error('Choose a file first');const d=new FormData;d.append('file',f.files[0]);show(await audioRequest('/learning/imt/my/upload',{method:'POST',body:d}))});a.append(f,u);const l=n('label','Or paste a list');l.className='imt-paste-label';const ta=n('textarea');ta.rows=7;ta.placeholder='One expression per line\nOptional: expression; meaning; example';l.append(ta);a.append(l);const p=n('button','Preview my list');p.type='button';p.className='secondary';p.onclick=()=>run(async()=>{const lines=ta.value.split(/\n/).map(x=>x.trim()).filter(Boolean);if(!lines.length)throw Error('Enter at least one expression.');if(lines.length>200)throw Error('Use at most 200 expressions.');const entries=lines.map(x=>{const v=x.split(/\t|;/);return{expression:v[0].replace(/^\*+|\*+$/g,'').replace(/^\d+[.)]\s*/,'').trim(),meaning:(v[1]||'').trim(),example:v.slice(2).join(';').trim()}});show(await request('/imt/my/list','PUT',{entries}))});a.append(p);if(s.entries?.length){const form=n('form');form.className='my-imt-preview';const rows=s.entries.map((x,i)=>{const c=n('fieldset');c.append(n('legend','Expression '+(i+1)));const r={};for(const k of ['expression','meaning','example']){const z=n('label',k[0].toUpperCase()+k.slice(1)),q=n('textarea');q.value=x[k]||'';q.required=k==='expression';z.append(q);c.append(z);r[k]=q}form.append(c);return r});const sub=n('button','Confirm and submit material');sub.type='submit';sub.className='primary';form.append(sub);form.onsubmit=e=>{e.preventDefault();run(async()=>show(await request('/imt/my/confirm','PUT',{entries:rows.map(r=>Object.fromEntries(Object.entries(r).map(([k,v])=>[k,v.value])))})))};a.append(form)}}else if(s.status==='approved'){const b=n('button','Start my tasks');b.className='primary';b.onclick=()=>run(async()=>show(await request('/imt/my/start','POST')));a.append(n('p','Your teacher approved the material.'),b)}else if(s.status==='assessment'){const q=s.attempt.questions[s.attempt.index];a.append(n('p','Task '+(s.attempt.index+1)+' of '+s.attempt.questions.length),n('h3',q.expression),n('p',q.prompt));const f=n('form'),t=n('textarea');t.required=true;t.value=localStorage.getItem('moon-imt:'+s.id+':'+s.attempt.index)||'';t.oninput=()=>localStorage.setItem('moon-imt:'+s.id+':'+s.attempt.index,t.value);const b=n('button','Save and continue');b.className='primary';f.append(t,b);f.onsubmit=e=>{e.preventDefault();run(async()=>show(await request('/imt/my/answer','PUT',{response:t.value})))};a.append(f)}else{if(s.status==='submitted'&&!Object.keys(s.attempt||{}).length){const b=n('button',s.result?.ai_review?'Retry AI review':'Check my material with AI');b.className='secondary';b.onclick=()=>run(async()=>show(await request('/imt/my/check-ai','POST')));a.append(b)}a.append(n('p',s.status==='reviewed'?'Your IMT has been reviewed.':'Submitted. Your teacher will review it.'))}};const b=n('button','Open my IMT');b.type='button';b.className='secondary';b.onclick=()=>run(async()=>show(await request('/imt/my')));a.replaceChildren(n('h2','My IMT'),b)}}})();
+(() => {
+  const node = (tag, text, cls) => { const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (cls) el.className = cls; return el; };
+  function parseList(text) {
+    const first = text.split(/\r?\n/).find(x => x.trim()) || '';
+    const delimiter = first.trim().startsWith('"') || /^expression,/i.test(first) ? ',' : first.includes('\t') ? '\t' : ';';
+    const rows = []; let row = [], value = '', quoted = false;
+    for (let i = 0; i < text.length; i++) { const char = text[i];
+      if (char === '"' && (quoted || !value.trim())) { if (quoted && text[i + 1] === '"') { value += '"'; i++; } else quoted = !quoted; }
+      else if (!quoted && char === delimiter) { row.push(value.trim()); value = ''; }
+      else if (!quoted && (char === '\n' || char === '\r')) { if (char === '\r' && text[i + 1] === '\n') i++; row.push(value.trim()); if (row.some(Boolean)) rows.push(row); row = []; value = ''; }
+      else value += char;
+    }
+    if (quoted) throw Error('A quoted CSV field is not closed. Check the quotation marks.');
+    row.push(value.trim()); if (row.some(Boolean)) rows.push(row);
+    if (/^(expression|idiom)$/i.test(rows[0]?.[0] || '')) rows.shift();
+    if (!rows.length || rows.length > 200) throw Error('Enter between 1 and 200 expressions.');
+    return rows.map(values => ({expression: values[0].replace(/^\*+|\*+$/g, '').replace(/^\d+[.)]\s*/, '').replace(/\\$/, '').trim(), meaning: values[1] || '', example: values.slice(2).join(delimiter)}));
+  }
+  window.MoonMyImt = {parseList, async render({request, audioRequest}) {
+    let area = document.getElementById('connected-my-imt');
+    if (!area) { area = node('section', undefined, 'members-panel'); area.id = 'connected-my-imt'; document.getElementById('workspace').append(area); }
+    let busy = false;
+    async function action(task) {
+      if (busy) return; busy = true;
+      const status = area.querySelector('[role=status]'); if (status) status.textContent = 'Saving…';
+      area.querySelectorAll('button').forEach(b => b.disabled = true);
+      try { const state = await task(); if (state) show(state); }
+      catch (error) { (area.querySelector('[role=status]') || status).textContent = error.message; }
+      finally { busy = false; area.querySelectorAll('button').forEach(b => b.disabled = false); }
+    }
+    const button = (text, task, primary = false) => { const b = node('button', text, primary ? 'primary' : 'secondary'); b.type = 'button'; b.onclick = () => action(task); return b; };
+    function show(state) {
+      area.replaceChildren(node('h2', 'My IMT'));
+      const status = node('p', '', 'imt-status'); status.setAttribute('role', 'status');
+      const editable = ['not_started', 'draft', 'changes_requested'].includes(state.status);
+      if (editable) {
+        if (!state.entries?.length) {
+          area.append(node('p', 'Add your idioms. You can paste a list or choose a file.', 'muted'));
+          const methods = node('div', undefined, 'imt-methods'); const tabs = node('div', undefined, 'imt-method-tabs'); tabs.setAttribute('role', 'tablist');
+          const pastePanel = node('div'), filePanel = node('div'); filePanel.hidden = true;
+          const pasteTab = node('button', 'Paste a list'), fileTab = node('button', 'Upload a file');
+          for (const tab of [pasteTab, fileTab]) { tab.type = 'button'; tab.setAttribute('role', 'tab'); }
+          const select = paste => { pastePanel.hidden = !paste; filePanel.hidden = paste; pasteTab.setAttribute('aria-selected', String(paste)); fileTab.setAttribute('aria-selected', String(!paste)); };
+          pasteTab.onclick = () => select(true); fileTab.onclick = () => select(false); select(true); tabs.append(pasteTab, fileTab);
+          const label = node('label', 'Your idioms', 'imt-paste-label'), input = node('textarea'); input.rows = 7;
+          input.placeholder = 'One expression per line, or expression; meaning; example. CSV from a spreadsheet also works.'; label.append(input);
+          pastePanel.append(label, node('p', 'Meanings and examples can be added on the next screen.', 'muted'), button('Continue', () => request('/imt/my/list', 'PUT', {entries: parseList(input.value)}), true));
+          const fileLabel = node('label', 'Choose your IMT file', 'imt-paste-label'), file = node('input'); file.type = 'file'; file.accept = '.pdf,.csv,.xlsx,.xlsm,.png,.jpg,.jpeg,.webp'; fileLabel.append(file);
+          filePanel.append(fileLabel, node('p', 'PDF, CSV, Excel or a clear photo. Maximum 10 MB.', 'muted'), button('Continue', async () => { if (!file.files[0]) throw Error('Choose a file first.'); const data = new FormData(); data.append('file', file.files[0]); return audioRequest('/learning/imt/my/upload', {method: 'POST', body: data}); }, true));
+          methods.append(tabs, pastePanel, filePanel); area.append(methods);
+        } else {
+          area.append(node('p', 'Check your expressions, add meanings and examples, then submit.', 'muted'));
+          const form = node('form', undefined, 'my-imt-preview'); const table = node('table'), head = node('tr'); ['Expression', 'Meaning', 'Example'].forEach(x => head.append(node('th', x))); table.append(head);
+          const fields = state.entries.map(entry => { const tr = node('tr'); const row = {}; for (const key of ['expression', 'meaning', 'example']) { const cell = node('td'), input = node('textarea'); input.value = entry[key] || ''; input.rows = 3; input.required = key === 'expression'; input.setAttribute('aria-label', key); row[key] = input; cell.append(input); tr.append(cell); } table.append(tr); return row; });
+          const scroll = node('div', undefined, 'imt-table-scroll'); scroll.append(table); form.append(scroll);
+          const actions = node('div', undefined, 'imt-actions'), submit = node('button', 'Submit material', 'primary'); submit.type = 'submit';
+          actions.append(submit, button('Replace list', async () => { if (!confirm('Replace this draft with a new file or list?')) return null; return request('/imt/my/reset', 'POST'); })); form.append(actions);
+          form.onsubmit = event => { event.preventDefault(); action(() => request('/imt/my/confirm', 'PUT', {entries: fields.map(row => Object.fromEntries(Object.entries(row).map(([key, input]) => [key, input.value])))})); }; area.append(form);
+        }
+      } else if (state.status === 'assessment') {
+        const {index, questions} = state.attempt, question = questions[index]; area.append(node('p', `Task ${index + 1} of ${questions.length}`, 'muted'), node('h3', question.expression), node('p', question.prompt));
+        const form = node('form'), label = node('label', 'Your answer'), answer = node('textarea'), key = `moon-imt:${state.id}:${index}`; answer.required = true; answer.rows = 6; answer.value = localStorage.getItem(key) || ''; answer.oninput = () => localStorage.setItem(key, answer.value); label.append(answer);
+        const save = node('button', index + 1 === questions.length ? 'Submit answers' : 'Next task', 'primary'); save.type = 'submit'; form.append(label, save);
+        form.onsubmit = e => { e.preventDefault(); action(async () => { const next = await request('/imt/my/answer', 'PUT', {response: answer.value}); localStorage.removeItem(key); return next; }); }; area.append(form);
+      } else {
+        const review = state.result?.ai_review;
+        if (review) { area.append(node('h3', 'AI feedback'), node('p', review.feedback)); for (const item of review.items || []) { area.append(node('strong', state.entries[item.index]?.expression || 'Expression'), node('p', item.feedback)); if (item.correction) area.append(node('p', 'Suggested: ' + item.correction)); } }
+        if (state.status === 'approved') area.append(node('p', 'Your material is approved.'), button('Start tasks', () => request('/imt/my/start', 'POST'), true));
+        else if (state.status === 'submitted' && !Object.keys(state.attempt || {}).length) area.append(node('p', 'Material submitted. AI feedback is a suggestion for your teacher.'), button(review ? 'Check again with AI' : 'Check with AI', () => request('/imt/my/check-ai', 'POST'), true));
+        else area.append(node('p', state.status === 'reviewed' ? 'Your IMT has been reviewed.' : 'Answers submitted. Your teacher will review them.'));
+        if (['submitted', 'approved'].includes(state.status) && !Object.keys(state.attempt || {}).length) area.append(button('Edit material', () => request('/imt/my/revise', 'POST')));
+        if (state.result?.approved_grade !== undefined) area.append(node('h3', `Result: ${state.result.approved_grade} / 3`));
+        if (state.result?.teacher_feedback) area.append(node('p', state.result.teacher_feedback));
+      }
+      area.append(status);
+    }
+    area.replaceChildren(node('h2', 'My IMT'), node('p', 'Loading your material…'));
+    try { show(await request('/imt/my')); } catch (error) { area.replaceChildren(node('h2', 'My IMT'), node('p', error.message)); }
+  }};
+})();
