@@ -254,10 +254,10 @@ def answer_my(body:AnswerBody,actor=Depends(principal),session=Depends(database)
         responses[str(index)]={'response':body.response}
         if a.get('version')=='adaptive_mcq_1':
             if not body.response.strip():raise HTTPException(422,'Write a sentence first')
-            from .imt_ai import practice_report
-            checked=practice_report(row.entries,{'questions':[question],'responses':{'0':{'response':body.response}}})['items'][0]
+            from .imt_ai import check_sentence
+            checked=check_sentence(question['expression'],question['prompt'],body.response)
             feedback={'correct':checked['successful'],'answer':question['expression'],'stage':'reuse','feedback':checked['feedback'],'correction':checked['correction']}
-            responses[str(index)].update({'correct':checked['successful'],'feedback':checked['feedback'],'correction':checked['correction']})
+            responses[str(index)].update({'correct':checked['successful'],'feedback':checked['feedback'],'original':checked['original'],'correction':checked['correction']})
     if a.get('version')=='adaptive_mcq_1' and index+1==a['recall_count']:
         missed=[q['entry_index'] for i,q in enumerate(a['questions'][:a['recall_count']]) if not responses[str(i)].get('correct')]
         selected=missed or random.sample(list(range(len(row.entries))),min(5,len(row.entries)))
@@ -302,7 +302,10 @@ def my_practice_results(actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
     if row.status not in ['submitted','reviewed'] or not row.attempt.get('questions') or len(row.attempt.get('responses',{}))!=len(row.attempt['questions']):raise HTTPException(409,'Complete both practice stages first')
     if row.result.get('practice_report'):return public(row)
-    report=practice_report(row.entries,row.attempt)
+    if row.attempt.get('version')=='adaptive_mcq_1':
+        from .imt_ai import adaptive_report
+        report=adaptive_report(row.entries,row.attempt)
+    else:report=practice_report(row.entries,row.attempt)
     row.result={**row.result,'practice_report':report};row.updated_at=now();session.commit();return public(row)
 
 @router.post('/learning/imt/my/check-ai')

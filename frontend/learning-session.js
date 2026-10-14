@@ -111,7 +111,7 @@
   async function refresh() {
     const version = generation;
     const me = await request('/me');
-    const [decks, extra, coursework, plans, revisions] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me), request('/plans'), MoonRevisions.load(request, me)]);
+    const [decks, extra, coursework, plans, revisions, myImt] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me), request('/plans'), MoonRevisions.load(request, me), me.role==='student'?request('/imt/my').catch(error=>({loadError:error.message})):null]);
     if (version !== generation || !token) return;
     profile = me; $('sign-in').hidden = true; $('workspace').hidden = false;
     $('account-name').textContent = me.role === 'admin' ? 'Teacher' : me.pseudonym;
@@ -133,7 +133,7 @@
     $('connected-study').hidden = me.role !== 'student';
     if (me.role === 'student') {
       renderStudy(extra);
-      window.MoonMyImt.render({request,audioRequest:(path,opts)=>audioRequest(path.replace(/^\/learning/,''),opts),run});
+      window.MoonMyImt.render({request,audioRequest:(path,opts)=>audioRequest(path.replace(/^\/learning/,''),opts),run,initialState:myImt});
       if (!document.querySelector('.dashboard-links a[href="#connected-my-imt"]')) {
         const link=node('a','My IMT');link.href='#connected-my-imt';
         link.onclick=event=>{event.preventDefault();history.replaceState(null,'',link.hash);showSection('connected-my-imt',true)};

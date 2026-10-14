@@ -21,13 +21,13 @@
     container.append(node('h3','Practice results'),node('p',report.summary));
     for(const [title,values] of [['Strengths',report.strengths],['Revision recommendations',report.next_steps]]){container.append(node('h4',title));const list=node('ul');(values||[]).forEach(value=>list.append(node('li',value)));container.append(list)}
     for(const item of report.items||[]){container.append(node('h4',`${item.stage==='recall'?'Retrieval':'Contextual use'} · ${item.expression}`),node('p',row.attempt.responses[String(item.index)]?.response||''),node('p',item.feedback));if(item.correction)container.append(node('p',`${item.original} → ${item.correction}`))}
-  }, async render({request, audioRequest}) {
+  }, async render({request, audioRequest, initialState}) {
     let area = document.getElementById('connected-my-imt');
     if (!area) { area = node('section', undefined, 'members-panel'); area.id = 'connected-my-imt'; document.getElementById('workspace').append(area); }
     let busy = false;
-    async function action(task) {
+    async function action(task,message='Saving…') {
       if (busy) return; busy = true;
-      const status = area.querySelector('[role=status]'); if (status) status.textContent = 'Saving…';
+      const status = area.querySelector('[role=status]'); if (status) status.textContent = message;
       area.querySelectorAll('button').forEach(b => b.disabled = true);
       try { const state = await task(); if (state) show(state); }
       catch (error) { (area.querySelector('[role=status]') || status).textContent = error.message; }
@@ -77,7 +77,7 @@
           form.onsubmit = event => { event.preventDefault(); action(async () => {
             const saved = await request('/imt/my/confirm', 'PUT', {entries: fields.map(row => Object.fromEntries(Object.entries(row).map(([key, input]) => [key, input.value])))});
             try { return await beginPractice(saved); } catch (error) { show(saved); throw error; }
-          }); }; area.append(form);
+          }, multiple ? "Checking your answer…" : "Checking your sentence…"); }; area.append(form);
         }
       } else if (state.status === 'assessment') {
         const {index, questions, recall_count} = state.attempt, question = questions[index];
@@ -98,7 +98,7 @@
           const next = await request('/imt/my/answer', 'PUT', {response: answer.value}); localStorage.removeItem(key);
           if (next.status === 'submitted' && next.attempt.last_feedback?.question_index===undefined) { try { return await request('/imt/my/results', 'POST'); } catch (error) { show(next); throw error; } }
           return next;
-        }); }; area.append(form);
+        }, multiple ? "Checking your answer…" : "Checking your sentence…"); }; area.append(form);
       } else {
         if (['submitted','approved'].includes(state.status) && !Object.keys(state.attempt || {}).length) area.append(node('p', 'Your material is saved. Continue to practice.'), button('Continue to Recall', () => beginPractice(state), true));
         else {
@@ -118,19 +118,20 @@
       }
       area.append(status);
     }
-    area.replaceChildren(node('h2', 'My IMT'), node('p', 'Loading your material…'));
+    if(!initialState)area.replaceChildren(node('h2', 'My IMT'), node('p', 'Loading your material…'));
     try {
-      let state = await request('/imt/my');
+      let state = initialState || await request('/imt/my');
+      if(state.loadError)throw Error(state.loadError);
+      show(state);
       if(state.status==='assessment'&&state.attempt.questions?.some((q,i)=>i>=state.attempt.index&&q.stage==='reuse'&&q.prompt==='Write an original sentence using this expression. Make its meaning clear through the context.')){
-        try{state=await request('/imt/my/context-tasks','POST')}catch(error){show(state);area.querySelector('[role=status]').textContent=error.message;return}
+        await action(()=>request('/imt/my/context-tasks','POST'),'Preparing fresh situations. Your saved material is ready.');return;
       }
-      const oldPrompts=['What does this expression mean? Explain it in your own words.','Explain this expression in your own words and give a new example.'];
       if(state.status==='assessment'&&state.attempt.version!=='adaptive_mcq_1') {
-        try {state=await request('/imt/my/refresh-tasks','POST');}catch(error){show(state);area.querySelector('[role=status]').textContent=error.message;return;}
+        await action(()=>request('/imt/my/refresh-tasks','POST'),'Updating your practice questions…');return;
       }
       if (['submitted','approved'].includes(state.status) && !Object.keys(state.attempt || {}).length) {
-        try { show(await beginPractice(state)); } catch (error) { show(state); area.querySelector('[role=status]').textContent = error.message; }
-      } else show(state);
+        await action(()=>beginPractice(state),'Preparing your practice questions. This can take a moment.');
+      }
     } catch (error) { area.replaceChildren(node('h2', 'My IMT'), node('p', error.message)); }
   }};
 })();
