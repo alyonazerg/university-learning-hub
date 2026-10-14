@@ -28,3 +28,11 @@ def test_materials_are_verified_only_when_present(client):
     assert created['material']['verified'] is True and 'fulfilment' in created['material']['vocabulary']
     future=client.post('/learning/imt/collections',headers=key,json={'student_name':'Future Student','group':'215','coursebook':'Evolve 5','unit':'8'}).json()
     assert future['material']['verified'] is False
+
+def test_teacher_can_create_separate_links_for_several_students(client):
+    key=admin(client)
+    response=client.post('/learning/imt/collections/bulk',headers=key,json={'students':['Student A','Student B','Student C'],'group':'215','coursebook':'Evolve 5','unit':'7'})
+    assert response.status_code==200
+    rows=response.json()['collections'];assert len(rows)==3 and len({r['token'] for r in rows})==3
+    assert all(r['student_link'].startswith('/imt-idiom.html#token=') for r in rows)
+    assert client.get('/imt/idiom?token='+rows[0]['token']).json()['student_name']=='Student A'

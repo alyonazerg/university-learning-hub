@@ -34,6 +34,18 @@ def create(body:dict,session=Depends(database)):
     if not name or book not in ['Evolve 5','Evolve 6'] or not re.fullmatch(r'\d+',unit): raise HTTPException(422,'Provide student, coursebook and unit')
     token=secrets.token_urlsafe(32); row=ImtIdiomCollection(student_name=name,group_code=group,coursebook=book,unit=unit,token_hash=sha(token),material_snapshot=material(book,unit),entries=[],attempt={},result={});session.add(row);session.commit()
     return {'id':row.id,'token':token,'student_link':'/imt-idiom.html#token='+token,'material':row.material_snapshot}
+@router.post('/learning/imt/collections/bulk',dependencies=[Depends(administrator)])
+def create_bulk(body:dict,session=Depends(database)):
+    students=body.get('students');book=str(body.get('coursebook','Evolve 5'));unit=str(body.get('unit','7'));group=str(body.get('group',''))
+    if not isinstance(students,list) or not 1<=len(students)<=50: raise HTTPException(422,'Provide 1–50 students')
+    if book not in ['Evolve 5','Evolve 6'] or not re.fullmatch(r'\d+',unit): raise HTTPException(422,'Provide a valid coursebook and unit')
+    snapshot=material(book,unit);result=[]
+    for value in students:
+        name=str(value).strip()
+        if not name or len(name)>100: raise HTTPException(422,'Every student needs a name under 100 characters')
+        token=secrets.token_urlsafe(32);row=ImtIdiomCollection(student_name=name,group_code=group,coursebook=book,unit=unit,token_hash=sha(token),material_snapshot=snapshot,entries=[],attempt={},result={});session.add(row);session.flush()
+        result.append({'id':row.id,'student_name':name,'token':token,'student_link':'/imt-idiom.html#token='+token})
+    session.commit();return {'coursebook':book,'unit':unit,'material':snapshot,'collections':result}
 @router.get('/imt/idiom')
 def get(token:str,session=Depends(database)): return public(actor(token,session))
 @router.put('/imt/idiom/collection')
