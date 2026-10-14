@@ -268,10 +268,28 @@ def reset_my_material(actor=Depends(principal),session=Depends(database)):
 @router.post('/learning/imt/my/revise')
 def revise_my(actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
-    if row.status not in ['submitted','approved','changes_requested'] or row.attempt or 'approved_grade' in row.result:
+    if row.status not in ['submitted','approved','changes_requested','assessment'] or row.attempt.get('responses') or 'approved_grade' in row.result:
         raise HTTPException(409,'Started tasks and graded work cannot be changed')
     previous=dict(row.result)
     history=list(previous.get('material_revisions',[]))
     history.append({'entries':row.entries,'ai_review':previous.get('ai_review'),'revised_at':now().isoformat()})
     row.result={**previous,'material_revisions':history,'review_status':'preview'}
+    row.attempt={}
     row.status='changes_requested';row.updated_at=now();session.commit();return public(row)
+
+@router.post('/learning/imt/my/refresh-tasks')
+def refresh_unused_tasks(actor=Depends(principal),session=Depends(database)):
+    row=own_collection(actor,session)
+    if row.status!='assessment' or row.attempt.get('responses') or 'approved_grade' in row.result:raise HTTPException(409,'Answered tasks cannot be regenerated')
+    from .imt_ai import recall_situations
+    recall=recall_situations(row.entries);reuse=recall_situations(row.entries,stage='reuse')
+    row.attempt={'stage':'recall','index':0,'responses':{},'questions':recall+reuse,'recall_count':len(recall)}
+    row.updated_at=now();session.commit();return public(row)
+
+@router.post('/learning/imt/my/back')
+def previous_my_task(actor=Depends(principal),session=Depends(database)):
+    row=own_collection(actor,session)
+    if row.status!='assessment' or row.attempt.get('index',0)<=0:raise HTTPException(409,'No previous task is available')
+    attempt=dict(row.attempt);attempt['index']-=1
+    attempt['stage']='recall' if attempt['index']<attempt.get('recall_count',len(attempt['questions'])) else 'reuse'
+    row.attempt=attempt;row.updated_at=now();session.commit();return public(row)
