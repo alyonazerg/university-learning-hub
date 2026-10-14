@@ -111,7 +111,7 @@
     try {
       let state = await request('/imt/my');
       const oldPrompts=['What does this expression mean? Explain it in your own words.','Explain this expression in your own words and give a new example.'];
-      if(state.status==='assessment'&&!Object.keys(state.attempt.responses||{}).length&&state.attempt.questions?.some(q=>oldPrompts.includes(q.prompt))) {
+      if(state.status==='assessment'&&state.attempt.questions?.some(q=>oldPrompts.includes(q.prompt?.trim()))) {
         try {state=await request('/imt/my/refresh-tasks','POST');}catch(error){show(state);area.querySelector('[role=status]').textContent=error.message;return;}
       }
       if (['submitted','approved'].includes(state.status) && !Object.keys(state.attempt || {}).length) {

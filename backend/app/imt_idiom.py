@@ -280,9 +280,15 @@ def revise_my(actor=Depends(principal),session=Depends(database)):
 @router.post('/learning/imt/my/refresh-tasks')
 def refresh_unused_tasks(actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
-    if row.status!='assessment' or row.attempt.get('responses') or 'approved_grade' in row.result:raise HTTPException(409,'Answered tasks cannot be regenerated')
+    if row.status!='assessment' or 'approved_grade' in row.result:raise HTTPException(409,'Graded tasks cannot be regenerated')
+    legacy_prompts={'What does this expression mean? Explain it in your own words.','Explain this expression in your own words and give a new example.'}
+    legacy=any(q.get('prompt','').strip() in legacy_prompts for q in row.attempt.get('questions',[]))
+    if row.attempt.get('responses') and not legacy:raise HTTPException(409,'Answered current tasks cannot be regenerated')
     from .imt_ai import recall_situations
     recall=recall_situations(row.entries);reuse=recall_situations(row.entries,stage='reuse')
+    history=list(row.result.get('previous_practice_attempts',[]))
+    history.append({'attempt':row.attempt,'replaced_at':now().isoformat(),'reason':'Upgrade legacy definition tasks to situation-based retrieval'})
+    row.result={**row.result,'previous_practice_attempts':history}
     row.attempt={'stage':'recall','index':0,'responses':{},'questions':recall+reuse,'recall_count':len(recall)}
     row.updated_at=now();session.commit();return public(row)
 
