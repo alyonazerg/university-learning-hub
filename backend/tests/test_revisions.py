@@ -278,7 +278,7 @@ def test_ai_checks_group_targets_and_grammar_with_quoted_evidence(monkeypatch):
     def request(*args,**kwargs):
         captured.update(kwargs['json']);return SimpleNamespace(raise_for_status=lambda:None,json=lambda:{'choices':[{'message':{'content':json.dumps(result)}}]})
     monkeypatch.setattr(revisions.httpx,'post',request)
-    row=SimpleNamespace(writing=essay,report={'writing_score':None},snapshot={'level':'B2','writing_prompt':'Work','grammar_notes':'Second conditional','items':[{'target_word':w} for w in ['fulfilment','calling','scarcity']]})
+    row=SimpleNamespace(id='synthetic-essay',writing=essay,report={'writing_score':None},snapshot={'level':'B2','writing_prompt':'Work','grammar_notes':'Second conditional','items':[{'target_word':w} for w in ['fulfilment','calling','scarcity']]})
     revisions.ai_review(row)
     payload=json.loads(captured['messages'][1]['content'])
     assert payload['target_vocabulary']==['fulfilment','calling','scarcity'] and payload['taught_grammar']=='Second conditional'

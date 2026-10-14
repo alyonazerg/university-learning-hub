@@ -48,3 +48,20 @@ docker compose -f docker-compose.yml -f compose.beget.yml up -d --build
 - Полная Alembic upgrade head на отдельной SQLite: head `019_revision_audio`, таблица создана. Это не проверка миграции production PostgreSQL.
 - Синтаксис изменённого JS и git diff --check пройдены. Docker image не собирался, реальная камера/микрофон телефона и платный OpenAI не проверялись.
 - Delivery commit: используйте commit последнего изменения этого файла, не исторический b5894fe (это предыдущая защита draft эссе).
+
+
+### Inline essay annotations — 14 октября 2026
+
+ТЗ пользователя реализуется поверх существующих submissions, AI review и PUT `/learning/revisions/attempts/{id}/review`. Миграция не нужна: `RevisionAttempt.report` хранит `essay_annotation_draft`, `essay_annotation_version`, `essay_feedback_publication`. Точная привязка: original, start/end (Unicode code points, не UTF-16), source hash; ID стабилен для attempt/текста/позиции/category/intent. Недостоверные цитаты, неоднозначные повторы без позиций и malformed annotations отбрасываются.
+
+Ровно три категории **для эссе**: Grammar (включая spelling/punctuation), Vocabulary, Style. Отдельный intent Correction / Improvement / Praise. Praise без replacement. Комментарии AI pending; преподаватель одобряет/отклоняет, редактирует replacement/explanation, смотрит Preview approved student feedback с Overall Feedback. Save essay grade · publish approved feedback публикует только approved и явно отредактированный общий отзыв. Переходящий AI draft никогда не заменяет опубликованный snapshot. Защита от устаревшего набора — source hash/version, HTTP409; criteria/rating/usage остаются прежними. Review и AI review блокируют одну строку на время операции, чтобы новый AI не затёр одновременно сохранённую оценку.
+
+UI: оригинал эссе не переписывается, подчёркнутые фрагменты — кнопки с клавиатурным фокусом. Tap/click открывает короткую панель: категория/intent, original, replacement, explanation. При пересечениях текст разбивается на непересекающиеся интервалы, открываются все относящиеся замечания. Цвет обозначает intent: correction оранжевый, improvement синий, praise зелёный. Рендер только textContent, никакого HTML от AI. Общий отзыв после эссе, целевой объём 40–65 слов, краткая сила/приоритет/следующий шаг, учитель может редактировать.
+
+Legacy grades/teacher_feedback сохранены; прежние AI language_errors доступны учителю как pending при точной уникальной цитате, spelling/punctuation объединены в Grammar. Старые неподтверждённые AI-примеры больше не публикуются автоматически по одному факту наличия оценки. Для утверждения использовать новый редактор. Regrade сохраняет draft/publication. Это изменение эссе, оно не меняет критерии Speaking или его процесс.
+
+Проверка вручную: Results → student → Essay → Check essay with AI (имеющийся приватный ключ). Отметить Approve / Reject, поправить explanation, открыть Preview, затем Save essay grade · publish approved feedback. По приватной ссылке студента обновить результат: видны только approved; текст неизменён. Повторный AI не меняет опубликованный feedback до следующего Save.
+
+Production evidence 14 октября: пользователь прислал Application startup complete и GET attempts 200 после сборки ffmpeg/API и frontend. Это подтверждает запуск API и чтение attempts, не успешный реальный ASR или последний annotations update. Последние inline annotations требуют следующего deploy.
+
+Inline annotations validation 14 октября: 81 backend tests passed; 17 dashboard/student browser tests passed; 3 new mobile/desktop/editor browser tests passed. Дополнительно 3 существующих audio/text-feedback browser tests прошли в первом прогоне. Реальный платный запрос AI для нового формата не выполнялся; провайдер подменён mock в тестах.
