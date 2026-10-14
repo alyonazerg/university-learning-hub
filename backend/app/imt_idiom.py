@@ -1,13 +1,21 @@
 """Private single-student MVP for the IMT idiom assessment."""
 import hashlib,json,re,secrets
 from pathlib import Path
-from fastapi import APIRouter,Depends,HTTPException
+from fastapi import APIRouter,Depends,HTTPException,Header
 from pydantic import Field
 from sqlalchemy import select
 from .learning import StrictModel,administrator,database,no_store,now
+from .models import LearningSession
 from .models import ImtIdiomCollection
+from .settings import settings
 
 router=APIRouter(dependencies=[Depends(no_store)])
+def pilot_admin(x_admin_token: str|None=Header(default=None),authorization: str|None=Header(default=None),session=Depends(database)):
+    if settings.admin_token and x_admin_token and secrets.compare_digest(x_admin_token,settings.admin_token): return True
+    if authorization and authorization.startswith('Bearer '):
+        record=session.get(LearningSession,sha(authorization[7:]))
+        if record and record.role=='admin' and record.expires_at>now(): return True
+    raise HTTPException(403,'Admin access required')
 ROOT=Path(__file__).resolve().parents[1]/'revision_materials'
 def sha(v): return hashlib.sha256(v.encode()).hexdigest()
 def material(book,unit):
@@ -28,13 +36,13 @@ def actor(token,session):
     return row
 def public(row):
     return {'id':row.id,'student_name':row.student_name,'group':row.group_code,'coursebook':row.coursebook,'unit':row.unit,'status':row.status,'entries':row.entries,'attempt':row.attempt if row.status in ['assessment','submitted','reviewed'] else {},'result':row.result if row.status=='reviewed' else {}}
-@router.post('/learning/imt/collections',dependencies=[Depends(administrator)])
+@router.post('/learning/imt/collections',dependencies=[Depends(pilot_admin)])
 def create(body:dict,session=Depends(database)):
     name=str(body.get('student_name','')).strip();book=str(body.get('coursebook','Evolve 5'));unit=str(body.get('unit','7'));group=str(body.get('group',''))
     if not name or book not in ['Evolve 5','Evolve 6'] or not re.fullmatch(r'\d+',unit): raise HTTPException(422,'Provide student, coursebook and unit')
     token=secrets.token_urlsafe(32); row=ImtIdiomCollection(student_name=name,group_code=group,coursebook=book,unit=unit,token_hash=sha(token),material_snapshot=material(book,unit),entries=[],attempt={},result={});session.add(row);session.commit()
     return {'id':row.id,'token':token,'student_link':'/imt-idiom.html#token='+token,'material':row.material_snapshot}
-@router.post('/learning/imt/collections/bulk',dependencies=[Depends(administrator)])
+@router.post('/learning/imt/collections/bulk',dependencies=[Depends(pilot_admin)])
 def create_bulk(body:dict,session=Depends(database)):
     students=body.get('students');book=str(body.get('coursebook','Evolve 5'));unit=str(body.get('unit','7'));group=str(body.get('group',''))
     if not isinstance(students,list) or not 1<=len(students)<=50: raise HTTPException(422,'Provide 1–50 students')
@@ -53,7 +61,7 @@ def collection(token:str,body:CollectionBody,session=Depends(database)):
     row=actor(token,session)
     if row.status not in ['draft','changes_requested']: raise HTTPException(409,'Collection is not editable now')
     row.entries=[e.model_dump() for e in body.entries];row.status='submitted';row.updated_at=now();session.commit();return public(row)
-@router.post('/learning/imt/collections/{identifier}/review',dependencies=[Depends(administrator)])
+@router.post('/learning/imt/collections/{identifier}/review',dependencies=[Depends(pilot_admin)])
 def review(identifier:str,body:dict,session=Depends(database)):
     row=session.get(ImtIdiomCollection,identifier)
     if not row: raise HTTPException(404,'Collection not found')
@@ -84,9 +92,9 @@ def submit(token:str,session=Depends(database)):
     row=actor(token,session); attempt=row.attempt
     if row.status!='assessment' or attempt.get('stage')!='context' or len(attempt.get('responses',{}))<len(row.entries)*2: raise HTTPException(409,'Complete retrieval and context stages first')
     row.status='submitted';row.result={'proposed_grade':None,'review_status':'pending','note':'AI evaluation is not configured in this MVP; teacher review required.'};session.commit();return public(row)
-@router.get('/learning/imt/collections',dependencies=[Depends(administrator)])
+@router.get('/learning/imt/collections',dependencies=[Depends(pilot_admin)])
 def list_collections(session=Depends(database)): return [public(r) for r in session.scalars(select(ImtIdiomCollection).order_by(ImtIdiomCollection.updated_at.desc()))]
-@router.put('/learning/imt/collections/{identifier}/grade',dependencies=[Depends(administrator)])
+@router.put('/learning/imt/collections/{identifier}/grade',dependencies=[Depends(pilot_admin)])
 def grade(identifier:str,body:dict,session=Depends(database)):
     row=session.get(ImtIdiomCollection,identifier)
     if not row or row.status not in ['submitted','reviewed']: raise HTTPException(404,'Submitted assessment not found')
