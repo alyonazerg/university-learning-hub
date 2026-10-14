@@ -68,7 +68,10 @@
         const {index, questions, recall_count} = state.attempt, question = questions[index];
         const reuse = question.stage === 'reuse';
         if (index === 0) area.append(node('p', 'Your material is ready. Let’s practise!', 'imt-ready'));
-        area.append(node('p', `${reuse ? 'Reuse' : 'Recall'} · ${reuse ? index - recall_count + 1 : index + 1} of ${recall_count || questions.length}`, 'muted'), node('h3', question.expression), node('p', question.prompt));
+        area.append(node('p', `${reuse ? 'Reuse' : 'Retrieve from memory'} · ${reuse ? index - recall_count + 1 : index + 1} of ${recall_count || questions.length}`, 'muted'));
+        if (reuse) area.append(node('h3', question.expression));
+        else area.append(node('p', 'Read the situation and recall the expression from your list. Write it from memory.', 'muted'));
+        area.append(node('p', question.prompt));
         const form = node('form'), label = node('label', 'Your answer'), answer = node('textarea'), key = `moon-imt:${state.id}:${index}`; answer.required = true; answer.rows = 6; answer.value = localStorage.getItem(key) || ''; answer.oninput = () => localStorage.setItem(key, answer.value); label.append(answer);
         const save = node('button', index + 1 === questions.length ? 'Submit answers' : 'Next task', 'primary'); save.type = 'submit'; form.append(label, save);
         form.onsubmit = e => { e.preventDefault(); action(async () => { const next = await request('/imt/my/answer', 'PUT', {response: answer.value}); localStorage.removeItem(key); return next; }); }; area.append(form);

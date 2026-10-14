@@ -219,7 +219,8 @@ def start_my(actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
     if row.status not in ['approved','submitted'] or row.attempt: raise HTTPException(409,'Tasks have already started or material is not submitted')
     if not row.result.get('ai_review'): raise HTTPException(409,'Check your material first')
-    recall=[{'stage':'recall','expression':e['expression'],'prompt':'What does this expression mean? Explain it in your own words.'} for e in row.entries]
+    from .imt_ai import recall_situations
+    recall=recall_situations(row.entries)
     reuse=[{'stage':'reuse','expression':e['expression'],'prompt':'Use this expression in a new situation. Write an original example and make the context clear.'} for e in row.entries]
     row.attempt={'stage':'recall','index':0,'responses':{},'questions':recall+reuse,'recall_count':len(recall)};row.status='assessment';session.commit();return public(row)
 @router.put('/learning/imt/my/answer')
