@@ -2,7 +2,7 @@
 from datetime import timedelta
 import asyncio,json
 from uuid import UUID,uuid5
-from fastapi import APIRouter,Depends,HTTPException,Header
+from fastapi import APIRouter,Depends,HTTPException,Header,BackgroundTasks
 from pydantic import Field
 from sqlalchemy import select,func,update
 from sqlalchemy.exc import IntegrityError
@@ -52,7 +52,7 @@ class BroadcastInput(StrictModel):
     request_id:UUID
 def broadcast_view(row):return {'id':row.id,'body':row.body,'groups':row.groups,'sent':len(row.recipients),'created_at':row.created_at.isoformat()+'Z'}
 @router.post('/broadcast',status_code=201)
-def broadcast(body:BroadcastInput,actor=Depends(administrator),session=Depends(database)):
+def broadcast(body:BroadcastInput,background_tasks:BackgroundTasks,actor=Depends(administrator),session=Depends(database)):
     previous=session.get(MessageBroadcast,str(body.request_id))
     if previous:return broadcast_view(previous)
     groups=list(session.scalars(select(Group).where(Group.is_active.is_(True)))) if body.all_groups else [group_for(i,session) for i in set(body.group_ids)]
@@ -64,12 +64,16 @@ def broadcast(body:BroadcastInput,actor=Depends(administrator),session=Depends(d
     if count>=10:raise HTTPException(429,'Please wait before sending another group message')
     batch=MessageBroadcast(id=str(body.request_id),body=body.body,groups=[{'id':g.id,'name':g.name} for g in groups],recipients=[s.public_id for s in targets]);session.add(batch)
     names={g.id:g.name for g in groups}
-    for student in targets:session.add(CampusMessage(student_id=student.id,sender_role='admin',body=body.body,group_name=names[student.group_id],request_id=str(uuid5(body.request_id,student.public_id))))
+    delivered=[]
+    for student in targets:
+        message=CampusMessage(student_id=student.id,sender_role='admin',body=body.body,group_name=names[student.group_id],request_id=str(uuid5(body.request_id,student.public_id)));session.add(message);delivered.append(message)
     try:session.commit()
     except IntegrityError:
         session.rollback();previous=session.get(MessageBroadcast,str(body.request_id))
         if not previous:raise HTTPException(409,'Could not send the group message. Retry.')
         return broadcast_view(previous)
+    from .telegram_messages import deliver
+    for message in delivered:background_tasks.add_task(deliver,message.id)
     return broadcast_view(batch)
 @router.get('/broadcasts',dependencies=[Depends(administrator)])
 def broadcasts(session=Depends(database)):
@@ -99,7 +103,7 @@ class MessageInput(StrictModel):
     body:str=Field(min_length=1,max_length=3000)
     request_id:UUID
 @router.post('',status_code=201)
-def send(body:MessageInput,actor=Depends(principal),session=Depends(database)):
+def send(body:MessageInput,background_tasks:BackgroundTasks,actor=Depends(principal),session=Depends(database)):
     student=participant(actor,body.student_id,session)
     previous=session.scalar(select(CampusMessage).where(CampusMessage.request_id==str(body.request_id)))
     if previous:
@@ -113,6 +117,8 @@ def send(body:MessageInput,actor=Depends(principal),session=Depends(database)):
         session.rollback();previous=session.scalar(select(CampusMessage).where(CampusMessage.request_id==str(body.request_id)))
         if not previous or previous.student_id!=student.id or previous.sender_role!=actor.role:raise HTTPException(409,'Could not send this message; try again')
         return view(previous)
+    from .telegram_messages import deliver
+    background_tasks.add_task(deliver,row.id)
     return view(row)
 class ReadInput(StrictModel):
     student_id:str|None=Field(default=None,max_length=36)

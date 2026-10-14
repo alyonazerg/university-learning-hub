@@ -19,6 +19,8 @@ from .bugs import router as bugs_router
 app.include_router(bugs_router)
 from .messages import router as messages_router
 app.include_router(messages_router)
+from .telegram_messages import router as telegram_messages_router
+app.include_router(telegram_messages_router)
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=['POST', 'GET', 'PUT', 'DELETE'], allow_headers=['Content-Type', 'X-Admin-Token', 'Authorization'])
 
 

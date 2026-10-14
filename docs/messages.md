@@ -10,4 +10,8 @@ The client opens an authenticated SSE connection at `/learning/messages/events`.
 
 Messages includes an opt-in browser notification control and a sound toggle. A short Web Audio chime plays when browser autoplay policy allows it after a user gesture. Notification text does not include private message content. The service worker only handles notification display/clicks; it does not receive push events or cache API responses. Closed-app notifications need a separate Web Push subscription/delivery service, especially for installed iOS PWAs. Browser suspension can pause live delivery on mobile.
 
+Telegram copies use the existing `TELEGRAM_BOT_TOKEN` through `telegram_messages.py`. Each student opts in through Messages → Telegram alerts and must start the bot. Teachers connect a verified Telegram account using the widget; this single-teacher platform stores one destination. New private and broadcast messages are delivered in a background task with a campus link. Delivery state is stored on the message; external failures leave campus messages untouched. This does not implement replies from Telegram, scheduled retries or a durable external worker. Teacher Telegram linking requires the same BotFather domain configuration as student login.
+
+The shared `campus-home.js` routes the logo to the authenticated Home section, falling back to public landing for expired/absent sessions. Role-specific cards use existing coursework, group, IMT and timetable data. No fabricated progress figures are shown.
+
 Relevant checks: `backend/tests/test_messages.py`. Teacher sessions are shared by the current admin role; separate staff identities or permissions require an account model change.

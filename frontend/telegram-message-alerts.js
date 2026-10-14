@@ -1,0 +1,10 @@
+(() => {
+  const n=(tag,text)=>{const e=document.createElement(tag);if(text)e.textContent=text;return e};
+  window.MoonTelegramAlerts={mount(area,{profile,request}){
+    const box=n('details');box.className='telegram-message-settings';box.append(n('summary','Telegram alerts'));const content=n('div');box.append(content);area.append(box);
+    async function display(){try{const pref=await request('/messages/telegram');content.replaceChildren(n('p','Get new campus messages in Telegram. Open the bot and press Start first.'));const link=n('a','Open @mooncampusbot');link.href='https://t.me/mooncampusbot';link.target='_blank';link.rel='noopener noreferrer';content.append(link);const status=n('p');status.setAttribute('role','status');
+      if(!pref.linked&&profile.role==='admin'){window.moonTeacherTelegramAlerts=async user=>{try{await request('/messages/telegram/connect','POST',{telegram_data:Object.fromEntries(Object.entries(user).map(([k,v])=>[k,String(v)]))});await display()}catch(error){status.textContent=error.message}};const script=n('script');script.src='https://telegram.org/js/telegram-widget.js?22';script.async=true;script.dataset.telegramLogin='mooncampusbot';script.dataset.size='large';script.dataset.requestAccess='write';script.dataset.onauth='moonTeacherTelegramAlerts(user)';content.append(script)}else if(pref.linked){const b=n('button',pref.enabled?'Turn off Telegram alerts':'Enable Telegram alerts');b.type='button';b.className='secondary';b.onclick=async()=>{b.disabled=true;try{await request('/messages/telegram','POST',{enabled:!pref.enabled});await display()}catch(error){status.textContent=error.message;b.disabled=false}};content.append(b,n('p',pref.enabled?'Telegram alerts are on.':'Telegram alerts are off.'))}else content.append(n('p','This profile has no linked Telegram account. Sign in with your Telegram account first.'));content.append(status)
+    }catch(error){content.textContent=error.message}}
+    box.ontoggle=()=>{if(box.open)display()};
+  }};
+})();

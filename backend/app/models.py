@@ -18,6 +18,7 @@ class Student(Base):
     pseudonym: Mapped[str] = mapped_column(String(80), unique=True)
     group_id: Mapped[int | None] = mapped_column(ForeignKey("groups.id"), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    telegram_messages_enabled: Mapped[bool] = mapped_column(Boolean,default=False)
     group: Mapped[Group | None] = relationship(back_populates="students")
     identity: Mapped["IdentityRegistry | None"] = relationship(back_populates="student", uselist=False)
 class IdentityRegistry(Base):
@@ -307,6 +308,7 @@ class CampusMessage(Base):
     sender_role: Mapped[str] = mapped_column(String(16))
     body: Mapped[str] = mapped_column(Text)
     group_name: Mapped[str] = mapped_column(String(120),default='')
+    telegram_status: Mapped[str] = mapped_column(String(16),default='pending')
     request_id: Mapped[str] = mapped_column(String(36),unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
     read_at: Mapped[datetime|None] = mapped_column(DateTime,nullable=True)
@@ -318,3 +320,9 @@ class MessageBroadcast(Base):
     groups: Mapped[list] = mapped_column(JSON)
     recipients: Mapped[list] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
+
+class TeacherTelegramAlert(Base):
+    __tablename__='teacher_telegram_alerts'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    chat_id: Mapped[int] = mapped_column(BigInteger)
+    enabled: Mapped[bool] = mapped_column(Boolean,default=True)
