@@ -98,3 +98,19 @@
 .schedule-card .taught-badge {grid-column:1 / -1;justify-self:start;}
 /* Moon Campus accent hierarchy: violet actions, teal learning, amber context. */
 body{background:linear-gradient(140deg,#f5f2fb,#f0f7fa);background-attachment:fixed}#workspace>.members-panel{box-shadow:0 8px 28px #35305509;border-color:#e0e3ed}#workspace>.dashboard-links{background:linear-gradient(120deg,#fff,#f7f5fc);box-shadow:0 5px 18px #3530550d}#workspace>.dashboard-links a[aria-current=page]{background:linear-gradient(140deg,#7953ab,#62438d);color:#fff;box-shadow:0 3px 8px #65458c25}#workspace>.dashboard-links a:hover:not([aria-current=page]){background:#edf5f7;color:#265e6c}#workspace .word-list-card{background:linear-gradient(135deg,#f4fafb,#fff);border-color:#dce8ed}#workspace .primary{background:linear-gradient(140deg,#7c53b0,#65428e);color:#fff;box-shadow:0 3px 0 #523673,0 5px 12px #65428e18}#workspace .primary:disabled{box-shadow:none}#workspace input:focus-visible,#workspace textarea:focus-visible,#workspace select:focus-visible{outline:2px solid #53828d;outline-offset:2px}#workspace .cabinet-tools button{box-shadow:none}
+
+/* Group invitation layout */
+.student-invitation > p{margin:18px 0 14px}
+.invitation-fields{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:20px;align-items:start;margin:0 0 20px}
+.invitation-field{display:flex;flex-direction:column;gap:8px;font-size:14px;font-weight:600;min-width:0}
+.invitation-field textarea{margin:0;min-height:108px;width:100%;resize:vertical}
+.invitation-count input{margin:0;max-width:100%;width:110px}
+.invitation-field small{font-size:12px;font-weight:400;line-height:1.5;color:#687186}
+.invitation-actions{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 16px}
+.invitation-actions button{margin:0}
+.invitation-results{overflow-x:auto}
+.invitation-results:empty{display:none}
+.invitation-results table{width:100%;border-collapse:collapse;margin-bottom:16px}
+.invitation-results th,.invitation-results td{padding:12px;border:1px solid #ded9ed;text-align:left}
+.invitation-results>button{margin:0 12px 12px 0}
+@media(max-width:600px){.invitation-fields{grid-template-columns:1fr;gap:16px}.invitation-actions{flex-direction:column}.invitation-actions button{width:100%}}
