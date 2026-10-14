@@ -19,7 +19,7 @@ def test_private_collection_requires_approval_and_both_stages(client):
     for _ in range(15):state=client.put('/imt/idiom/answer?token='+token,json={'response':'A relevant explanation and example.'}).json()
     assert state['attempt']['stage']=='context'
     for _ in range(15):state=client.put('/imt/idiom/answer?token='+token,json={'response':'This would fit a new realistic situation.'}).json()
-    assert state['status']=='submitted';assert client.get('/imt/idiom?token='+token).json()['result']=={}
+    assert state['status']=='submitted';assert client.get('/imt/idiom?token='+token).json()['result']=={'review_status':'pending'}
     graded=client.put('/learning/imt/collections/'+created['id']+'/grade',headers=key,json={'approved_grade':2,'reason':'Pilot teacher review','feedback':'Good recall; revise two examples.'})
     assert graded.status_code==200 and graded.json()['result']['approved_grade']==2
 

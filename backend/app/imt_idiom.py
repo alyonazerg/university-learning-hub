@@ -37,12 +37,15 @@ def actor(token,session):
     if not row: raise HTTPException(401,'Invalid private IMT link')
     return row
 def public(row):
-    return {'id':row.id,'student_name':row.student_name,'group':row.group_code,'coursebook':row.coursebook,'unit':row.unit,'status':row.status,'entries':row.entries,'attempt':row.attempt if row.status in ['assessment','submitted','reviewed'] else {},'result':row.result if row.status=='reviewed' else {}}
+    return {'id':row.id,'student_name':row.student_name,'group':row.group_code,'coursebook':row.coursebook,'unit':row.unit,'status':row.status,'entries':row.entries,'attempt':row.attempt if row.status in ['assessment','submitted','reviewed'] else {},'result':row.result if row.status=='reviewed' else {k:v for k,v in row.result.items() if k in ['ai_review','review_status','source_filename']}}
 
 def parse_uploaded_material(filename:str, raw:bytes):
     """Return editable idiom rows from CSV/XLSX/PDF; never auto-publishes OCR."""
     suffix=Path(filename or '').suffix.lower()
     rows=[]
+    if suffix in {'.png','.jpg','.jpeg','.webp'}:
+        from .imt_ai import recognize
+        return recognize(raw,suffix)
     if suffix=='.csv':
         text=raw.decode('utf-8-sig',errors='replace')
         rows=list(csv.DictReader(io.StringIO(text)))
@@ -60,6 +63,9 @@ def parse_uploaded_material(filename:str, raw:bytes):
         except Exception as exc:
             raise HTTPException(422,f'Could not read PDF: {exc}')
         # Conservative line-based extraction. Teacher confirms all rows before use.
+        if not text.strip():
+            from .imt_ai import recognize
+            return recognize(raw,suffix)
         current={}
         for line in text.splitlines():
             line=re.sub(r'^\s*[-–—]\s*','',line).strip()
@@ -72,7 +78,7 @@ def parse_uploaded_material(filename:str, raw:bytes):
                     current[key]=line.split(':',1)[1].strip(); break
         if current.get('expression'): rows.append(current)
     else:
-        raise HTTPException(422,'Use PDF, CSV or XLSX')
+        raise HTTPException(422,'Use PDF, CSV, XLSX, PNG, JPG or WebP')
     normalized=[]
     for row in rows:
         row={str(k).strip().lower():str(v or '').strip() for k,v in row.items()}
@@ -212,7 +218,8 @@ def confirm_my(body:MyEntries,actor=Depends(principal),session=Depends(database)
 def start_my(actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
     if row.status!='approved': raise HTTPException(409,'Wait for your teacher to approve the material')
-    row.attempt={'stage':'retrieval','index':0,'responses':{},'questions':[{'expression':e['expression'],'prompt':'Explain this expression in your own words and give a new example.'} for e in row.entries]};row.status='assessment';session.commit();return public(row)
+    questions=row.result.get('ai_review',{}).get('tasks') or [{'expression':e['expression'],'prompt':'Explain this expression in your own words and give a new example.'} for e in row.entries]
+    row.attempt={'stage':'retrieval','index':0,'responses':{},'questions':questions};row.status='assessment';session.commit();return public(row)
 @router.put('/learning/imt/my/answer')
 def answer_my(body:AnswerBody,actor=Depends(principal),session=Depends(database)):
     row=own_collection(actor,session)
@@ -220,3 +227,11 @@ def answer_my(body:AnswerBody,actor=Depends(principal),session=Depends(database)
     a=dict(row.attempt);index=a['index'];responses=dict(a.get('responses',{}));responses[str(index)]={'response':body.response};a['responses']=responses;a['index']=index+1;row.attempt=a
     if a['index']>=len(a['questions']): row.status='submitted';row.result={**row.result,'review_status':'answers_pending'}
     row.updated_at=now();session.commit();return public(row)
+
+@router.post('/learning/imt/my/check-ai')
+def check_my_ai(actor=Depends(principal),session=Depends(database)):
+    from .imt_ai import review
+    row=own_collection(actor,session)
+    if row.status not in ['submitted','approved'] or row.attempt:raise HTTPException(409,'Confirm your material before AI review; started tasks remain unchanged')
+    analysis=review(row.entries,row.material_snapshot)
+    row.result={**row.result,'ai_review':analysis};row.updated_at=now();session.commit();return public(row)
