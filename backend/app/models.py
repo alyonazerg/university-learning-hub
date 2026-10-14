@@ -14,7 +14,7 @@ class Student(Base):
     __tablename__ = "students"
     id: Mapped[int] = mapped_column(primary_key=True)
     public_id: Mapped[str] = mapped_column(String(36), unique=True, default=lambda: str(uuid.uuid4()))
-    telegram_user_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+    telegram_user_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, nullable=True)
     pseudonym: Mapped[str] = mapped_column(String(80), unique=True)
     group_id: Mapped[int | None] = mapped_column(ForeignKey("groups.id"), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -32,7 +32,7 @@ class IdentityRegistry(Base):
 class PseudonymReservation(Base):
     __tablename__ = "pseudonym_reservations"
     token: Mapped[str] = mapped_column(String(64), primary_key=True)
-    telegram_user_id: Mapped[int] = mapped_column(BigInteger, unique=True)
+    telegram_user_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, nullable=True)
     pseudonym: Mapped[str] = mapped_column(String(80), unique=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime)
 
@@ -265,3 +265,18 @@ class ImtIdiomCollection(Base):
     result: Mapped[dict] = mapped_column(JSON,default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
+
+class BrowserAccount(Base):
+    __tablename__='browser_accounts'
+    student_id: Mapped[int] = mapped_column(ForeignKey('students.id'),primary_key=True)
+    email: Mapped[str] = mapped_column(String(254),unique=True)
+    password_hash: Mapped[str] = mapped_column(String(256))
+
+class BrowserInvitation(Base):
+    __tablename__='browser_invitations'
+    id: Mapped[str] = mapped_column(String(36),primary_key=True,default=lambda:str(uuid.uuid4()))
+    token_hash: Mapped[str] = mapped_column(String(64),unique=True)
+    group_id: Mapped[int] = mapped_column(ForeignKey('groups.id'))
+    label: Mapped[str] = mapped_column(String(100),default='')
+    student_id: Mapped[int|None] = mapped_column(ForeignKey('students.id'),nullable=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)

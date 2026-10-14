@@ -173,3 +173,6 @@ from .revision_audio import router as revision_audio_router
 app.include_router(revision_audio_router)
 from .imt_idiom import router as imt_idiom_router
 app.include_router(imt_idiom_router)
+
+from .browser_accounts import router as browser_accounts_router
+app.include_router(browser_accounts_router)

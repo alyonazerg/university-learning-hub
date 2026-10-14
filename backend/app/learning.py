@@ -141,7 +141,7 @@ def login_admin(payload: AdminLogin, session=Depends(database)):
 def login_teacher(payload: TeacherLogin, session=Depends(database)):
     if not settings.teacher_login or not settings.teacher_password:
         raise HTTPException(503, 'Teacher login is not configured')
-    if not secrets.compare_digest(payload.login, settings.teacher_login) or not secrets.compare_digest(payload.password, settings.teacher_password):
+    if not secrets.compare_digest(payload.login.encode(), settings.teacher_login.encode()) or not secrets.compare_digest(payload.password.encode(), settings.teacher_password.encode()):
         raise HTTPException(401, 'Invalid teacher login or password')
     return issue_session('admin', None, session)
 

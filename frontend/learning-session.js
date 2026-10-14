@@ -139,20 +139,12 @@
       for (const student of group.students) {const item = node('option', student.pseudonym); item.value = student.id; select.append(item);}
       select.value = group.editor_student_id || '';
       article.append(label, select, button('Save editor · ' + group.name, async () => {await request('/groups/' + group.id + '/editor', 'PUT', {student_id: select.value || null}); await refresh(); $('account-status').textContent = 'Group editor saved.';}));
-      const invitations = node('details', undefined, 'student-invitation'); invitations.append(node('summary', 'Invite a student'));
-      const result = node('div', undefined, 'invitation-result'); result.setAttribute('aria-live', 'polite');
-      invitations.append(node('p', 'Each link registers one student and expires after 7 days. Create a separate link for each student.', 'muted'));
-      invitations.append(button('Create invitation', async () => {
-        const invitation = await request('/groups/' + group.id + '/invitations', 'POST');
-        const url = 'https://t.me/mooncampusbot?startapp=' + encodeURIComponent(invitation.invitation_token);
-        const link = node('a', 'Open registration in Telegram', 'secondary invitation-open'); link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer';
-        const field = node('input'); field.type = 'text'; field.readOnly = true; field.value = url; field.setAttribute('aria-label', 'Student invitation link');
-        result.replaceChildren(link, field, button('Copy invitation', async () => {
-          try {await navigator.clipboard.writeText(url); $('account-status').textContent = 'Invitation copied.';}
-          catch {field.focus(); field.select(); $('account-status').textContent = 'Select and copy the invitation link manually.';}
-        }));
-        $('account-status').textContent = 'Invitation created. Share it with one student.';
-      }), result); article.append(invitations); $('group-editors').append(article);
+      const invitations = node('details', undefined, 'student-invitation'); invitations.append(node('summary', 'Invite students'));
+      const names=node('textarea'); names.placeholder='Optional names, one per line'; names.setAttribute('aria-label','Student names');
+      const count=node('input');count.type='number';count.min='1';count.max='100';count.value='1';count.setAttribute('aria-label','Number of invitations');
+      const result=node('div');invitations.append(node('p','Enter names or a quantity. Each link works once and expires after 14 days.'),names,count);
+      const table=rows=>{const t=node('table');const head=node('tr');['Student','Status','Invitation / alias'].forEach(x=>head.append(node('th',x)));t.append(head);for(const r of rows){const tr=node('tr');tr.append(node('td',r.label),node('td',r.status));const cell=node('td');if(r.link){const field=node('input');field.readOnly=true;field.value=location.origin+r.link;cell.append(field)}else cell.textContent=r.alias||'—';tr.append(cell);t.append(tr)}result.replaceChildren(t)};
+      invitations.append(button('Create invitations',async()=>{const list=names.value.split(/\n/).map(x=>x.trim()).filter(Boolean);const rows=await request('/groups/'+group.id+'/browser-invitations','POST',{names:list,count:Number(count.value)});table(rows);const text=rows.map(r=>r.label+'\t'+location.origin+r.link).join('\n');result.append(button('Copy all links',async()=>{await navigator.clipboard.writeText(text);$('account-status').textContent='Invitation links copied.'}),button('Download CSV',async()=>{const quote=x=>'"'+String(x).replace(/"/g,'""')+'"';const csv='Student,Link,Status\r\n'+rows.map(r=>[r.label,location.origin+r.link,r.status].map(quote).join(',')).join('\r\n');const u=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=node('a');a.href=u;a.download='invitations.csv';a.click();URL.revokeObjectURL(u)}));}),button('Registration status',async()=>table(await request('/groups/'+group.id+'/browser-invitations'))),result); article.append(invitations); $('group-editors').append(article);
     }
     if ([...$('connected-group').options].some(option => option.value === previous)) $('connected-group').value = previous;
     if (!groups.length) $('group-editors').append(node('p', 'No groups yet.'));
