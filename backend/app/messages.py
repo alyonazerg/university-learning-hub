@@ -1,13 +1,37 @@
 """Authenticated one-to-one student/teacher conversations."""
 from datetime import timedelta
+import asyncio,json
 from uuid import UUID
-from fastapi import APIRouter,Depends,HTTPException
+from fastapi import APIRouter,Depends,HTTPException,Header
 from pydantic import Field
 from sqlalchemy import select,func,update
 from sqlalchemy.exc import IntegrityError
+from fastapi.responses import StreamingResponse
+from .db import SessionLocal
 from .learning import StrictModel,database,principal,group_for,no_store,now
 from .models import CampusMessage,Student,Group
 router=APIRouter(prefix='/learning/messages',dependencies=[Depends(no_store)])
+@router.get('/events')
+def live_events(authorization:str|None=Header(default=None)):
+    # Release the authentication connection before opening a long-lived stream.
+    with SessionLocal() as session:
+        actor=principal(authorization=authorization,session=session)
+        role=actor.role;student_id=actor.student_id;expires=actor.expires_at
+    async def stream():
+        previous=None;heartbeat=0
+        while now()<expires:
+            with SessionLocal() as session:
+                query=select(func.max(CampusMessage.id),func.max(CampusMessage.read_at))
+                if role!='admin':query=query.where(CampusMessage.student_id==student_id)
+                latest,read=session.execute(query).one()
+                snapshot=(latest or 0,read.isoformat() if read else '')
+            if snapshot!=previous:
+                previous=snapshot
+                yield 'event: changed\ndata: '+json.dumps({'latest':snapshot[0]})+'\n\n'
+            elif heartbeat%20==0:yield ': keepalive\n\n'
+            heartbeat+=1;await asyncio.sleep(1)
+        yield 'event: expired\ndata: {}\n\n'
+    return StreamingResponse(stream(),media_type='text/event-stream',headers={'Cache-Control':'no-store','X-Accel-Buffering':'no'})
 def participant(actor,student_id,session):
     if actor.role=='admin':
         if not student_id:raise HTTPException(422,'Choose a student')
@@ -30,7 +54,8 @@ def threads(actor=Depends(principal),session=Depends(database)):
         group=session.get(Group,student.group_id) if student.group_id else None
         if group and not group.is_active:continue
         latest=session.scalar(select(CampusMessage).where(CampusMessage.student_id==student.id).order_by(CampusMessage.id.desc()).limit(1))
-        result.append({'student_id':student.public_id,'alias':student.pseudonym,'group':group.name if group else '', 'unread':unread.get(student.id,0),'last_message':latest.body[:100] if latest else '', 'updated_at':latest.created_at.isoformat()+'Z' if latest else None})
+        incoming=session.scalar(select(func.max(CampusMessage.id)).where(CampusMessage.student_id==student.id,CampusMessage.sender_role!=actor.role)) or 0
+        result.append({'student_id':student.public_id,'alias':student.pseudonym,'group':group.name if group else '', 'unread':unread.get(student.id,0),'last_incoming_id':incoming,'last_message':latest.body[:100] if latest else '', 'updated_at':latest.created_at.isoformat()+'Z' if latest else None})
     return result
 @router.get('')
 def conversation(student_id:str|None=None,after:int=0,before:int|None=None,actor=Depends(principal),session=Depends(database)):

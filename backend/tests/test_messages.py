@@ -3,6 +3,11 @@ from app.db import SessionLocal
 from app.models import Group,Student
 from app.learning import issue_session
 from test_learning import admin
+import asyncio
+from app.messages import live_events
+from app.learning import now
+from types import SimpleNamespace
+from datetime import timedelta
 
 def students():
     with SessionLocal() as session:
@@ -30,3 +35,16 @@ def test_messages_require_auth_and_nonempty_text(client):
     assert client.get('/learning/messages/threads').status_code==401
     first,_,_,_=students()
     assert client.post('/learning/messages',headers=first,json={'body':'   ','request_id':str(uuid4())}).status_code==422
+    assert client.get('/learning/messages/events').status_code==401
+
+def test_live_event_is_scoped_and_contains_no_message_text(client):
+    teacher=admin(client);first,second,first_id,second_id=students()
+    client.post('/learning/messages',headers=teacher,json={'student_id':first_id,'body':'Private message','request_id':str(uuid4())})
+    async def read_first():
+        response=live_events(second['Authorization'])
+        event=await response.body_iterator.__anext__()
+        await response.body_iterator.aclose()
+        return event
+    event=asyncio.run(read_first())
+    assert 'event: changed' in event and '"latest": 0' in event
+    assert 'Private message' not in event
