@@ -67,6 +67,10 @@ class TelegramLogin(StrictModel):
 class AdminLogin(StrictModel):
     token: str = Field(min_length=1, max_length=512)
 
+class TeacherLogin(StrictModel):
+    login: str = Field(min_length=1, max_length=120)
+    password: str = Field(min_length=1, max_length=512)
+
 class EditorUpdate(StrictModel):
     student_id: str | None = Field(default=None, max_length=36)
 
@@ -131,6 +135,14 @@ def login_telegram(payload: TelegramLogin, session=Depends(database)):
 def login_admin(payload: AdminLogin, session=Depends(database)):
     if not settings.admin_token or not secrets.compare_digest(payload.token.encode(), settings.admin_token.encode()):
         raise HTTPException(403, 'Administrator access required')
+    return issue_session('admin', None, session)
+
+@router.post('/login/teacher', dependencies=[Depends(no_store)])
+def login_teacher(payload: TeacherLogin, session=Depends(database)):
+    if not settings.teacher_login or not settings.teacher_password:
+        raise HTTPException(503, 'Teacher login is not configured')
+    if not secrets.compare_digest(payload.login, settings.teacher_login) or not secrets.compare_digest(payload.password, settings.teacher_password):
+        raise HTTPException(401, 'Invalid teacher login or password')
     return issue_session('admin', None, session)
 
 @router.post('/logout', status_code=204, dependencies=[Depends(no_store)])

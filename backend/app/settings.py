@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     database_url: str | None = None
     telegram_bot_token: str | None = None
     admin_token: str | None = None
+    teacher_login: str | None = None
+    teacher_password: str | None = None
     cors_origins: list[str] = ['http://localhost:8080', 'https://mooncampus.ru']
     revision_ai_api_key: str | None = None
     revision_audio_ai_enabled: bool = False
