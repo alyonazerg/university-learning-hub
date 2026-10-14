@@ -31,6 +31,7 @@ COPY --chmod=644 imt-idiom.html imt-idiom.css imt-idiom.js /usr/share/nginx/html
 COPY --chmod=644 imt-teacher.html imt-teacher.js /usr/share/nginx/html/
 COPY --chmod=644 teacher-login.html /usr/share/nginx/html/
 COPY --chmod=644 imt-student.html /usr/share/nginx/html/
+COPY --chmod=644 student-entry.html /usr/share/nginx/html/
 
 # Static directories require traversal permission; documents only need read access.
 RUN find /usr/share/nginx/html -type d -exec chmod 755 {} + \
