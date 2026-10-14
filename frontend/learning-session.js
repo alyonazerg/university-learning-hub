@@ -70,6 +70,7 @@
   const sessionKey='moon-learning-session:'+base;
   function storeSession(result){try{sessionStorage.setItem(sessionKey,JSON.stringify({token:result.access_token,expires_at:Date.now()+result.expires_in*1000}));}catch{}}
   function clearSession() {
+    $('connected-messages')?._messageCleanup?.();$('connected-bugs')?._bugCleanup?.();$('connected-imt')?._imtCleanup?.();
     window.MoonSpeakingAudio?.stopAll();
     try{sessionStorage.removeItem(sessionKey);}catch{}generation++; token = null; profile = null; $('workspace').hidden = true; $('sign-in').hidden = false;
     $('connected-decks').replaceChildren(); $('connected-study').replaceChildren(); $('group-editors').replaceChildren(); $('connected-group').replaceChildren();
@@ -87,7 +88,8 @@
     'connected-revisions': ['connected-revisions'],
     'connected-my-imt': ['connected-my-imt'],
     'connected-imt': ['connected-imt'],
-    'connected-bugs': ['connected-bugs']
+    'connected-bugs': ['connected-bugs'],
+    'connected-messages': ['connected-messages']
   };
   let activeSection = '';
   function showSection(id, focus = false) {
@@ -114,6 +116,10 @@
     const [decks, extra, coursework, plans, revisions, myImt] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me), request('/plans'), MoonRevisions.load(request, me), me.role==='student'?request('/imt/my').catch(error=>({loadError:error.message})):null]);
     if (version !== generation || !token) return;
     profile = me; $('sign-in').hidden = true; $('workspace').hidden = false;
+    window.MoonMessages?.render({profile:me,request});
+    if(!document.querySelector('.dashboard-links a[href="#connected-messages"]')){
+      const link=node('a','Messages');link.href='#connected-messages';link.onclick=e=>{e.preventDefault();history.replaceState(null,'',link.hash);showSection('connected-messages',true)};document.querySelector('#workspace .dashboard-links').append(link);
+    }
     $('account-name').textContent = me.role === 'admin' ? 'Teacher' : me.pseudonym;
     $('connected-groups').hidden = me.role !== 'admin'; $('connected-group-field').hidden = me.role !== 'admin';
     $('connected-editor-title').textContent = me.role === 'admin' ? 'Prepare target vocabulary' : 'Suggest emergent vocabulary';

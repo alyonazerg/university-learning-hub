@@ -300,3 +300,12 @@ class BugReport(Base):
     history: Mapped[list] = mapped_column(JSON,default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
+class CampusMessage(Base):
+    __tablename__='campus_messages'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey('students.id'),index=True)
+    sender_role: Mapped[str] = mapped_column(String(16))
+    body: Mapped[str] = mapped_column(Text)
+    request_id: Mapped[str] = mapped_column(String(36),unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
+    read_at: Mapped[datetime|None] = mapped_column(DateTime,nullable=True)

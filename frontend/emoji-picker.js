@@ -1,0 +1,4 @@
+(() => {
+  const items=[['😊','Smile'],['💜','Purple heart'],['💙','Blue heart'],['✨','Sparkles'],['🌙','Moon'],['🌱','Growth'],['👏','Applause'],['👍','Well done'],['🎉','Celebration'],['🤔','Thinking']];
+  window.MoonEmojiPicker={create(field){const bar=document.createElement('div');bar.className='moon-emoji-picker';bar.setAttribute('aria-label','Add an emoji');for(const [emoji,name] of items){const b=document.createElement('button');b.type='button';b.textContent=emoji;b.title=name;b.setAttribute('aria-label','Insert '+name);b.onclick=()=>{const start=field.selectionStart??field.value.length,end=field.selectionEnd??start;if(field.maxLength>0&&field.value.length-(end-start)+emoji.length>field.maxLength)return;field.setRangeText(emoji,start,end,'end');field.dispatchEvent(new Event('input',{bubbles:true}));field.focus()};bar.append(b)}return bar}};
+})();

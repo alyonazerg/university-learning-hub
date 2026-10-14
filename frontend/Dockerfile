@@ -31,6 +31,8 @@ COPY --chmod=644 imt-idiom.html imt-idiom.css imt-idiom.js /usr/share/nginx/html
 COPY --chmod=644 imt-teacher.html imt-teacher.js /usr/share/nginx/html/
 COPY --chmod=644 teacher-login.html /usr/share/nginx/html/
 COPY --chmod=644 bug-report.js bug-report.css /usr/share/nginx/html/
+COPY --chmod=644 messages.js /usr/share/nginx/html/
+COPY --chmod=644 emoji-picker.js /usr/share/nginx/html/
 COPY --chmod=644 imt-student.html /usr/share/nginx/html/
 COPY --chmod=644 student-entry.html student-account.html student-account.js my-imt.js imt-reset.js access.css /usr/share/nginx/html/
 
