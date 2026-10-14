@@ -95,7 +95,7 @@
         else if(!Object.keys(state.attempt.responses||{}).length)actions.append(button('Back to material',()=>request('/imt/my/revise','POST')));
         save.textContent=multiple?'Check answer':save.textContent;actions.append(save);if(!multiple)form.append(label);form.append(actions);
         form.onsubmit = e => { e.preventDefault(); action(async () => {
-          if(reuse){const count=answer.value.trim().split(/[.!?]+(?:\s+|$)|\n+/).filter(part=>/[A-Za-z]/.test(part)).length;if(count<2)throw Error('Write a comment of 2–3 complete sentences using an appropriate idiom.');}
+          if(reuse){if(!/[A-Za-z]/.test(answer.value))throw Error('Please write your comment in English: 2–3 sentences about the situation, using an appropriate idiom.');const count=answer.value.trim().split(/[.!?]+(?:\s+|$)|\n+/).filter(part=>/[A-Za-z]/.test(part)).length;if(count<2)throw Error('Add another sentence to complete your comment. Use an appropriate idiom in 2–3 sentences.');}
           const next = await request('/imt/my/answer', 'PUT', {response: answer.value}); localStorage.removeItem(key);
           if (next.status === 'submitted' && next.attempt.last_feedback?.question_index===undefined) { try { return await request('/imt/my/results', 'POST'); } catch (error) { show(next); throw error; } }
           return next;

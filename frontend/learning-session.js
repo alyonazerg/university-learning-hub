@@ -47,7 +47,7 @@
       if (response.status === 404 && path.startsWith('/schedule-import/')) throw new Error('Update the server to import the semester schedule.');
       if (response.status === 404 && path.endsWith('/invitations')) throw new Error('Update the server to create invitations.');
       if ((response.status === 401 || (path === '/me' && [403, 404].includes(response.status))) && token) clearSession();
-      throw new Error(messages[detail] || (response.status === 422 ? 'Check the fields, dates and data format.' : 'Could not complete the action. Try again.'));
+      throw new Error(messages[detail] || (typeof detail==='string' ? detail : response.status === 422 ? 'Check the fields, dates and data format.' : 'Could not complete the action. Try again.'));
     }
     return response.status === 204 ? null : response.json();
   }

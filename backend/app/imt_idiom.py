@@ -255,6 +255,7 @@ def answer_my(body:AnswerBody,actor=Depends(principal),session=Depends(database)
         if a.get('version')=='adaptive_mcq_1':
             if not body.response.strip():raise HTTPException(422,'Write a sentence first')
             from .imt_ai import check_sentence,comment_sentence_count
+            if not re.search(r'[A-Za-z]',body.response):raise HTTPException(422,'Please write your comment in English: 2–3 sentences about the situation, using an appropriate idiom.')
             if comment_sentence_count(body.response)<2:raise HTTPException(422,'Write a comment of 2–3 complete sentences using an appropriate idiom.')
             checked=check_sentence(question['expression'],question['prompt'],body.response)
             feedback={'correct':checked['successful'],'answer':question['expression'],'stage':'reuse','feedback':checked['feedback'],'correction':checked['correction']}
