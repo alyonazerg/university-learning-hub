@@ -190,7 +190,20 @@ def submit(token:str,session=Depends(database)):
     if row.status!='assessment' or attempt.get('stage')!='context' or len(attempt.get('responses',{}))<len(row.entries)*2: raise HTTPException(409,'Complete retrieval and context stages first')
     row.status='submitted';row.result={'proposed_grade':None,'review_status':'pending','note':'AI evaluation is not configured in this MVP; teacher review required.'};session.commit();return public(row)
 @router.get('/learning/imt/collections',dependencies=[Depends(pilot_admin)])
-def list_collections(session=Depends(database)): return [public(r) for r in session.scalars(select(ImtIdiomCollection).order_by(ImtIdiomCollection.updated_at.desc()))]
+def list_collections(session=Depends(database)):
+    rows=[]
+    for row in session.scalars(select(ImtIdiomCollection).order_by(ImtIdiomCollection.updated_at.desc())):
+        data=public(row)
+        student=session.get(Student,row.student_id) if row.student_id else None
+        group=session.get(Group,student.group_id) if student and student.group_id else None
+        if group:data['group']=group.name
+        questions=row.attempt.get('questions',[]);responses=row.attempt.get('responses',{})
+        data['practice_complete']=bool(questions) and len(responses)==len(questions) and row.status in ['submitted','reviewed']
+        if data['practice_complete'] and row.attempt.get('version')=='adaptive_mcq_1' and not data['result'].get('practice_report'):
+            from .imt_ai import adaptive_report
+            data['result']['practice_report']=adaptive_report(row.entries,row.attempt)
+        rows.append(data)
+    return rows
 @router.put('/learning/imt/collections/{identifier}/grade',dependencies=[Depends(pilot_admin)])
 def grade(identifier:str,body:dict,session=Depends(database)):
     row=session.get(ImtIdiomCollection,identifier)
