@@ -137,3 +137,14 @@ body{background:linear-gradient(140deg,#f5f2fb,#f0f7fa);background-attachment:fi
 .my-imt-preview textarea{width:100%;min-height:80px;margin:0;resize:vertical}
 #connected-my-imt form>label{display:grid;gap:8px;margin:18px 0}
 @media(max-width:600px){.imt-actions{flex-direction:column}.imt-actions button{width:100%}.imt-method-tabs button{flex:1;padding:12px}}
+/* IMT column colours repeat the header meaning without relying on colour alone. */
+.my-imt-preview th:nth-child(1){background:#eee6fa;color:#54347f;border-top:3px solid #8961b7}
+.my-imt-preview th:nth-child(2){background:#e3f3f1;color:#225e59;border-top:3px solid #428a80}
+.my-imt-preview th:nth-child(3){background:#fff1d9;color:#79531b;border-top:3px solid #c19347}
+.my-imt-preview td:nth-child(1){background:#faf7ff}
+.my-imt-preview td:nth-child(2){background:#f3fbf9}
+.my-imt-preview td:nth-child(3){background:#fffbf2}
+.my-imt-preview td:nth-child(1) textarea{border-color:#d3bee9;background:#fefdff}
+.my-imt-preview td:nth-child(2) textarea{border-color:#afd4cc;background:#fdfffe}
+.my-imt-preview td:nth-child(3) textarea{border-color:#e6ce9f;background:#fffefa}
+.my-imt-preview textarea:focus-visible{outline:2px solid #6f5790;outline-offset:2px}
