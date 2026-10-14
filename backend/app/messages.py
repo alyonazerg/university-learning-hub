@@ -1,15 +1,15 @@
 """Authenticated one-to-one student/teacher conversations."""
 from datetime import timedelta
 import asyncio,json
-from uuid import UUID
+from uuid import UUID,uuid5
 from fastapi import APIRouter,Depends,HTTPException,Header
 from pydantic import Field
 from sqlalchemy import select,func,update
 from sqlalchemy.exc import IntegrityError
 from fastapi.responses import StreamingResponse
 from .db import SessionLocal
-from .learning import StrictModel,database,principal,group_for,no_store,now
-from .models import CampusMessage,Student,Group
+from .learning import StrictModel,database,principal,administrator,group_for,no_store,now
+from .models import CampusMessage,Student,Group,MessageBroadcast
 router=APIRouter(prefix='/learning/messages',dependencies=[Depends(no_store)])
 @router.get('/events')
 def live_events(authorization:str|None=Header(default=None)):
@@ -43,7 +43,37 @@ def participant(actor,student_id,session):
     if student.group_id:group_for(student.group_id,session)
     return student
 def view(message):
-    return {'id':message.id,'sender':message.sender_role,'body':message.body,'created_at':message.created_at.isoformat()+'Z','read_at':message.read_at.isoformat()+'Z' if message.read_at else None}
+    return {'id':message.id,'sender':message.sender_role,'body':message.body,'group':message.group_name,'created_at':message.created_at.isoformat()+'Z','read_at':message.read_at.isoformat()+'Z' if message.read_at else None}
+
+class BroadcastInput(StrictModel):
+    group_ids:list[int]=Field(default_factory=list,max_length=100)
+    all_groups:bool=False
+    body:str=Field(min_length=1,max_length=3000)
+    request_id:UUID
+def broadcast_view(row):return {'id':row.id,'body':row.body,'groups':row.groups,'sent':len(row.recipients),'created_at':row.created_at.isoformat()+'Z'}
+@router.post('/broadcast',status_code=201)
+def broadcast(body:BroadcastInput,actor=Depends(administrator),session=Depends(database)):
+    previous=session.get(MessageBroadcast,str(body.request_id))
+    if previous:return broadcast_view(previous)
+    groups=list(session.scalars(select(Group).where(Group.is_active.is_(True)))) if body.all_groups else [group_for(i,session) for i in set(body.group_ids)]
+    if not groups:raise HTTPException(422,'Choose at least one active group')
+    targets=list(session.scalars(select(Student).where(Student.is_active.is_(True),Student.group_id.in_([g.id for g in groups]))))
+    if not targets:raise HTTPException(422,'No registered active students in the selected groups')
+    if len(targets)>1000:raise HTTPException(422,'Send to at most 1000 students at a time')
+    count=session.scalar(select(func.count()).select_from(MessageBroadcast).where(MessageBroadcast.created_at>now()-timedelta(minutes=1)))
+    if count>=10:raise HTTPException(429,'Please wait before sending another group message')
+    batch=MessageBroadcast(id=str(body.request_id),body=body.body,groups=[{'id':g.id,'name':g.name} for g in groups],recipients=[s.public_id for s in targets]);session.add(batch)
+    names={g.id:g.name for g in groups}
+    for student in targets:session.add(CampusMessage(student_id=student.id,sender_role='admin',body=body.body,group_name=names[student.group_id],request_id=str(uuid5(body.request_id,student.public_id))))
+    try:session.commit()
+    except IntegrityError:
+        session.rollback();previous=session.get(MessageBroadcast,str(body.request_id))
+        if not previous:raise HTTPException(409,'Could not send the group message. Retry.')
+        return broadcast_view(previous)
+    return broadcast_view(batch)
+@router.get('/broadcasts',dependencies=[Depends(administrator)])
+def broadcasts(session=Depends(database)):
+    return [broadcast_view(row) for row in session.scalars(select(MessageBroadcast).order_by(MessageBroadcast.created_at.desc()).limit(100))]
 @router.get('/threads')
 def threads(actor=Depends(principal),session=Depends(database)):
     query=select(Student).where(Student.is_active.is_(True)).order_by(Student.pseudonym)

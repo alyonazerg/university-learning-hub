@@ -116,7 +116,7 @@
     const [decks, extra, coursework, plans, revisions, myImt] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me), request('/plans'), MoonRevisions.load(request, me), me.role==='student'?request('/imt/my').catch(error=>({loadError:error.message})):null]);
     if (version !== generation || !token) return;
     profile = me; $('sign-in').hidden = true; $('workspace').hidden = false;
-    window.MoonMessages?.render({profile:me,request});
+    window.MoonMessages?.render({profile:me,request,groups:me.role==='admin'?extra:[]});
     if(!document.querySelector('.dashboard-links a[href="#connected-messages"]')){
       const link=node('a','Messages');link.href='#connected-messages';link.onclick=e=>{e.preventDefault();history.replaceState(null,'',link.hash);showSection('connected-messages',true)};document.querySelector('#workspace .dashboard-links').append(link);
     }

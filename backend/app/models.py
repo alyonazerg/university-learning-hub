@@ -306,6 +306,15 @@ class CampusMessage(Base):
     student_id: Mapped[int] = mapped_column(ForeignKey('students.id'),index=True)
     sender_role: Mapped[str] = mapped_column(String(16))
     body: Mapped[str] = mapped_column(Text)
+    group_name: Mapped[str] = mapped_column(String(120),default='')
     request_id: Mapped[str] = mapped_column(String(36),unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
     read_at: Mapped[datetime|None] = mapped_column(DateTime,nullable=True)
+
+class MessageBroadcast(Base):
+    __tablename__='message_broadcasts'
+    id: Mapped[str] = mapped_column(String(36),primary_key=True)
+    body: Mapped[str] = mapped_column(Text)
+    groups: Mapped[list] = mapped_column(JSON)
+    recipients: Mapped[list] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)

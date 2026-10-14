@@ -1,6 +1,8 @@
 # Campus messages
 
-Teacher Hub and the student Learning Hub share the `Messages` section. Each registered student has a private conversation with the platform teacher. This version does not offer student-to-student or group chats, email delivery or push notifications.
+Teacher Hub and the student Learning Hub share the `Messages` section. Each registered student has a private conversation with the platform teacher. Teachers can also send to one group, several selected groups, or all active groups. These are broadcast messages delivered into each student's private conversation; student replies remain private. This version does not offer shared group chats, student-to-student messages, email delivery or closed-app push notifications.
+
+Broadcasts are saved with a snapshot of recipients in `message_broadcasts` (`025_message_broadcasts`). Inactive students and groups are excluded. Repeating the same request returns the existing delivery result and does not send again or add newly joined students. The teacher can view sent broadcasts and recipient counts. Individual messages carry a group label when sent as part of a broadcast.
 
 Messages are stored in PostgreSQL (`024_campus_messages`). The API under `/learning/messages` always checks the active session and conversation ownership. Student requests cannot read or write another student's conversation. Teachers can find students by alias and group. `request_id` makes retries idempotent. Message content is plain text and displayed through `textContent`.
 

@@ -48,3 +48,19 @@ def test_live_event_is_scoped_and_contains_no_message_text(client):
     event=asyncio.run(read_first())
     assert 'event: changed' in event and '"latest": 0' in event
     assert 'Private message' not in event
+
+def test_broadcast_multiple_groups_all_and_idempotency(client):
+    teacher=admin(client);first,second,first_id,second_id=students()
+    with SessionLocal() as session:
+        original=session.query(Group).filter_by(name='Messaging Test').one()
+        group=Group(name='Another Group',course_id='speech');inactive=Group(name='Inactive Group',course_id='speech',is_active=False);session.add_all([group,inactive]);session.flush()
+        session.add_all([Student(pseudonym='Third Student',group_id=group.id),Student(pseudonym='Paused Student',group_id=group.id,is_active=False),Student(pseudonym='Inactive Group Student',group_id=inactive.id)])
+        session.commit();ids=[original.id,group.id]
+    body={'group_ids':ids+ids,'body':'Hello groups! 💜','request_id':str(uuid4())}
+    assert client.post('/learning/messages/broadcast',headers=first,json=body).status_code==403
+    response=client.post('/learning/messages/broadcast',headers=teacher,json=body);assert response.status_code==201 and response.json()['sent']==3
+    assert client.post('/learning/messages/broadcast',headers=teacher,json=body).json()['sent']==3
+    messages=client.get('/learning/messages',headers=first).json()['messages'];assert len(messages)==1 and messages[0]['group']=='Messaging Test'
+    all_groups=client.post('/learning/messages/broadcast',headers=teacher,json={'all_groups':True,'body':'For all active groups','request_id':str(uuid4())});assert all_groups.json()['sent']==3 and len(all_groups.json()['groups'])==2
+    assert client.get('/learning/messages/broadcasts',headers=first).status_code==403
+    assert len(client.get('/learning/messages/broadcasts',headers=teacher).json())==2
