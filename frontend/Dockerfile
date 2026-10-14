@@ -26,6 +26,9 @@ COPY --chmod=644 action-feedback.js /usr/share/nginx/html/
 
 COPY --chmod=644 revision-test.html revision-test.js revision-session.js revision-tests.css /usr/share/nginx/html/
 
+# IMT idiom pilot page and its assets
+COPY --chmod=644 imt-idiom.html imt-idiom.css imt-idiom.js /usr/share/nginx/html/
+
 # Static directories require traversal permission; documents only need read access.
 RUN find /usr/share/nginx/html -type d -exec chmod 755 {} + \
     && find /usr/share/nginx/html -type f -exec chmod 644 {} +
