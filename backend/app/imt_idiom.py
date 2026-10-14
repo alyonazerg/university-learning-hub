@@ -1,7 +1,9 @@
 """Private single-student MVP for the IMT idiom assessment."""
 import hashlib,json,re,secrets
 from pathlib import Path
-from fastapi import APIRouter,Depends,HTTPException,Header
+from fastapi import APIRouter,Depends,HTTPException,Header,UploadFile,File
+import csv
+import io
 from pydantic import Field
 from sqlalchemy import select
 from .learning import StrictModel,administrator,database,no_store,now
@@ -36,6 +38,55 @@ def actor(token,session):
     return row
 def public(row):
     return {'id':row.id,'student_name':row.student_name,'group':row.group_code,'coursebook':row.coursebook,'unit':row.unit,'status':row.status,'entries':row.entries,'attempt':row.attempt if row.status in ['assessment','submitted','reviewed'] else {},'result':row.result if row.status=='reviewed' else {}}
+
+def parse_uploaded_material(filename:str, raw:bytes):
+    """Return editable idiom rows from CSV/XLSX/PDF; never auto-publishes OCR."""
+    suffix=Path(filename or '').suffix.lower()
+    rows=[]
+    if suffix=='.csv':
+        text=raw.decode('utf-8-sig',errors='replace')
+        rows=list(csv.DictReader(io.StringIO(text)))
+    elif suffix in {'.xlsx','.xlsm'}:
+        from openpyxl import load_workbook
+        sheet=load_workbook(io.BytesIO(raw),read_only=True,data_only=True).active
+        values=list(sheet.values)
+        if values:
+            headers=[str(x or '').strip().lower() for x in values[0]]
+            rows=[dict(zip(headers,[str(x or '').strip() for x in value])) for value in values[1:]]
+    elif suffix=='.pdf':
+        try:
+            from pypdf import PdfReader
+            text='\n'.join(page.extract_text() or '' for page in PdfReader(io.BytesIO(raw)).pages)
+        except Exception as exc:
+            raise HTTPException(422,f'Could not read PDF: {exc}')
+        # Conservative line-based extraction. Teacher confirms all rows before use.
+        current={}
+        for line in text.splitlines():
+            line=re.sub(r'^\s*[-–—]\s*','',line).strip()
+            m=re.match(r'\d+[.)]\s*(.+)',line)
+            if m:
+                if current.get('expression'): rows.append(current)
+                current={'expression':m.group(1).strip()}; continue
+            for key,markers in [('meaning',('перевод:', 'translation:')),('example',('example:',)),('explanation',('explain:', 'explanation:'))]:
+                if any(line.lower().startswith(marker) for marker in markers):
+                    current[key]=line.split(':',1)[1].strip(); break
+        if current.get('expression'): rows.append(current)
+    else:
+        raise HTTPException(422,'Use PDF, CSV or XLSX')
+    normalized=[]
+    for row in rows:
+        row={str(k).strip().lower():str(v or '').strip() for k,v in row.items()}
+        expression=row.get('expression') or row.get('idiom') or row.get('phrase') or row.get('идома') or ''
+        if expression:
+            normalized.append({'expression':expression,'meaning':row.get('meaning') or row.get('translation') or row.get('перевод') or '', 'example':row.get('example') or row.get('пример') or '', 'explanation':row.get('explanation') or row.get('explain') or row.get('объяснение') or ''})
+    if not normalized: raise HTTPException(422,'No idiom rows were found in the file')
+    return normalized[:200]
+
+@router.post('/learning/imt/materials/preview',dependencies=[Depends(pilot_admin)])
+async def preview_material(file:UploadFile=File(...)):
+    raw=await file.read()
+    if len(raw)>10*1024*1024: raise HTTPException(413,'File must be 10 MB or smaller')
+    return {'filename':file.filename,'rows':parse_uploaded_material(file.filename or '',raw),'requires_teacher_confirmation':True}
 @router.post('/learning/imt/collections',dependencies=[Depends(pilot_admin)])
 def create(body:dict,session=Depends(database)):
     name=str(body.get('student_name','')).strip();book=str(body.get('coursebook','Evolve 5'));unit=str(body.get('unit','7'));group=str(body.get('group',''))
