@@ -255,6 +255,27 @@ test('cabinet navigation reduces visible content, supports roles and preserves u
   assert.deepEqual(errors,[]);
 });
 
+test('teacher edits group details and transfers students without deleting their accounts',async t=>{
+  const {pageFor,errors}=await open(t);const page=await pageFor();await teacher(page);await section(page,'connected-groups');
+  const card=page.locator('#group-editors article').first();
+  await card.locator('.group-settings-form input').fill('Updated constellation');
+  await card.locator('.group-settings-form select').selectOption('grammar');
+  await card.getByRole('button',{name:'Save group',exact:true}).click();
+  await page.getByText('Group saved. Existing work and marks are preserved.',{exact:true}).waitFor();
+  assert.equal(await card.locator('h3').textContent(),'Updated constellation');
+  assert.equal(await card.locator('.group-settings-form select').inputValue(),'grammar');
+  await card.locator('.group-roster>summary').click();
+  const row=card.locator('.group-student-row').first();await row.locator('select').first().selectOption('2');
+  await row.getByRole('button',{name:'Save student'}).click();
+  await page.getByText('Student membership saved. Work and marks are preserved.',{exact:true}).waitFor();
+  assert.equal(await card.locator('.group-roster>summary').textContent(),'Students · 1 active');
+  const destination=page.locator('#group-editors article').nth(1);await destination.locator('.group-roster>summary').click();
+  assert.equal(await destination.locator('.group-student-row').count(),2);
+  await page.reload();await page.locator('#workspace').waitFor();await section(page,'connected-groups');
+  assert.equal(await page.locator('#group-editors article').first().locator('h3').textContent(),'Updated constellation');
+  assert.deepEqual(errors,[]);
+});
+
 test('teacher creates a real single-student Telegram invitation in the group cabinet', async t => {
   const {pageFor,errors}=await open(t);const page=await pageFor();await teacher(page);await section(page,'connected-groups');
   const group=page.locator('#group-editors article').first();await group.getByText('Invite a student',{exact:true}).click();

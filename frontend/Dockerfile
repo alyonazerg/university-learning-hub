@@ -36,6 +36,7 @@ COPY --chmod=644 message-alerts.js message-notifications-sw.js /usr/share/nginx/
 COPY --chmod=644 emoji-picker.js /usr/share/nginx/html/
 COPY --chmod=644 campus-home.js telegram-message-alerts.js /usr/share/nginx/html/
 COPY --chmod=644 student-profile.js mini-app.js /usr/share/nginx/html/
+COPY --chmod=644 group-settings.js /usr/share/nginx/html/
 COPY --chmod=644 campus-mobile.css /usr/share/nginx/html/
 COPY --chmod=644 imt-student.html /usr/share/nginx/html/
 COPY --chmod=644 student-entry.html student-account.html student-account.js my-imt.js imt-reset.js access.css /usr/share/nginx/html/

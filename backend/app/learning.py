@@ -165,7 +165,8 @@ def groups(session=Depends(database)):
         editor = session.get(CardEditor, group.id)
         result.append({'id': group.id, 'name': group.name, 'course_id': group.course_id,
             'editor_student_id': session.get(Student, editor.student_id).public_id if editor else None,
-            'students': [{'id': student.public_id, 'pseudonym': student.pseudonym} for student in group.students if student.is_active]})
+            'students': [{'id': student.public_id, 'pseudonym': student.pseudonym} for student in group.students if student.is_active],
+            'inactive_students': [{'id': student.public_id, 'pseudonym': student.pseudonym} for student in group.students if not student.is_active]})
     return result
 
 @router.post('/groups', status_code=201, dependencies=[Depends(administrator), Depends(no_store)])
@@ -178,6 +179,40 @@ def create_group(payload: GroupInput, session=Depends(database)):
         session.rollback()
         raise HTTPException(409, 'Group already exists')
     return {'id': group.id, 'name': group.name, 'course_id': group.course_id}
+
+
+@router.put('/groups/{group_id}', dependencies=[Depends(administrator), Depends(no_store)])
+def update_group(group_id: int, payload: GroupInput, session=Depends(database)):
+    group = group_for(group_id, session)
+    group.name, group.course_id = payload.name, payload.course_id
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(409, 'Group already exists')
+    return {'id': group.id, 'name': group.name, 'course_id': group.course_id}
+
+
+class MembershipUpdate(StrictModel):
+    group_id: int = Field(gt=0)
+    is_active: bool
+
+
+@router.put('/groups/{group_id}/students/{student_id}', dependencies=[Depends(administrator), Depends(no_store)])
+def update_membership(group_id: int, student_id: str, payload: MembershipUpdate, session=Depends(database)):
+    group_for(group_id, session)
+    group_for(payload.group_id, session)
+    student = session.scalar(select(Student).where(Student.public_id == student_id).with_for_update())
+    if not student or student.group_id != group_id:
+        raise HTTPException(409, 'Student membership changed. Refresh Groups and try again.')
+    changed = student.group_id != payload.group_id or student.is_active != payload.is_active
+    if changed:
+        # Revoke old editor permissions and open sessions; retain every submission/grade.
+        session.execute(delete(CardEditor).where(CardEditor.student_id == student.id))
+        session.execute(delete(LearningSession).where(LearningSession.student_id == student.id))
+        student.group_id, student.is_active = payload.group_id, payload.is_active
+    session.commit()
+    return {'id': student.public_id, 'group_id': student.group_id, 'is_active': student.is_active}
 
 
 @router.put('/groups/{group_id}/editor', dependencies=[Depends(administrator), Depends(no_store)])

@@ -30,3 +30,11 @@
   .profile-hero{padding:18px;gap:16px}.profile-hero .profile-avatar{width:96px;height:96px}.profile-hero h3{font-size:21px}.profile-hero p{font-size:13px}.profile-avatar-controls{display:grid;grid-template-columns:1fr}.profile-peer-grid{grid-template-columns:1fr 1fr}.profile-peer{padding:14px}.profile-peer h4{font-size:15px}.profile-peer p{font-size:12px}
 }
 @media(max-width:350px){.profile-peer-grid{grid-template-columns:1fr}.profile-hero{gap:10px}.profile-hero .profile-avatar{width:80px;height:80px}}
+#workspace .group-settings-form{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end;gap:14px;margin:18px 0 24px}
+.group-settings-form label,.group-student-row label{display:grid;gap:7px;min-width:0}
+#workspace .group-settings-form input,#workspace .group-settings-form select,#workspace .group-student-row select{margin:0;width:100%}
+#workspace .group-settings-form button{grid-column:1/-1}
+#workspace .group-student-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:14px;border:1px solid #e3d9ed;border-radius:12px;background:#fff;align-items:end}
+.group-student-row strong{grid-column:1/-1;overflow-wrap:anywhere}
+#workspace .group-student-row button{grid-column:1/-1}
+@media(max-width:500px){#workspace .group-settings-form,#workspace .group-student-row{grid-template-columns:minmax(0,1fr)}}

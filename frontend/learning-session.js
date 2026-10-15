@@ -171,6 +171,7 @@
       const course = window.MoonCourses.find(item => item.id === group.course_id)?.name || group.course_id;
       const option = node('option', group.name + ' · ' + course); option.value = group.id; $('connected-group').append(option);
       const article = node('article', undefined, 'word-list-card'); article.append(node('h3', group.name), node('p', course));
+      window.MoonGroupSettings?.mount(article,{group,groups,request,refresh,run});
       const label = node('label', 'Vocabulary editor', 'input-label'); label.htmlFor = 'editor-' + group.id;
       const select = node('select'); select.id = label.htmlFor;
       const none = node('option', 'Teacher only'); none.value = ''; select.append(none);
