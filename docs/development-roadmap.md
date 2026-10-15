@@ -2,6 +2,8 @@
 
 This is a development backlog, not a statement that the learning engine or official semester rating is implemented. Existing code must be audited before reusing it. Teacher confirms final academic marks. UI remains English.
 
+Teacher accepted this sequence on 15 October. Source-based task definitions and the group journal contract now live in `course-task-catalog.md`. IMT and extra are optional for both courses; an unselected optional task is never shown as a debt. The supplied grammar journal is a read-only layout/calculation reference, not data to publish or import wholesale. The subsequently supplied rating-plan DOCX defines grammar's 65 current-work + 15 extra + 20 credit structure; conflicting sheet maxima are not copied as policy. Teacher confirmed task maxima 2/3/3 for every grammar IMT topic, distinct from category caps. Remaining scoring decisions are flagged in the catalogue.
+
 ## Foundation and group management
 
 Groups have editable name, course (Speaking Practice / English Grammar) and membership. Teacher can transfer students, pause and restore access. Paused accounts remain available in the roster. Transfers revoke former editor privileges and sessions; account identifiers, saved submissions and marks remain unchanged. Historical task/group snapshots are not rewritten. Students join via verified invitations. Current model has one current group per account; simultaneous enrollment in multiple courses requires a separate enrollment model.
@@ -32,7 +34,7 @@ KTP is required for both courses and each group/semester. Audit the existing les
 
 ## Work submission and review
 
-Common engine for all IMT types, semester extra tasks and homework; separate templates/rubrics for grammar and Speaking Practice. Each template defines input formats, deadlines, attempts, maximum mark and semester contribution.
+Common engine for all IMT types, semester extra tasks and homework; separate templates/rubrics for grammar and Speaking Practice. Each template defines input formats, deadlines, attempts, maximum mark and semester contribution. IMT and extra have an optional selection/reservation lifecycle, category/selection-count caps and no automatic debt for nonparticipation. Classroom submission instructions in source documents become platform workflows, not a reason to send work to external services.
 
 Lifecycle: assigned → draft → submitted → AI queued → teacher review → graded / revision requested → resubmitted. Lateness is a separate flag. Keep every submitted version and teacher comment. AI proposals do not publish final marks automatically.
 
@@ -63,4 +65,4 @@ Invite two students from each group to the focus group, with varied devices and 
 5. Expand KTP, task templates, practice games and semester journal; add attendance credit.
 6. Expand test/experiment controls, analytics, achievements and PWA.
 
-Decision inputs still needed: assignment lists/rubrics; semester caps/weights; which grammar topics and lexical sets to start with; what counts as mastery; how practice/hints/retries contribute to academic credit and XP.
+Task menus and rating-plan structure have been supplied; see `course-task-catalog.md`. Decision inputs still needed: attendance's place in the additional pool and exact rounding; task-to-category contribution treatment; detailed missing rubric splits; reconcile test scoring versions; choose initial material and mastery criteria; define how practice/hints/retries contribute to academic credit and XP.
