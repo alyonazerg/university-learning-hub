@@ -17,7 +17,7 @@ KTP is required for both courses and each group/semester. Audit the existing les
 - Connect grammar topics and lexical sets to the mastery engine, and link each row to the actual assignment rather than duplicating its content and marks.
 - Copy a semester plan/template to another group, previewing that group's schedule, holidays and date differences. Reusing an assignment template must not copy students' attempts or marks.
 - Reschedule a lesson or the remaining plan with a preview of affected deadlines. Do not silently move existing test dates, active assignments or student submissions.
-- Keep planned and actual dates/topics separately; support taught, postponed and canceled states. Attendance and participation awards link to the actual lesson and cannot be duplicated by rescheduling.
+- Keep planned and actual dates/topics separately; support taught, postponed and canceled states. Attendance records and separately assessed participation link to the actual lesson and cannot be duplicated by rescheduling. Attendance itself awards no points.
 - Teacher view covers plan completion, overdue topics and upcoming assessments; students see the published plan and their associated tasks. Support draft/published versions and a printable/exportable KTP.
 - An optional AI draft can suggest a structure from teacher-provided materials; teacher reviews it before publication. Do not invent textbook units, holidays or an official program.
 
@@ -42,9 +42,9 @@ Persistent AI job queue with progress, safe retries, clear failures and deduplic
 
 ## Attendance, journal and semester rating
 
-Attendance awards participation credit according to the teacher's policy because all attendees are questioned. Bulk attendance entry; individual correction, lateness, excused absence, canceled lessons and make-up handling. Repeating save never doubles credit.
+Confirmed teacher clarification: attendance is private teacher bookkeeping only. Presence, absence or an attendance percentage must never automatically award academic points or XP, affect ranking, consume the extra-task pool or block credit. Support bulk attendance entry, corrections, lateness, excused absence and canceled lessons. Participation/answers are separate assessed activities, entered explicitly by the teacher; do not infer them from presence.
 
-One official semester journal aggregates homework, IMT, extra work, attendance/participation, approved learning-practice credit and tests. Explain each total with its source; preserve audit history and export. No formula or weight is assumed until the teacher supplies the course rules. Keep XP separate from this academic total.
+One official semester journal aggregates homework, IMT, extra work, explicitly assessed participation, approved learning-practice credit and tests. Attendance stays outside the academic and XP ledgers. Explain each total with its source; preserve audit history and export. Keep XP separate from this academic total. Grammar's additional 15 points are for extra tasks, not presence.
 
 ## Tests and research
 
@@ -62,7 +62,7 @@ Invite two students from each group to the focus group, with varied devices and 
 2. Confirm assignment inventory, KTP structure, official scoring policies and learning-practice contribution for each course.
 3. Deliver one end-to-end submission/review task and one mastery/review activity for each course, including both ledgers.
 4. Pilot with the focus group; repair critical problems and verify backup restoration.
-5. Expand KTP, task templates, practice games and semester journal; add attendance credit.
+5. Expand KTP, task templates, practice games and semester journal; include private attendance tracking and separately assessed participation.
 6. Expand test/experiment controls, analytics, achievements and PWA.
 
-Task menus and rating-plan structure have been supplied; see `course-task-catalog.md`. Decision inputs still needed: attendance's place in the additional pool and exact rounding; task-to-category contribution treatment; detailed missing rubric splits; reconcile test scoring versions; choose initial material and mastery criteria; define how practice/hints/retries contribute to academic credit and XP.
+Task menus and rating-plan structure have been supplied; see `course-task-catalog.md`. Attendance policy is settled: private tracking with no points. Decision inputs still needed: task-to-category contribution treatment; detailed missing rubric splits; reconcile test scoring versions; choose initial material and mastery criteria; define how practice/hints/retries and explicitly assessed participation contribute to academic credit and XP.
