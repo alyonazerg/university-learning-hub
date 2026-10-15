@@ -47,6 +47,7 @@
       if (response.status === 404 && path.startsWith('/schedule-import/')) throw new Error('Update the server to import the semester schedule.');
       if (response.status === 404 && path.endsWith('/invitations')) throw new Error('Update the server to create invitations.');
       if ((response.status === 401 || (path === '/me' && [403, 404].includes(response.status))) && token) clearSession();
+      if(path==='/profile'&&Array.isArray(detail))throw new Error(detail.map(item=>String(item.msg||'Check your profile settings.').replace(/^Value error, /,'')).join(' '));
       throw new Error(messages[detail] || (typeof detail==='string' ? detail : response.status === 422 ? 'Check the fields, dates and data format.' : 'Could not complete the action. Try again.'));
     }
     return response.status === 204 ? null : response.json();
@@ -70,6 +71,7 @@
   const sessionKey='moon-learning-session:'+base;
   function storeSession(result){try{sessionStorage.setItem(sessionKey,JSON.stringify({token:result.access_token,expires_at:Date.now()+result.expires_in*1000}));}catch{}}
   function clearSession() {
+    document.body.classList.remove('campus-connected');$('connected-profile')?._profileCleanup?.();
     $('connected-messages')?._messageCleanup?.();$('connected-bugs')?._bugCleanup?.();$('connected-imt')?._imtCleanup?.();
     window.MoonSpeakingAudio?.stopAll();
     try{sessionStorage.removeItem(sessionKey);}catch{}generation++; token = null; profile = null; $('workspace').hidden = true; $('sign-in').hidden = false;
@@ -90,21 +92,25 @@
     'connected-imt': ['connected-imt'],
     'connected-bugs': ['connected-bugs'],
     'connected-messages': ['connected-messages'],
-    'connected-home': ['connected-home']
+    'connected-home': ['connected-home'],
+    'connected-profile': ['connected-profile']
   };
   let activeSection = '';
   function showSection(id, focus = false) {
     if (!cabinetSections[id] || (id === 'connected-groups' && profile?.role !== 'admin')) id = 'connected-home';
+    if(id==='connected-profile'&&profile?.role!=='student')id='connected-home';
     activeSection = id;
     const visible = cabinetSections[id];
     for (const section of Object.values(cabinetSections).flat()) $(section)?.classList.toggle('cabinet-inactive', !visible.includes(section));
     document.querySelectorAll('.dashboard-links a').forEach(link => {
       const selected = link.hash === '#' + id;
       if (selected) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
+      if(selected&&matchMedia('(max-width:700px)').matches)link.scrollIntoView({block:'nearest',inline:'center'});
       if(link.hash==='#connected-revisions')link.textContent=profile?.role==='admin'?'Revision Tests':'My results';
       link.hidden = link.hash === '#connected-groups' && profile?.role !== 'admin';
     });
     if (focus) {const heading = $(visible[0]).querySelector('h2'); if (heading) {heading.tabIndex = -1; heading.focus({preventScroll:true});} $(visible[0]).scrollIntoView({block:'start'});}
+    window.MoonMiniApp?.fitChat();
   }
   window.MoonCabinet = {show: id => showSection(id, true)};
   document.querySelectorAll('.dashboard-links a').forEach(link => link.addEventListener('click', event => {
@@ -117,6 +123,8 @@
     const [decks, extra, coursework, plans, revisions, myImt] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me), request('/plans'), MoonRevisions.load(request, me), me.role==='student'?request('/imt/my').catch(error=>({loadError:error.message})):null]);
     if (version !== generation || !token) return;
     profile = me; $('sign-in').hidden = true; $('workspace').hidden = false;
+    document.body.classList.add('campus-connected');
+    $('connected-profile')?._profileCleanup?.();window.MoonProfile?.render({profile:me,request});
     window.MoonHome?.render({profile:me,groups:me.role==='admin'?extra:[],coursework,plans,myImt,request});
     if(!document.querySelector('.dashboard-links a[href="#connected-home"]')){const link=node('a','Home');link.href='#connected-home';link.onclick=e=>{e.preventDefault();history.replaceState(null,'',link.hash);showSection('connected-home',true)};document.querySelector('#workspace .dashboard-links').prepend(link)}
     window.MoonMessages?.render({profile:me,request,groups:me.role==='admin'?extra:[]});

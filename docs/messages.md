@@ -15,3 +15,11 @@ Telegram copies use the existing `TELEGRAM_BOT_TOKEN` through `telegram_messages
 The shared `campus-home.js` routes the logo to the authenticated Home section, falling back to public landing for expired/absent sessions. Role-specific cards use existing coursework, group, IMT and timetable data. No fabricated progress figures are shown.
 
 Relevant checks: `backend/tests/test_messages.py`. Teacher sessions are shared by the current admin role; separate staff identities or permissions require an account model change.
+
+## Mobile layout and notification checks · 15 October 2026
+
+The phone navigation is a single horizontally scrollable row. Student chats hide the redundant conversation sidebar; the timeline fits the available visual viewport, the composer stays compact and emoji scroll in one row. The Mini App requests expansion and reacts to viewport changes. Report a bug is in the page header (or a normal footer on pages without one), never a floating overlay.
+
+Messages → Notifications displays Telegram on/off even while collapsed. Open Telegram alerts, start `@mooncampusbot`, then use **Enable & test Telegram alerts**. The teacher must connect their Telegram identity first. Tests use the existing bot token and the verified recipient, are throttled, and explain blocked/not-started bots, invalid tokens and network failures. `telegram_error` stores a safe explanation on real messages; token values and Telegram response payloads are never returned. A successful test means the bot accepted delivery, not that the phone's OS notification permission or chat sound is enabled.
+
+**Sound & browser alerts → Test sound** activates audio from an explicit gesture and plays a preview. Audio is re-armed on later gestures, including Send after app switches. System notifications now respect the sound preference instead of always being silent. iPhone Silent Mode, Telegram chat mute settings and background suspension still apply; browser sound is not closed-app push. Telegram is the supported background notification path in this version.

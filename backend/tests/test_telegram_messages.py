@@ -29,3 +29,14 @@ def test_teacher_connection_and_failed_delivery_preserve_message(client):
         result=client.post('/learning/messages',headers=first,json={'body':'Message stays saved','request_id':str(uuid4())});assert result.status_code==201
     with SessionLocal() as session:
         message=session.get(CampusMessage,result.json()['id']);assert message.body=='Message stays saved' and message.telegram_status=='failed'
+
+def test_telegram_test_explains_blocked_bot_without_exposing_token(client):
+    first,_,first_id,_=students()
+    with SessionLocal() as session:
+        student=session.query(Student).filter_by(public_id=first_id).one();student.telegram_user_id=777001;session.commit()
+    with patch('app.telegram_messages.httpx.post',return_value=SimpleNamespace(is_success=False,status_code=403)):
+        response=client.post('/learning/messages/telegram/test',headers=first,json={})
+    assert response.status_code==200 and not response.json()['delivered']
+    assert 'Start' in response.json()['message'] and 'synthetic-test-bot' not in response.text
+    assert client.post('/learning/messages/telegram/test',headers=first,json={}).status_code==429
+    assert client.get('/learning/messages/telegram',headers=first).json()['configured']

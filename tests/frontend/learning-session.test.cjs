@@ -36,7 +36,7 @@ async function open(t,connected=true) {
   await context.route('https://telegram.org/js/telegram-web-app.js',route=>route.fulfill({body:'// Offline SDK fixture'}));
   const apiBase=connected?'http://127.0.0.1:'+port:'';
   await context.route('**/config.js',route=>route.fulfill({contentType:'text/javascript',body:'window.MOON_CAMPUS_API_BASE='+JSON.stringify(apiBase)+';'}));
-  const errors=[];context.on('page',page=>page.on('pageerror',error=>errors.push(error.message)));
+  const errors=[];context.on('page',page=>page.on('pageerror',error=>errors.push(error.stack||error.message)));
   async function pageFor(uid) {
     const page=await context.newPage();
     if(uid) {
@@ -228,7 +228,7 @@ test('empty groups explain unavailable task and attendance forms without layout 
 test('cabinet navigation reduces visible content, supports roles and preserves unfinished forms', async t => {
   const {pageFor,errors}=await open(t);const page=await pageFor();await teacher(page);
   assert.equal(await page.locator('html').getAttribute('lang'),'en');assert(!/[А-Яа-яЁё]/.test(await page.locator('body').innerText()));
-  assert(await page.locator('#connected-schedule').isVisible());
+  assert(await page.locator('#connected-home').isVisible());
   assert(!(await page.locator('#connected-coursework').isVisible()));
   await section(page,'connected-groups');assert(!(await page.locator('#connected-group-form').isVisible()));
   await page.locator('#connected-groups > details > summary').click();await page.locator('#new-group-name').fill('Unfinished group');
@@ -246,6 +246,12 @@ test('cabinet navigation reduces visible content, supports roles and preserves u
   await page.screenshot({path:'/workspace/work/cabinet-ux-desktop.png',fullPage:true});
   const learner=await pageFor(11);await student(learner);assert(!(await learner.locator('.dashboard-links a[href="#connected-groups"]').isVisible()));
   await section(learner,'connected-coursework');assert(!(await learner.getByText('Create assignment',{exact:true}).count()));
+  await section(learner,'connected-profile');await learner.locator('.profile-form').waitFor();
+  await learner.locator('.profile-form textarea').fill('A curious reader and moon gazer.');
+  await learner.locator('.profile-actions button').click();await learner.getByText('✓ Profile saved',{exact:true}).waitFor();
+  await learner.reload();await learner.locator('#workspace').waitFor();await section(learner,'connected-profile');
+  await learner.locator('.profile-form').waitFor();assert.equal(await learner.locator('.profile-form textarea').inputValue(),'A curious reader and moon gazer.');
+  assert.equal(await learner.locator('.profile-privacy input:checked').count(),0);
   assert.deepEqual(errors,[]);
 });
 

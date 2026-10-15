@@ -309,6 +309,7 @@ class CampusMessage(Base):
     body: Mapped[str] = mapped_column(Text)
     group_name: Mapped[str] = mapped_column(String(120),default='')
     telegram_status: Mapped[str] = mapped_column(String(16),default='pending')
+    telegram_error: Mapped[str] = mapped_column(String(200),default='')
     request_id: Mapped[str] = mapped_column(String(36),unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)
     read_at: Mapped[datetime|None] = mapped_column(DateTime,nullable=True)
@@ -326,3 +327,22 @@ class TeacherTelegramAlert(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     chat_id: Mapped[int] = mapped_column(BigInteger)
     enabled: Mapped[bool] = mapped_column(Boolean,default=True)
+
+class StudentProfile(Base):
+    __tablename__ = 'student_profiles'
+    student_id: Mapped[int] = mapped_column(ForeignKey('students.id'), primary_key=True)
+    bio: Mapped[str] = mapped_column(String(160), default='')
+    avatar_seed: Mapped[int] = mapped_column(default=1)
+    avatar_theme: Mapped[str] = mapped_column(String(20), default='mooncat')
+    share_profile: Mapped[bool] = mapped_column(Boolean, default=False)
+    share_rating: Mapped[bool] = mapped_column(Boolean, default=False)
+
+class StudentXpEvent(Base):
+    __tablename__ = 'student_xp_events'
+    __table_args__ = (UniqueConstraint('student_id', 'milestone', name='uq_student_milestone'),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey('students.id'), index=True)
+    milestone: Mapped[str] = mapped_column(String(30))
+    points: Mapped[int] = mapped_column()
+    policy_version: Mapped[str] = mapped_column(String(20), default='milestones-v1')
+    occurred_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

@@ -1,6 +1,13 @@
 # Profiles, avatars and leaderboards — approved product requirements
 
-Status: production requirements remain pending. A synthetic browser demonstration now implements opt-in within-group and team-only cross-group rankings; see learning-preview.md. Profile settings and the server XP ledger are not implemented.
+Status (15 October 2026): connected student profiles and a server milestone XP ledger are implemented in migration `027_student_profiles`. Production availability requires deploying the branch. The broader competition requirements below remain a roadmap, not a claim of implemented weekly/monthly or cross-group rankings.
+
+## Connected profile implementation
+- Home → My profile: optional English bio (160 characters), explicit reminder not to share real names or personal details, approved companion themes and a procedural SVG avatar generator. No uploads, external AI calls or new API keys. Server validation rejects unknown avatar themes, contact links, handles and phone-like strings; the English bio reminder does not automatically detect every real name. Moderation/reporting uses the global Report a bug entry; a dedicated profile moderation workflow remains future work.
+- Profile sharing and group XP ranking are separate, unchecked opt-ins. Turning profile sharing off also turns ranking off. `GET /learning/profile/group` returns only opted-in, active members of the caller's own group; no Telegram identifiers, legal names, academic grades or other-group membership.
+- Four lifetime milestones (`milestones-v1`): first submitted IMT material +10, completed IMT practice +30, all-correct recall quiz +20, first campus message +10. Verified from persisted account-linked activity. The unique `(student_id, milestone)` constraint prevents repeated submissions, resets, concurrent refreshes or retries from farming XP. Awards are recorded when profiles are viewed; they are not an activity-time history for weekly rankings. Existing earned milestones survive resets.
+- All-time group top 10 includes only volunteers; equal XP has equal rank. Achievements are visible with shared profiles; the numeric XP rating requires separate opt-in. Academic grades are never used to award XP and are never modified by it.
+- Source: `backend/app/profiles.py`, `frontend/student-profile.js`. Tests cover privacy, validation, migration round trip, idempotent awards, real cabinet login/reload and mobile avatar controls.
 
 ## Teacher identity
 - Teacher public display name: **✦ Lunar Thyme**; Telegram username: `@lunarthyme`.

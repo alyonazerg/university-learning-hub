@@ -1,7 +1,8 @@
 (() => {
   const base=(window.MOON_CAMPUS_API_BASE||'https://api.mooncampus.ru').replace(/\/$/,''), n=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e};
-  const css=document.createElement('link');css.rel='stylesheet';css.href='bug-report.css?v=20261014-02';document.head.append(css);
-  const trigger=n('button','Report a bug','bug-trigger');trigger.type='button';document.body.append(trigger);
+  const css=document.createElement('link');css.rel='stylesheet';css.href='bug-report.css?v=20261015-01';document.head.append(css);
+  const trigger=n('button','Report a bug','bug-trigger');trigger.type='button';trigger.title='Report a bug';trigger.setAttribute('aria-label','Report a bug');
+  const host=document.querySelector('.topbar');if(host)host.append(trigger);else{const footer=n('footer',undefined,'bug-footer');footer.append(trigger);(document.querySelector('main')||document.body).append(footer)}
   const dialog=n('dialog',undefined,'bug-dialog');const form=n('form');const header=n('div',undefined,'bug-header');const close=n('button','Close','bug-close');close.type='button';close.onclick=()=>dialog.close();header.append(n('h2','Report a bug'),close);form.append(header,n('p','Tell us what went wrong. A screenshot helps us find the problem.'));
   const inputs={};for(const [key,label,required] of [['title','Short title',true],['description','What went wrong?',true],['steps','Steps to reproduce (optional)',false],['expected','What did you expect? (optional)',false]]){const l=n('label',label);const input=n(key==='title'?'input':'textarea');input.required=required;input.maxLength=key==='title'?160:key==='description'?5000:key==='steps'?3000:2000;input.name=key;if(key!=='title')input.rows=3;l.append(input);form.append(l);inputs[key]=input}
   const label=n('label','Screenshot (optional, up to 5 MB)'),file=n('input');file.type='file';file.accept='image/png,image/jpeg,image/webp';label.append(file);form.append(label,n('p','Page and browser details are included automatically. Avoid screenshots containing passwords or private keys.','bug-hint'));
