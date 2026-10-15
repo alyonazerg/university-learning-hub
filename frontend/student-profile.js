@@ -53,7 +53,7 @@
       const achievements=n('div',undefined,'profile-achievements');achievements.append(n('h3','Your achievements'));
       if(!data.achievements.length)achievements.append(n('p','Your first chapter starts here. Submit an IMT list, finish practice or send your first message to earn a badge.','muted'));
       for(const badge of data.achievements)achievements.append(n('div',`${badge.icon} ${badge.label} · +${badge.points} XP`,'profile-badge'));content.append(achievements);
-      const rules=n('details');rules.append(n('summary','How XP works'),n('p','One-time milestones: submit your first IMT list +10; complete IMT practice +30; answer a whole IMT quiz correctly +20; send your first campus message +10. Repeating or resetting cannot earn the same reward again.'));content.append(rules);
+      const rules=n('details');rules.append(n('summary','How XP works'),n('p','One-time milestones: submit your first IMT list +10; complete IMT practice +30; answer a whole IMT quiz correctly +20; send your first campus message +10. Repeating or resetting cannot earn the same reward again. Teacher-approved assignments can also award their configured XP once per assignment; corrections replace that award.'));content.append(rules);
       const peers=n('div',undefined,'profile-peers');content.append(peers);
       async function groupLoad(){try{const group=await request('/profile/group');peers.replaceChildren(n('h3','Your group’s constellation'));
         if(!group.profiles.length)peers.append(n('p','No shared profiles yet. Sharing is always optional.','muted'));

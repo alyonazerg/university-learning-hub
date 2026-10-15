@@ -26,11 +26,11 @@
   function dateValue(value) {return new Date(value + ':00+03:00').toISOString();}
   const lines = value => value.split(/\n/).map(item => item.trim()).filter(Boolean);
   async function load(request, profile) {
-    const [tasks, attendance] = await Promise.all([request('/tasks'), request('/attendance')]);
+    const [tasks, attendance,catalog] = await Promise.all([request('/tasks'), request('/attendance'),request('/coursework/catalog').catch(()=>[])]);
     const details = await Promise.all(tasks.map(async task => ({task,
       submissions: await request('/tasks/' + task.id + '/submissions'),
       access: profile.role === 'admin' && task.kind === 'checkpoint' ? await request('/tasks/' + task.id + '/access') : []})));
-    return {tasks, details, attendance};
+    return {tasks, details, attendance,catalog};
   }
   function render(data, {profile, groups, request, run, refresh}) {
     const area = document.getElementById('connected-coursework');
@@ -44,6 +44,8 @@
       article.append(node('h3', task.title), node('p', types[task.kind] + ' · ' + (window.MoonCourses.find(course => course.id === task.course_id)?.name || task.course_id)),
         node('p', 'Period: ' + format(task.starts_at) + ' — ' + format(task.ends_at) + ' · Moscow'));
       if (profile.role === 'admin') article.append(node('p', 'Groups: ' + groups.filter(group => task.group_ids.includes(group.id)).map(group => group.name).join(', ')));
+      if(task.optional)article.append(node('p','Optional · choose this task if you would like to complete it. Not selecting it creates no debt.','muted'));
+      if(task.assessment?.max_points)article.append(node('p',`${task.assessment.max_points} points · ${task.assessment.semester} · period ${task.assessment.period}`));
       if (task.test_at) article.append(node('p', 'Test: ' + format(task.test_at)));
       if (!task.allowed) article.append(node('p', 'Access will open after your teacher checks your certificate.', 'muted'));
       else {
@@ -73,6 +75,10 @@
         else item.append(node('p', work.content, 'coursework-text'));
         item.append(MoonPhotos.gallery(work.photos));
         if (work.feedback) item.append(node('p', 'Teacher feedback: ' + work.feedback, 'coursework-text'));
+        if(window.MoonCourseworkReview)item.append(MoonCourseworkReview.status(work));
+        if(work.review)item.append(node('p',`${work.review.points===null?'Revision requested':work.review.points+' / '+task.assessment.max_points+' points'} · ${work.review.comment}`));
+        if(work.review&&profile.role==='student')window.MoonCourseworkReview?.history(item,work,request);
+        for(const file of work.attachments||[])item.append(button('Download '+file.name,()=>window.MoonCourseworkFiles.download(file),run));
         if (profile.role === 'admin') {
           if (work.kind === 'text') {
             const analysis = MoonTextReview.analyse(work.content, task.vocabulary);
@@ -82,10 +88,11 @@
               node('p', 'This check finds forms and patterns; your teacher assesses accuracy and context.', 'muted'));
             for (const suggestion of analysis.suggestions) item.append(node('p', suggestion, 'muted'));
           }
+          if(task.assessment?.max_points&&window.MoonCourseworkReview){MoonCourseworkReview.reviewForm(item,work,task.assessment,{request});}else{
           const form = node('form'), comment = field(form, 'Feedback on this attempt', 'feedback-' + work.id, 'textarea', 10000); comment.value = work.feedback;
           submit(form, 'Save feedback'); form.addEventListener('submit', event => {event.preventDefault(); run(async () => {
             await request('/submissions/' + work.id + '/feedback', 'PUT', {comment: comment.value.trim()}); await done('Feedback saved.');
-          });}); item.append(form);
+          });}); item.append(form);}
         }
         article.append(item);
       }
@@ -120,6 +127,7 @@
     const vocabulary = field(form, 'Target vocabulary · one expression per line', 'server-task-vocabulary', 'textarea', 20000); vocabulary.required = false;
     const constructions = field(form, 'Target structures · one per line', 'server-task-constructions', 'textarea', 20000); constructions.required = false;
     const criteria = field(form, 'Criteria (optional)', 'server-task-criteria', 'textarea', 10000); criteria.required = false;
+    const policy=window.MoonCourseworkReview?.taskFields(form,{course,kind,title,description,criteria,catalog:data.catalog||[]});
     function mode() {test.hidden = kind.value !== 'checkpoint'; test.parentElement.hidden = test.hidden; checkpoint.hidden = kind.value !== 'compensation'; checkpoint.parentElement.hidden = checkpoint.hidden; checkpoint.required = !checkpoint.hidden;}
     course.addEventListener('change', groupChoices); kind.addEventListener('change', mode); groupChoices(); mode();
     const save = submit(form, 'Save assignment'); save.id = 'server-task-save'; groupChoices();
@@ -128,7 +136,7 @@
       if (!ids.length) throw new Error('Choose at least one group.');
       await request('/tasks', 'POST', {title: title.value.trim(), description: description.value.trim(), group_ids: ids, kind: kind.value,
         starts_at: dateValue(start.value), ends_at: dateValue(end.value), test_at: kind.value === 'checkpoint' && test.value ? dateValue(test.value) : null,
-        checkpoint_id: kind.value === 'compensation' ? checkpoint.value : null, vocabulary: lines(vocabulary.value), constructions: lines(constructions.value), criteria: criteria.value.trim()});
+        checkpoint_id: kind.value === 'compensation' ? checkpoint.value : null, vocabulary: lines(vocabulary.value), constructions: lines(constructions.value), criteria: criteria.value.trim(),...(policy?{assessment:policy()}:{})});
       await done('Assignment saved for the selected groups.');
     });}); details.append(form); area.append(details);
   }
@@ -137,21 +145,28 @@
     const kind = select(form, 'Response format', 'answer-kind-' + task.id, [['text', 'Text / photos'], ['link', 'Link']]);
     const content = field(form, 'Response or link', 'answer-' + task.id, 'textarea', 20000); content.required = false;
     const photos = MoonPhotos.picker('answer-photos-' + task.id); form.append(photos.element);
+    const files=window.MoonCourseworkFiles?.picker(form,task);
+    const draftKey=window.MoonCourseworkFiles?.draftKey(task.id)||'moon-coursework-draft:'+task.id;try{content.value=sessionStorage.getItem(draftKey)||''}catch{}
+    content.addEventListener('input',()=>{try{sessionStorage.setItem(draftKey,content.value)}catch{}});
     const save = submit(form, 'Submit work');
     let pending = null;
     form.addEventListener('submit', event => {event.preventDefault(); run(async () => {
       if (photos.busy || photos.invalid) throw new Error('Wait for photo processing or fix the selected files.');
-      const body = {kind: kind.value, content: content.value.trim(), photos: photos.photos};
-      if (!body.content && !body.photos.length) throw new Error('Add text, a link or a photo.');
+      if(files?.busy)throw new Error('Wait for the file upload to finish.');
+      const body = {kind: kind.value, content: content.value.trim(), photos: photos.photos,...(files?{attachment_ids:files.ids}: {})};
+      if (!body.content && !body.photos.length&&!files?.ids.length) throw new Error('Add text, a link, a file or a photo.');
       const fingerprint = JSON.stringify(body);
       if (!pending || pending.fingerprint !== fingerprint) pending = {fingerprint, id: crypto.randomUUID()};
       await request('/tasks/' + task.id + '/submissions', 'POST', {...body, request_id: pending.id});
+      try{sessionStorage.removeItem(draftKey)}catch{}files?.clear();
       // Keep the same request ID after a transport failure; do not spend another attempt.
       save.disabled = true; await done('Work saved.');
     });}); article.append(form);
   }
   function renderAttendance(lessons, {profile, groups, request, run, done}) {
     const area = document.getElementById('connected-attendance'); area.replaceChildren(node('h2', 'Attendance'));
+    if(profile.role!=='admin'){area.append(node('p','Attendance is private teacher bookkeeping and awards no points.'));return}
+    area.append(node('p','Private register · presence awards no academic points or XP.','muted'));
     area.append(node('p', 'This register uses learning aliases only. Real names are not required. Dates and times use Moscow time.', 'muted'));
     if (profile.role === 'admin') {
       const form = node('form'); form.id = 'server-lesson-form';

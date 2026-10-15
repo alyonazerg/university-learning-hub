@@ -71,6 +71,7 @@
   const sessionKey='moon-learning-session:'+base;
   function storeSession(result){try{sessionStorage.setItem(sessionKey,JSON.stringify({token:result.access_token,expires_at:Date.now()+result.expires_in*1000}));}catch{}}
   function clearSession() {
+    for(const id of ['connected-review-queue','connected-journal'])$(id)?._courseworkCleanup?.();
     document.body.classList.remove('campus-connected');$('connected-profile')?._profileCleanup?.();
     $('connected-messages')?._messageCleanup?.();$('connected-bugs')?._bugCleanup?.();$('connected-imt')?._imtCleanup?.();
     window.MoonSpeakingAudio?.stopAll();
@@ -93,12 +94,15 @@
     'connected-bugs': ['connected-bugs'],
     'connected-messages': ['connected-messages'],
     'connected-home': ['connected-home'],
-    'connected-profile': ['connected-profile']
+    'connected-profile': ['connected-profile'],
+    'connected-review-queue':['connected-review-queue'],'connected-journal':['connected-journal']
   };
   let activeSection = '';
   function showSection(id, focus = false) {
     if (!cabinetSections[id] || (id === 'connected-groups' && profile?.role !== 'admin')) id = 'connected-home';
     if(id==='connected-profile'&&profile?.role!=='student')id='connected-home';
+    if(id==='connected-review-queue'&&profile?.role!=='admin')id='connected-home';
+    if(id!==activeSection)$('account-status').textContent='';
     activeSection = id;
     const visible = cabinetSections[id];
     for (const section of Object.values(cabinetSections).flat()) $(section)?.classList.toggle('cabinet-inactive', !visible.includes(section));
@@ -107,7 +111,8 @@
       if (selected) link.setAttribute('aria-current', 'page'); else link.removeAttribute('aria-current');
       if(selected&&matchMedia('(max-width:700px)').matches)link.scrollIntoView({block:'nearest',inline:'center'});
       if(link.hash==='#connected-revisions')link.textContent=profile?.role==='admin'?'Revision Tests':'My results';
-      link.hidden = link.hash === '#connected-groups' && profile?.role !== 'admin';
+      if(link.hash==='#connected-attendance'&&profile?.role!=='admin')link.hidden=true;
+      link.hidden = ['#connected-groups','#connected-attendance'].includes(link.hash) && profile?.role !== 'admin';
     });
     if (focus) {const heading = $(visible[0]).querySelector('h2'); if (heading) {heading.tabIndex = -1; heading.focus({preventScroll:true});} $(visible[0]).scrollIntoView({block:'start'});}
     window.MoonMiniApp?.fitChat();
@@ -123,6 +128,8 @@
     const [decks, extra, coursework, plans, revisions, myImt] = await Promise.all([request('/decks'), request(me.role === 'admin' ? '/groups' : '/study'), MoonCoursework.load(request, me), request('/plans'), MoonRevisions.load(request, me), me.role==='student'?request('/imt/my').catch(error=>({loadError:error.message})):null]);
     if (version !== generation || !token) return;
     profile = me; $('sign-in').hidden = true; $('workspace').hidden = false;
+    window.MoonCourseworkFiles?.configure({request,audioRequest,studentKey:me.pseudonym||'teacher'});
+    window.MoonCourseworkReview?.mount({profile:me,groups:me.role==='admin'?extra:[],request,audioRequest});
     document.body.classList.add('campus-connected');
     $('connected-profile')?._profileCleanup?.();window.MoonProfile?.render({profile:me,request});
     window.MoonHome?.render({profile:me,groups:me.role==='admin'?extra:[],coursework,plans,myImt,request});

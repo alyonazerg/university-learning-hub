@@ -4,6 +4,8 @@ This is a development backlog, not a statement that the learning engine or offic
 
 Teacher accepted this sequence on 15 October. Source-based task definitions and the group journal contract now live in `course-task-catalog.md`. IMT and extra are optional for both courses; an unselected optional task is never shown as a debt. The supplied grammar journal is a read-only layout/calculation reference, not data to publish or import wholesale. The subsequently supplied rating-plan DOCX defines grammar's 65 current-work + 15 extra + 20 credit structure; conflicting sheet maxima are not copied as policy. Teacher confirmed task maxima 2/3/3 for every grammar IMT topic, distinct from category caps. Remaining scoring decisions are flagged in the catalogue.
 
+Implementation progress: the first connected assignment/catalogue → submission → durable AI queue → teacher approval → capped journal/XP flow is now implemented. See `coursework-implementation.md` for scope, tests, deployment and remaining work. The broader mastery, KTP, team-reservation and historical-result-linking stages remain pending.
+
 ## Foundation and group management
 
 Groups have editable name, course (Speaking Practice / English Grammar) and membership. Teacher can transfer students, pause and restore access. Paused accounts remain available in the roster. Transfers revoke former editor privileges and sessions; account identifiers, saved submissions and marks remain unchanged. Historical task/group snapshots are not rewritten. Students join via verified invitations. Current model has one current group per account; simultaneous enrollment in multiple courses requires a separate enrollment model.

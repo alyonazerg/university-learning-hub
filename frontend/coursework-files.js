@@ -1,0 +1,14 @@
+(() => {
+  let request,audioRequest,studentKey='';
+  const n=(tag,text)=>{const e=document.createElement(tag);if(text)e.textContent=text;return e};
+  const key=id=>'moon-coursework-files:'+studentKey+':'+id;
+  window.MoonCourseworkFiles={configure(options){({request,audioRequest,studentKey}=options)},draftKey:id=>'moon-coursework-draft:'+studentKey+':'+id,async download(file){const blob=await audioRequest('/coursework/attachments/'+file.id,{blob:true}),url=URL.createObjectURL(blob),a=n('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)},picker(form,task){
+    const label=n('label','Documents or recordings · up to 3 files, 12 MB each'),input=n('input'),list=n('div'),status=n('p');input.type='file';input.accept='.pdf,.docx,.txt,.mp3,.m4a,.mp4,.webm,.wav';input.multiple=true;label.append(input);label.className='coursework-file-input';form.append(label,n('small','Submit work to keep your files with the attempt. Unsubmitted uploads expire after 24 hours.'),list,status);status.setAttribute('role','status');let files=[],busy=false;
+    try{files=JSON.parse(sessionStorage.getItem(key(task.id))||'[]')}catch{}
+    const storageKey=key(task.id);const persist=()=>{try{sessionStorage.setItem(storageKey,JSON.stringify(files))}catch{}};
+    const paint=()=>{list.replaceChildren();for(const file of files){const row=n('p',file.name+' '),remove=n('button','Remove');remove.type='button';remove.className='secondary';remove.onclick=async()=>{remove.disabled=true;try{await request('/coursework/attachments/'+file.id,'DELETE');files=files.filter(f=>f.id!==file.id);persist();paint()}catch(error){status.textContent=error.message;remove.disabled=false}};row.append(remove);list.append(row)}};paint();
+    busy=true;input.disabled=true;request('/coursework/tasks/'+task.id+'/attachments').then(restored=>{files=restored;persist();paint();if(files.length)status.textContent='Restored files not yet submitted.'}).catch(()=>{}).finally(()=>{busy=false;input.disabled=false});
+    input.onchange=async()=>{if(busy)return;busy=true;input.disabled=true;status.textContent='Uploading…';try{for(const file of input.files){if(files.length>=3)throw Error('Use at most 3 files.');if(file.size>12*1024*1024)throw Error('Use files up to 12 MB or a private link for a larger recording.');const body=new FormData();body.append('file',file);const uploaded=await audioRequest('/coursework/tasks/'+task.id+'/attachments',{method:'POST',body});files.push(uploaded);persist();paint()}status.textContent='Uploaded. Submit work to attach these files to your attempt.'}catch(error){status.textContent=error.message+' Your uploaded files are kept.'}finally{busy=false;input.disabled=false;input.value=''}};
+    return {get ids(){return files.map(f=>f.id)},get busy(){return busy},clear(){files=[];persist()}};
+  }};
+})();

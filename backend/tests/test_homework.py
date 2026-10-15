@@ -125,15 +125,15 @@ def test_attendance_uses_aliases_is_private_and_never_grants_compensation(client
     assert client.put(path, headers=elevated, json=marks).status_code == 200
     own = client.get('/learning/attendance', headers=first)
     assert own.headers['cache-control'] == 'no-store'
-    assert own.json()[0]['marks'] == [{'student_id': profile['public_id'], 'pseudonym': profile['pseudonym'], 'status': 'excused'}]
-    assert client.get('/learning/attendance', headers=second).json()[0]['marks'][0]['status'] == 'late'
+    assert own.json() == []
+    assert client.get('/learning/attendance', headers=second).json() == []
     assert 'telegram_user_id' not in own.text and 'legal_name' not in own.text and other['public_id'] not in own.text
     with SessionLocal() as session:
         assert session.query(CompensationAccess).count() == 0
     # Mixed invalid batches cannot partially rewrite valid marks.
     invalid = {'marks': [{'student_id': profile['public_id'], 'status': 'absent'}, {'student_id': str(uuid4()), 'status': 'present'}]}
     assert client.put(path, headers=elevated, json=invalid).status_code == 404
-    assert client.get('/learning/attendance', headers=first).json()[0]['marks'][0]['status'] == 'excused'
+    assert next(m for m in client.get('/learning/attendance',headers=elevated).json()[0]['marks'] if m['student_id']==profile['public_id'])['status']=='excused'
     foreign_group = client.post('/learning/groups', headers=elevated, json={'name': 'Other', 'course_id': 'grammar'}).json()['id']
     foreign = client.post('/learning/attendance', headers=elevated, json={**lesson_body, 'group_id': foreign_group}).json()
-    assert len(client.get('/learning/attendance', headers=first).json()) == 1
+    assert client.get('/learning/attendance', headers=first).json() == []

@@ -113,6 +113,7 @@ class HomeworkTask(Base):
     vocabulary: Mapped[list] = mapped_column(JSON, default=list)
     constructions: Mapped[list] = mapped_column(JSON, default=list)
     criteria: Mapped[str] = mapped_column(Text, default='')
+    assessment_config: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
@@ -139,6 +140,8 @@ class HomeworkSubmission(Base):
     kind: Mapped[str] = mapped_column(String(16))
     content: Mapped[str] = mapped_column(Text)
     photos: Mapped[list] = mapped_column(JSON, default=list)
+    snapshot: Mapped[dict] = mapped_column(JSON, default=dict)
+    review_version: Mapped[int] = mapped_column(default=0)
     request_id: Mapped[str] = mapped_column(String(36))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     late: Mapped[bool] = mapped_column(Boolean)
@@ -346,3 +349,45 @@ class StudentXpEvent(Base):
     points: Mapped[int] = mapped_column()
     policy_version: Mapped[str] = mapped_column(String(20), default='milestones-v1')
     occurred_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+class CourseworkAiJob(Base):
+    __tablename__ = 'coursework_ai_jobs'
+    submission_id: Mapped[str] = mapped_column(ForeignKey('homework_submissions.id'), primary_key=True)
+    status: Mapped[str] = mapped_column(String(20), default='queued', index=True)
+    attempts: Mapped[int] = mapped_column(default=0)
+    lease: Mapped[str] = mapped_column(String(36), default='')
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    result: Mapped[dict] = mapped_column(JSON, default=dict)
+    error: Mapped[str] = mapped_column(String(300), default='')
+
+class CourseworkReview(Base):
+    __tablename__ = 'coursework_reviews'
+    __table_args__ = (UniqueConstraint('submission_id','version',name='uq_coursework_review_version'),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    submission_id: Mapped[str] = mapped_column(ForeignKey('homework_submissions.id'), index=True)
+    version: Mapped[int] = mapped_column()
+    decision: Mapped[str] = mapped_column(String(24))
+    points: Mapped[int | None] = mapped_column(nullable=True)
+    comment: Mapped[str] = mapped_column(Text)
+    scores: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+class CourseworkCredit(Base):
+    __tablename__ = 'coursework_credits'
+    task_id: Mapped[str] = mapped_column(ForeignKey('homework_tasks.id'), primary_key=True)
+    student_id: Mapped[int] = mapped_column(ForeignKey('students.id'), primary_key=True)
+    submission_id: Mapped[str] = mapped_column(ForeignKey('homework_submissions.id'))
+    review_id: Mapped[str] = mapped_column(ForeignKey('coursework_reviews.id'))
+    points: Mapped[int] = mapped_column()  # Hundredths of an academic point, never floats.
+    xp: Mapped[int] = mapped_column(default=0)
+
+class CourseworkAttachment(Base):
+    __tablename__ = 'coursework_attachments'
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda:str(uuid.uuid4()))
+    student_id: Mapped[int] = mapped_column(ForeignKey('students.id'))
+    task_id: Mapped[str] = mapped_column(ForeignKey('homework_tasks.id'))
+    submission_id: Mapped[str | None] = mapped_column(ForeignKey('homework_submissions.id'), nullable=True, index=True)
+    name: Mapped[str] = mapped_column(String(160))
+    mime: Mapped[str] = mapped_column(String(100))
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    created_at: Mapped[datetime] = mapped_column(DateTime,default=datetime.utcnow)

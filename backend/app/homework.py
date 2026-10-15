@@ -12,6 +12,7 @@ from sqlalchemy.exc import IntegrityError
 from .learning import StrictModel, database, principal, administrator, no_store, group_for, now
 from .models import (Student, HomeworkTask, HomeworkGroup, CompensationAccess,
                      HomeworkSubmission, HomeworkFeedback, AttendanceLesson, AttendanceMark)
+from .coursework_contracts import AssessmentConfig,configuration
 
 router = APIRouter(prefix='/learning', tags=['homework and attendance'], dependencies=[Depends(no_store)])
 
@@ -38,6 +39,7 @@ class TaskInput(StrictModel):
     vocabulary: list[str] = Field(default_factory=list, max_length=100)
     constructions: list[str] = Field(default_factory=list, max_length=100)
     criteria: str = Field(default='', max_length=10000)
+    assessment: AssessmentConfig | None = None
 
     @field_validator('starts_at', 'ends_at', 'test_at')
     @classmethod
@@ -99,10 +101,11 @@ class SubmissionInput(StrictModel):
     content: str = Field(default='', max_length=20000)
     photos: list[PhotoInput] = Field(default_factory=list, max_length=3)
     request_id: UUID
+    attachment_ids: list[UUID] = Field(default_factory=list,max_length=3)
 
     @model_validator(mode='after')
     def answer(self):
-        if not self.content and not self.photos:
+        if not self.content and not self.photos and not self.attachment_ids:
             raise ValueError('Add text, link or photos')
         if self.kind == 'link':
             try:
@@ -176,7 +179,7 @@ def task_view(task, actor, session):
             'test_at': iso(task.test_at), 'checkpoint_id': task.checkpoint_id, 'allowed': allowed,
             'description': task.description if allowed else '', 'vocabulary': task.vocabulary if allowed else [],
             'constructions': task.constructions if allowed else [], 'criteria': task.criteria if allowed else '',
-            'max_attempts': 3}
+            'max_attempts': 3,'assessment':task.assessment_config,'optional':task.kind in ('imt','extra')}
 
 
 @router.get('/tasks')
@@ -197,7 +200,8 @@ def create_task(payload: TaskInput, actor=Depends(administrator), session=Depend
         checkpoint = task_for(str(payload.checkpoint_id), actor, session)
         if checkpoint.kind != 'checkpoint' or not set(payload.group_ids) <= set(group_ids(checkpoint, session)):
             raise HTTPException(422, 'Compensation must use groups of its checkpoint')
-    values = payload.model_dump(exclude={'group_ids', 'checkpoint_id'})
+    values = payload.model_dump(exclude={'group_ids', 'checkpoint_id','assessment'})
+    values['assessment_config']=configuration(payload.assessment,groups[0].course_id,payload.kind)
     task = HomeworkTask(**values, course_id=groups[0].course_id,
                         checkpoint_id=str(payload.checkpoint_id) if payload.checkpoint_id else None)
     session.add(task)
@@ -243,10 +247,11 @@ def set_access(task_id: str, payload: AccessInput, actor=Depends(administrator),
     return {'student_id': learner.public_id, 'certificate_checked': access.certificate_checked}
 
 
-def submission_view(submission, session):
+def submission_view(submission, session, teacher=True):
     feedback = session.get(HomeworkFeedback, submission.id)
     learner = session.get(Student, submission.student_id)
-    return {'id': submission.id, 'task_id': submission.task_id, 'student_id': learner.public_id,
+    from .coursework import assessment_view
+    return {**assessment_view(submission,session,teacher),'id': submission.id, 'task_id': submission.task_id, 'student_id': learner.public_id,
             'pseudonym': learner.pseudonym, 'attempt': submission.attempt, 'kind': submission.kind,
             'content': submission.content, 'photos': submission.photos, 'created_at': iso(submission.created_at),
             'late': submission.late, 'feedback': feedback.comment if feedback else '',
@@ -259,7 +264,7 @@ def submissions(task_id: str, actor=Depends(principal), session=Depends(database
     query = select(HomeworkSubmission).where(HomeworkSubmission.task_id == task_id)
     if actor.role == 'student':
         query = query.where(HomeworkSubmission.student_id == actor.student_id)
-    return [submission_view(item, session) for item in session.scalars(query.order_by(HomeworkSubmission.created_at, HomeworkSubmission.attempt))]
+    return [submission_view(item, session,actor.role=='admin') for item in session.scalars(query.order_by(HomeworkSubmission.created_at, HomeworkSubmission.attempt))]
 
 
 @router.post('/tasks/{task_id}/submissions', status_code=201)
@@ -279,7 +284,10 @@ def submit(task_id: str, payload: SubmissionInput, actor=Depends(principal), ses
     if previous:
         if (previous.task_id, previous.kind, previous.content, previous.photos) != (task_id, payload.kind, payload.content, photos):
             raise HTTPException(409, 'Request already used for another submission')
-        return submission_view(previous, session)
+        from .models import CourseworkAttachment
+        linked=set(session.scalars(select(CourseworkAttachment.id).where(CourseworkAttachment.submission_id==previous.id)))
+        if linked!={str(i) for i in payload.attachment_ids}:raise HTTPException(409,'Request already used for another submission')
+        return submission_view(previous, session,False)
     attempt = (session.scalar(select(func.max(HomeworkSubmission.attempt)).where(HomeworkSubmission.task_id == task_id, HomeworkSubmission.student_id == actor.student_id)) or 0) + 1
     if attempt > 3:
         raise HTTPException(409, 'All three attempts used')
@@ -287,12 +295,23 @@ def submit(task_id: str, payload: SubmissionInput, actor=Depends(principal), ses
         kind=payload.kind, content=payload.content, photos=photos, request_id=str(payload.request_id),
         created_at=timestamp, late=timestamp > task.ends_at)
     session.add(submission)
+    try:session.flush()
+    except IntegrityError:
+        session.rollback();raise HTTPException(409,'Submission changed concurrently; refresh')
+    from .models import CourseworkAiJob,CourseworkAttachment
+    attachments=[]
+    for identifier in payload.attachment_ids:
+        file=session.scalar(select(CourseworkAttachment).where(CourseworkAttachment.id==str(identifier)).with_for_update())
+        if not file or file.student_id!=actor.student_id or file.task_id!=task.id or file.submission_id:raise HTTPException(409,'Attachment is unavailable; upload it again')
+        attachments.append(file);file.submission_id=submission.id
+    submission.snapshot={'assessment':dict(task.assessment_config or {}),'title':task.title,'description':task.description,'criteria':task.criteria,'vocabulary':task.vocabulary,'constructions':task.constructions,'course_id':task.course_id,'group_id':session.get(Student,actor.student_id).group_id}
+    if task.assessment_config.get('ai_enabled'):session.add(CourseworkAiJob(submission_id=submission.id))
     try:
         session.commit()
     except IntegrityError:
         session.rollback()
         raise HTTPException(409, 'Submission changed concurrently; refresh')
-    return submission_view(submission, session)
+    return submission_view(submission, session,False)
 
 
 @router.put('/submissions/{submission_id}/feedback')
@@ -328,6 +347,7 @@ def lesson_view(lesson, actor, session):
 
 @router.get('/attendance')
 def attendance(actor=Depends(principal), session=Depends(database)):
+    if actor.role!='admin':return []  # Private teacher bookkeeping, never a student score.
     query = select(AttendanceLesson)
     if actor.role == 'student':
         query = query.where(AttendanceLesson.group_id == session.get(Student, actor.student_id).group_id)

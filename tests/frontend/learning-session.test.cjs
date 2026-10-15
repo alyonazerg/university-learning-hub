@@ -16,7 +16,7 @@ async function open(t,connected=true) {
   let api;
   let port;
   async function startApi() {
-    api = spawn(python,['-m','uvicorn','app.main:app','--host','127.0.0.1','--port',String(port)],{cwd:path.join(root,'backend'),env});
+    api = spawn(python,['-m','uvicorn','app.main:app','--host','127.0.0.1','--port',String(port),'--timeout-graceful-shutdown','2'],{cwd:path.join(root,'backend'),env});
     await new Promise((resolve,reject)=>{api.stderr.on('data',data=>{if(data.toString().includes('Application startup complete')) resolve();});api.on('error',reject);api.on('exit',code=>reject(new Error('API exited '+code)));});
   }
   if(connected) {
@@ -171,15 +171,16 @@ test('coursework, certificate access, photos and alias attendance survive a real
   await page.locator('#refresh-account').click();
   await compensation.getByRole('button', {name:'Submit work'}).waitFor();
   await compensation.locator('textarea').fill('A moonlit night. Would you like to visit?');
-  await compensation.locator('input[type=file]').setInputFiles({name:'synthetic.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a9V8AAAAASUVORK5CYII=','base64')});
+  await compensation.locator('input[type=file]').first().setInputFiles({name:'synthetic.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a9V8AAAAASUVORK5CYII=','base64')});
   await compensation.locator('form .photo-gallery img').waitFor();
   await compensation.getByRole('button', {name:'Submit work'}).click();
   await page.getByText('Work saved.', {exact:true}).waitFor();
   await adminPage.locator('#refresh-account').click();
   const adminCompensation = adminPage.locator('#connected-coursework article').filter({has:adminPage.getByRole('heading', {name:'October compensation', exact:true})});
   await adminCompensation.locator('textarea').fill('Good use of moonlit.');
-  await adminCompensation.getByRole('button', {name:'Save feedback'}).click();
-  await adminPage.getByText('Feedback saved.', {exact:true}).waitFor();
+  await adminCompensation.locator('.coursework-grade-form input[type=number]').fill('3');
+  await adminCompensation.getByRole('button', {name:'Save assessment'}).click();
+  await adminCompensation.getByRole('status').filter({hasText:'Saved'}).waitFor();
   await section(adminPage,'connected-attendance');await adminPage.getByText('Add lesson manually',{exact:true}).click();await adminPage.locator('#server-lesson-title').fill('Speech practice · October');
   await adminPage.getByRole('button', {name:'Add lesson',exact:true}).click();
   await adminPage.getByText('Lesson saved.', {exact:true}).waitFor();
@@ -193,13 +194,13 @@ test('coursework, certificate access, photos and alias attendance survive a real
   await lesson.getByRole('button', {name:'Save attendance', exact:true}).click();
   await adminPage.getByText('Attendance saved.', {exact:true}).waitFor();
   await restart(); await page.reload(); await student(page);await section(page,'connected-coursework');
-  await compensation.getByText('Teacher feedback: Good use of moonlit.', {exact:true}).waitFor();
+  await compensation.getByText('3 / 3 points · Good use of moonlit.', {exact:true}).waitFor();
   assert.equal(await compensation.locator('.submission-card .photo-gallery img').count(),1);
   assert.match(await compensation.textContent(), /Attempts used: 1 of 3/);
-  assert.match(await page.locator('#connected-attendance').textContent(), /Present: 1/);
+  assert.match(await page.locator('#connected-attendance').textContent(), /private teacher bookkeeping/);
   assert(!((await page.locator('#connected-attendance').textContent()).includes('Silver Willow')));
   const second = await pageFor(12); await student(second);
-  assert.match(await second.locator('#connected-attendance').textContent(), /Late: 1/);
+  assert.match(await second.locator('#connected-attendance').textContent(), /private teacher bookkeeping/);
   assert.equal(await second.locator('.submission-card').count(),0);
   const foreign = await pageFor(22); await student(foreign);
   assert.equal(await foreign.locator('#connected-attendance article').count(),0);
@@ -274,6 +275,27 @@ test('teacher edits group details and transfers students without deleting their 
   await page.reload();await page.locator('#workspace').waitFor();await section(page,'connected-groups');
   assert.equal(await page.locator('#group-editors article').first().locator('h3').textContent(),'Updated constellation');
   assert.deepEqual(errors,[]);
+});
+
+test('catalogue assignment is submitted, approved and shown in the live journal after reload',async t=>{
+  const {pageFor,errors,restart}=await open(t);const teacherPage=await pageFor();await teacher(teacherPage);await section(teacherPage,'connected-coursework');
+  await teacherPage.getByText('Create assignment',{exact:true}).click();
+  await teacherPage.locator('#server-task-kind').selectOption('imt');
+  await teacherPage.locator('.assignment-policy select').first().selectOption('speech-mindmap');
+  await teacherPage.getByRole('checkbox',{name:'Assignment for Synthetic speech'}).check();
+  await teacherPage.locator('#server-task-save').click();await teacherPage.getByText('Assignment saved for the selected groups.',{exact:true}).waitFor();
+  const learner=await pageFor(11);await student(learner);await section(learner,'connected-coursework');
+  const answer=learner.locator('form[data-submission-for]');await answer.locator('textarea').fill('My mind map groups vocabulary about work, study and money, with forms, collocations and examples.');await answer.getByRole('button',{name:'Submit work',exact:true}).click();await learner.getByText('Work saved.',{exact:true}).waitFor();
+  await section(teacherPage,'connected-review-queue');try{await teacherPage.locator('.coursework-grade-form').waitFor({timeout:6000})}catch(error){assert.fail(JSON.stringify({errors,queue:await teacherPage.locator('#connected-review-queue').innerText(),classes:await teacherPage.locator('#connected-review-queue').getAttribute('class')}))}
+  for(const width of [320,390,1280]){await teacherPage.setViewportSize({width,height:844});assert(await teacherPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))}
+  await teacherPage.setViewportSize({width:390,height:844});await teacherPage.screenshot({path:'/tmp/coursework-teacher-queue.png',fullPage:true});
+  const grade=teacherPage.locator('.coursework-grade-form');await grade.locator('input[type=number]').nth(0).fill('1');await grade.locator('input[type=number]').nth(1).fill('1');await grade.locator('textarea').fill('Clear vocabulary groups and useful examples.');await grade.getByRole('button',{name:'Save assessment',exact:true}).click();await grade.getByRole('status').filter({hasText:'Saved'}).waitFor();
+  await section(teacherPage,'connected-journal');await teacherPage.locator('.coursework-journal').waitFor();assert.match(await teacherPage.locator('.coursework-journal').innerText(),/Silver Fern/);assert.match(await teacherPage.locator('.coursework-journal').innerText(),/Graded/);
+  await restart();await learner.reload();await learner.locator('#workspace').waitFor();await section(learner,'connected-journal');await learner.locator('.coursework-journal').waitFor();
+  assert.match(await learner.locator('.coursework-journal').innerText(),/Clear vocabulary groups/);assert(!/Silver Willow/.test(await learner.locator('.coursework-journal').innerText()));
+  assert.equal(await learner.locator('.dashboard-links a[href="#connected-attendance"]').isVisible(),false);
+  for(const width of [320,390,1280]){await learner.setViewportSize({width,height:844});assert(await learner.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))}
+  await learner.screenshot({path:'/tmp/coursework-student-journal.png',fullPage:true});assert.deepEqual(errors,[]);
 });
 
 test('teacher creates a real single-student Telegram invitation in the group cabinet', async t => {

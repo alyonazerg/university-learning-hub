@@ -12,4 +12,4 @@ COPY tests ./tests
 COPY alembic ./alembic
 COPY revision_materials ./revision_materials
 COPY alembic.ini ./alembic.ini
-CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --timeout-graceful-shutdown 10"]

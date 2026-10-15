@@ -14,6 +14,7 @@ services:
       retries: 10
   api:
     build: ./backend
+    stop_grace_period: 15s
     env_file: .env
     ports:
       - "127.0.0.1:8000:8000"
@@ -24,6 +25,14 @@ services:
     build: ./frontend
     ports:
       - "127.0.0.1:8080:80"
+    depends_on:
+      - api
+  coursework-worker:
+    build: ./backend
+    env_file: .env
+    command: ["python", "-m", "app.coursework_worker"]
+    restart: unless-stopped
+    stop_grace_period: 110s
     depends_on:
       - api
 volumes:

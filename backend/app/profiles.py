@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import Field, field_validator
 from sqlalchemy.exc import IntegrityError
 from .learning import StrictModel, principal, database, no_store
-from .models import Student, StudentProfile, StudentXpEvent, ImtIdiomCollection, CampusMessage
+from .models import Student, StudentProfile, StudentXpEvent, ImtIdiomCollection, CampusMessage,CourseworkCredit
 
 router = APIRouter(prefix='/learning/profile', dependencies=[Depends(no_store)])
 MILESTONES = {
@@ -72,7 +72,7 @@ def view(session, student, own=False):
         'achievements': [{'key': e.milestone, 'label': MILESTONES[e.milestone][0], 'icon': MILESTONES[e.milestone][1], 'points': e.points} for e in events],
     }
     if own or (profile and profile.share_rating):
-        result['xp'] = sum(e.points for e in events)
+        result['xp'] = sum(e.points for e in events)+sum(r.xp for r in session.query(CourseworkCredit).filter_by(student_id=student.id))
     if own:
         result.update(share_profile=bool(profile and profile.share_profile), share_rating=bool(profile and profile.share_rating))
     return result
